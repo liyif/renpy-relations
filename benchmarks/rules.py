@@ -14,7 +14,7 @@ import traceback
 from run import ROOT, CLIENT_TIMEZONE, atomic_json, memory, runtime_info
 
 
-def dataset(facts, ratio, shape):
+def dataset(facts, ratio, shape, *, conditions=None):
     columns = {"flag": "text", "enabled": "integer"}
     declarations = {"GlobalState": {"columns": {"enabled": "integer"}},
                     "Blocked": {"columns": {"flag": "text"}},
@@ -24,8 +24,9 @@ def dataset(facts, ratio, shape):
     else:
         declarations.update({f"State{d}": {"columns": columns} for d in range(32)})
     derived = {}
-    per_domain = facts * ratio // 32
     for domain in range(32):
+        per_domain = (facts * ratio // 32 if conditions is None else
+                      2 + conditions // 32 + int(domain < conditions % 32))
         for i in range(per_domain):
             name = f"D{domain}Rule{i}"
             if i == 0:
@@ -39,6 +40,11 @@ def dataset(facts, ratio, shape):
                 sql = (f"SELECT flag FROM D{domain}Rule1 r WHERE EXISTS "
                        "(SELECT 1 FROM GlobalState WHERE enabled=1) AND NOT EXISTS "
                        "(SELECT 1 FROM Blocked b WHERE b.flag=r.flag)")
+                if conditions is not None:
+                    ordinal = i - 2
+                    modulus = ordinal + 2
+                    forbidden = ordinal % 2
+                    sql += f" AND CAST(substr(r.flag,2) AS INTEGER) % {modulus} != {forbidden}"
             derived[name] = {"columns": {"flag": "text"}, "sql": sql}
     return {"format": "renpy-relations", "version": 1, "facts": declarations, "derived": derived}
 
@@ -77,16 +83,36 @@ def worker(args):
         atomic_json(args.result, record)
         return value
 
-    panel = [(d, f"D{d}Rule{i}") for d in range(12) for i in (2, 3)]
+    condition_count = getattr(args, "condition_count", None)
+    panel = ([(d, f"D{d}Rule{i}", i - 2) for d in range(12) for i in (2, 3)]
+             if condition_count is None else
+             [(d, f"D{d}Rule{i+2}", i) for d in range(32)
+              for i in range(condition_count // 32 + int(d < condition_count % 32))])
+    record["conditions"] = len(panel)
+    if condition_count is not None:
+        record["rules"] = condition_count + 64
 
     def read_panel(local=False, global_off=False):
         samples = []
-        for domain, name in panel:
+        for domain, name, ordinal in panel:
             start = perf_counter()
             actual = db.has(name, flag="v0")
             samples.append(perf_counter() - start)
-            assert actual == (not global_off and not (local and domain == 0)), name
+            expected = not global_off and not (local and domain == 0)
+            if condition_count is not None:
+                expected = expected and 0 != ordinal % 2
+            assert actual == expected, name
         return samples
+
+    def save_samples(phase, samples):
+        if condition_count is None:
+            record["phases"][phase]["samples_seconds"] = samples
+        else:
+            ordered = sorted(samples)
+            record["phases"][phase].update(
+                request_count=len(samples), request_median_seconds=statistics.median(samples),
+                request_p95_seconds=ordered[(len(ordered)*95+99)//100-1],
+                request_min_seconds=ordered[0], request_max_seconds=ordered[-1])
 
     def change(domain=False, global_off=False, note=False):
         with db.batch():
@@ -111,11 +137,12 @@ def worker(args):
         measure("ingest", lambda: populate(db, args.facts, args.shape))
         for phase in ("cold_panel", "warm_panel"):
             samples = measure(phase, read_panel)
-            record["phases"][phase]["samples_seconds"] = samples
-        measure("history_all", lambda: [db.has(n, flag="v0") for n in document["derived"]])
+            save_samples(phase, samples)
+        if condition_count is None:
+            measure("history_all", lambda: [db.has(n, flag="v0") for n in document["derived"]])
         # Full independent oracle, after the timed history pass has already
         # visited all rules: validation does not warm additional relations.
-        for domain in range(32):
+        for domain in range(32) if condition_count is None else ():
             expected = {f"v{i // 32}" for i in range(domain, args.facts - 2, 32)}
             for i in range(args.facts * args.ratio // 32):
                 rows = db.query(f"D{domain}Rule{i}")
@@ -130,7 +157,7 @@ def worker(args):
             after = db.stats()
             record[phase + "_invalidated"] = len(before["cached_relations"]) - len(after["cached_relations"])
             samples = measure(phase + "_panel", lambda: read_panel(local, global_off))
-            record["phases"][phase + "_panel"]["samples_seconds"] = samples
+            save_samples(phase + "_panel", samples)
             record[phase + "_rebuilt"] = sum(db.stats()["materializations"].values()) - sum(after["materializations"].values())
         assert sum(len(db.query(n)) for n in document["facts"]) == args.facts
         record.update(status="ok", **memory())
@@ -192,7 +219,13 @@ def main():
     p.add_argument("--mode", help=argparse.SUPPRESS)
     p.add_argument("--variant", help=argparse.SUPPRESS)
     p.add_argument("--repeat", type=int, help=argparse.SUPPRESS)
+    p.add_argument("--condition-count", type=int, help=argparse.SUPPRESS)
     args = p.parse_args()
+    if args.worker and args.condition_count is not None:
+        if len(args.facts) != 1 or args.facts[0] < 34 or args.condition_count < 32:
+            p.error("condition worker requires >=34 facts and >=32 conditions")
+        args.facts = args.facts[0]
+        return worker(args)
     if min(args.facts) < 128 or any(n % 32 for n in args.facts) or min(args.ratios) < 1 or args.repetitions < 1:
         p.error("facts must be multiples of 32 >=128; ratios and repetitions must be positive")
     if args.worker:

@@ -163,15 +163,17 @@ uv run --locked python benchmarks/run.py \
 
 [测量协议](benchmarks/DESIGN.md) · [实测解读](benchmarks/README.md) · [完整基准报告](benchmarks/results/2026-10-13-sdk-baseline/REPORT.md)
 
-视觉小说的多条件负载另有基准：128／512 条事实，事实数:派生规则数为 1:1／1:10；每次行动只读 24 个条件。对照旧版全局失效与 SQL 依赖图失效，涵盖独立事实关系和通用状态表两种布局。
+多条件负载每轮实际读取 **1,000／3,000／10,000 个不同派生条件**，另有 64 个共享前置关系。事实数:总派生规则数为 1:1／约 1:10。对照旧版全局失效与 SQL 依赖图失效，涵盖独立事实关系和通用状态表两种布局、三模式、三次独立重复。
 
 ```sh
-uv run --locked python benchmarks/rules.py \
+uv run --locked python benchmarks/conditions.py \
   --python /path/to/renpy-sdk/lib/py3-linux-x86_64/python \
   --packages examples/palace/game/python-packages
 ```
 
-[多规则协议](benchmarks/RULES_DESIGN.md) · [多规则结果解读](benchmarks/MANY_RULES.md) · [完整对照报告](benchmarks/results/2026-10-13-many-rules/REPORT.md)
+[千至万条件协议](benchmarks/CONDITIONS_DESIGN.md) · [结果解读](benchmarks/CONDITIONS.md) · [完整对照报告](benchmarks/results/2026-10-13-1000-10000-conditions/REPORT.md)
+
+`--conditions` 可指定实际读取数；`--ratios`、`--shapes`、`--modes`、`--variants`、`--repetitions` 可缩小对照范围。旧 24 条件脚本与[历史结果](benchmarks/MANY_RULES.md)保留供复现。
 
 ## 验证
 
