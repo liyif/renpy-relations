@@ -137,7 +137,27 @@ uv run --locked python compile_rules.py examples/palace/world.l \
 - 规则 SQL 是受信任的构建产物；校验不是针对任意恶意 SQL 的安全沙箱。
 - 快照是带版本与事实 schema 标识的压缩 JSON，只保存事实。首次原型的 SQLite 内存镜像不兼容，本轮没有存档迁移。
 - 所有事实修改必须经过后端接口。运行方式同步、单线程，缓存采用全局失效，未做增量维护。
-- 每次实际事实提交生成完整逻辑快照；大事实集上的成本仍需要测量，使用 batch 合并一次游戏行动。
+- 每次实际事实提交生成完整逻辑快照；使用 batch 合并一次游戏行动。大事实集上的成本见下述基准。
+
+## 大数据基准
+
+基准复用 palace 的真实编译规则，比较三种模式在 1 万／10 万／100 万角色上的读取、提交、快照、恢复、规则重载和进程内存。默认每种条件三次独立进程重复，保留原始样本及失败记录。
+
+```sh
+uv run --locked python benchmarks/run.py
+```
+
+默认使用 uv 的 Python。指定 Ren’Py 内置运行时：
+
+```sh
+uv run --locked python benchmarks/run.py \
+  --python /path/to/renpy-sdk/lib/py3-linux-x86_64/python \
+  --packages examples/palace/game/python-packages
+```
+
+可用 `--sizes 1000 --repetitions 1` 做快速检查；`--out` 必须指向空目录。输出 JSON、CSV、Markdown，生成的大型快照不提交。SDK 后端测量不包含界面和回滚历史成本。
+
+[测量协议](benchmarks/DESIGN.md) · [实测解读](benchmarks/README.md) · [完整基准报告](benchmarks/results/2026-10-13-sdk-baseline/REPORT.md)
 
 ## 验证
 

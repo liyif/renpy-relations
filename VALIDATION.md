@@ -19,7 +19,7 @@ uv run --locked python -m pytest
 uv run --locked python -m py_compile renpy_relations.py compile_rules.py check_renpy.py
 ```
 
-结果：**60 项通过**（48 项后端／接入约定、8 项真实 Logica 编译与构建、4 项测试启动器检查），Python 编译检查通过。
+结果：**68 项通过**（48 项后端／接入约定、8 项真实 Logica 编译与构建、4 项测试启动器检查、8 项基准检查）。原有三个模块的 Python 编译检查通过。
 
 覆盖事实去重与主键冲突、三种执行模式、导出关系的依赖缓存、SQL 过滤语义、输出类型／NULL、事务失败、快照拒绝与恢复、异常数值快照、正确／错误热重载、schema 不兼容、编译失败保留旧产物、编辑途中不发布混合产物、构建观察、自动重载错误去重与开发模式开关，以及测试进程的成功／失败／超时／带颜色报告。
 
@@ -62,8 +62,26 @@ Lint 通过，无脚本错误；SDK 仍输出常规的属性冲突检查建议�
 
 设计符合性审查确认规则编译、关系级惰性物化、原子重载、事实快照及 uv 管理有实现与验证。复核发现的带颜色测试报告识别问题已修复，新增检查通过。真实引擎测试另外发现并修复了检查屏幕文本转义和 Python 模块中的 Ren’Py 日志命名空间问题。
 
+基准脚本新增的独立 Standards／Spec 审查发现两类问题：中断后的旧结果可能被复用、子进程启动失败未写失败报告。现已在启动前清理目标记录、拒绝非空输出目录，并将启动异常记录为失败；新增回归检查和两轴复核通过。
+
 当前未处理的审查发现：Standards 0，Spec 0。
+
+## 大数据基准
+
+```sh
+uv run --locked python benchmarks/run.py \
+  --python /path/to/renpy-sdk/lib/py3-linux-x86_64/python \
+  --packages examples/palace/game/python-packages \
+  --out benchmarks/results/2026-10-13-sdk-baseline
+uv run --locked python -m py_compile benchmarks/run.py
+```
+
+在上述 SDK 环境中，10,000／100,000／1,000,000 角色、三模式、三次重复的 **27 次模式测试及 3 次公开导入全部成功**。每种条件 36 个 warm has／query 样本；最大档 1,524,372 条事实，预期 CanEnter 4,100,000 行。
+
+原始 JSON 与 CSV 的 387 个阶段逐项对应；所有条件的成功次数、逐请求样本数、同规模 fixture 摘要一致，四份被测源码／锁文件 SHA256 与运行后的文件一致。基准 Python 编译检查通过。运行时与 `c583618` 相同，本轮未改后端。
+
+[完整报告](benchmarks/results/2026-10-13-sdk-baseline/REPORT.md)与[实测解读](benchmarks/README.md)已保存。此次测量直接调用 SDK Python 中的后端；完整 Ren’Py 引擎测试结果仍为前述三模式各 7 个场景，本轮没有将百万事实灌入界面或回滚历史。
 
 ## 尚未验证
 
-Windows、macOS、Android、iOS、Web 发行与打包；大事实集的快照开销；大规则集的性能；完整 Logica 功能覆盖。上述范围没有兼容性或性能结论。第一版不包含存档迁移、增量维护和自定义规则执行器。
+Windows、macOS、Android、iOS、Web 发行与打包；大规则集的性能；完整 Logica 功能覆盖；大数据下完整 Ren’Py 界面、回滚历史与存档归档成本。上述范围没有兼容性或性能结论。第一版不包含存档迁移、增量维护和自定义规则执行器。
