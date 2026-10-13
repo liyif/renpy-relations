@@ -1,0 +1,306 @@
+{
+  "format": "renpy-relations",
+  "version": 1,
+  "facts": {
+    "Clock": {
+      "columns": {
+        "world": "text",
+        "tick": "integer"
+      },
+      "key": [
+        "world"
+      ]
+    },
+    "Presence": {
+      "columns": {
+        "person": "text",
+        "place": "text",
+        "start": "integer",
+        "stop": "integer"
+      }
+    },
+    "Place": {
+      "columns": {
+        "place": "text",
+        "start": "integer",
+        "stop": "integer"
+      },
+      "key": [
+        "place"
+      ]
+    },
+    "Bond": {
+      "columns": {
+        "person": "text",
+        "reason": "text",
+        "weight": "integer"
+      },
+      "key": [
+        "person",
+        "reason"
+      ]
+    },
+    "Knows": {
+      "columns": {
+        "clue": "text"
+      }
+    },
+    "Item": {
+      "columns": {
+        "item": "text",
+        "holder": "text"
+      },
+      "key": [
+        "item"
+      ]
+    },
+    "Consent": {
+      "columns": {
+        "person": "text",
+        "topic": "text"
+      }
+    },
+    "Choice": {
+      "columns": {
+        "topic": "text",
+        "value": "text"
+      },
+      "key": [
+        "topic"
+      ]
+    },
+    "Seen": {
+      "columns": {
+        "scene": "text",
+        "at_tick": "integer"
+      },
+      "key": [
+        "scene"
+      ]
+    },
+    "Scene": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "earliest": "integer",
+        "latest": "integer",
+        "priority": "integer",
+        "cost": "integer"
+      },
+      "key": [
+        "scene"
+      ]
+    },
+    "NeedKnowledge": {
+      "columns": {
+        "scene": "text",
+        "clue": "text"
+      }
+    },
+    "NeedItem": {
+      "columns": {
+        "scene": "text",
+        "item": "text",
+        "holder": "text"
+      }
+    },
+    "NeedConsent": {
+      "columns": {
+        "scene": "text",
+        "person": "text",
+        "topic": "text"
+      }
+    },
+    "NeedChoice": {
+      "columns": {
+        "scene": "text",
+        "topic": "text",
+        "value": "text"
+      }
+    },
+    "NeedBond": {
+      "columns": {
+        "scene": "text",
+        "person": "text",
+        "minimum": "integer"
+      }
+    },
+    "Action": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      }
+    },
+    "ActionNeedsHere": {
+      "columns": {
+        "scene": "text",
+        "action": "text",
+        "person": "text",
+        "place": "text"
+      }
+    },
+    "ActionNeedsBroadcast": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      }
+    },
+    "ActionNeedsChoice": {
+      "columns": {
+        "scene": "text",
+        "action": "text",
+        "topic": "text",
+        "value": "text"
+      }
+    }
+  },
+  "derived": {
+    "Here": {
+      "columns": {
+        "person": "text",
+        "place": "text"
+      },
+      "sql": "WITH t_0_Here_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      Presence.person AS person,\n      Presence.place AS place\n    FROM\n      Clock, Presence\n    WHERE\n      (Clock.tick >= Presence.start) AND\n      (Clock.tick < Presence.stop) AND\n      (Clock.world = 'night')\n   UNION ALL\n  \n    SELECT\n      'self' AS person,\n      Place.place AS place\n    FROM\n      Clock AS t_1_Clock, Place\n    WHERE\n      (t_1_Clock.tick >= Place.start) AND\n      (t_1_Clock.tick < Place.stop) AND\n      (t_1_Clock.world = 'night')\n  \n) AS UNUSED_TABLE_NAME  )\nSELECT\n  Here_MultBodyAggAux.person AS person,\n  Here_MultBodyAggAux.place AS place\nFROM\n  t_0_Here_MultBodyAggAux AS Here_MultBodyAggAux\nGROUP BY Here_MultBodyAggAux.person, Here_MultBodyAggAux.place"
+    },
+    "Trust": {
+      "columns": {
+        "person": "text",
+        "score": "integer"
+      },
+      "sql": "SELECT\n  Bond.person AS person,\n  SUM(Bond.weight) AS score\nFROM\n  Bond\nGROUP BY Bond.person"
+    },
+    "EligibleScene": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "priority": "integer",
+        "cost": "integer"
+      },
+      "sql": "WITH t_1_SceneLocation_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      t_2_Scene.scene AS scene,\n      Here.place AS place\n    FROM\n      Scene AS t_2_Scene, Here\n    WHERE\n      (t_2_Scene.place = 'with_actor') AND\n      (Here.person = t_2_Scene.actor)\n   UNION ALL\n  \n    SELECT\n      t_3_Scene.scene AS scene,\n      t_3_Scene.place AS place\n    FROM\n      Scene AS t_3_Scene, Here AS t_4_Here\n    WHERE\n      (t_3_Scene.place != 'with_actor') AND\n      (t_4_Here.person = t_3_Scene.actor) AND\n      (t_4_Here.place = t_3_Scene.place)\n  \n) AS UNUSED_TABLE_NAME  ),\nt_0_SceneLocation AS (SELECT\n  SceneLocation_MultBodyAggAux.scene AS scene,\n  SceneLocation_MultBodyAggAux.place AS place\nFROM\n  t_1_SceneLocation_MultBodyAggAux AS SceneLocation_MultBodyAggAux\nGROUP BY SceneLocation_MultBodyAggAux.scene, SceneLocation_MultBodyAggAux.place),\nt_5_MissingKnowledge AS (SELECT\n  NeedKnowledge.scene AS scene\nFROM\n  NeedKnowledge\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_46.value)) AS logica_value\n  FROM\n    Knows, JSON_EACH(JSON_ARRAY(0)) as x_46\n  WHERE\n    (Knows.clue = NeedKnowledge.clue)) IS NULL)\nGROUP BY NeedKnowledge.scene),\nt_6_MissingItem AS (SELECT\n  NeedItem.scene AS scene\nFROM\n  NeedItem\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_57.value)) AS logica_value\n  FROM\n    Item, JSON_EACH(JSON_ARRAY(0)) as x_57\n  WHERE\n    (Item.item = NeedItem.item) AND\n    (Item.holder = NeedItem.holder)) IS NULL)\nGROUP BY NeedItem.scene),\nt_7_MissingConsent AS (SELECT\n  NeedConsent.scene AS scene\nFROM\n  NeedConsent\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_68.value)) AS logica_value\n  FROM\n    Consent, JSON_EACH(JSON_ARRAY(0)) as x_68\n  WHERE\n    (Consent.person = NeedConsent.person) AND\n    (Consent.topic = NeedConsent.topic)) IS NULL)\nGROUP BY NeedConsent.scene),\nt_8_MissingChoice AS (SELECT\n  NeedChoice.scene AS scene\nFROM\n  NeedChoice\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_79.value)) AS logica_value\n  FROM\n    Choice, JSON_EACH(JSON_ARRAY(0)) as x_79\n  WHERE\n    (Choice.topic = NeedChoice.topic) AND\n    (Choice.value = NeedChoice.value)) IS NULL)\nGROUP BY NeedChoice.scene),\nt_10_MissingBond_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      NeedBond.scene AS scene\n    FROM\n      NeedBond, Trust\n    WHERE\n      (Trust.score < NeedBond.minimum) AND\n      (Trust.person = NeedBond.person)\n   UNION ALL\n  \n    SELECT\n      t_11_NeedBond.scene AS scene\n    FROM\n      NeedBond AS t_11_NeedBond\n    WHERE\n      ((SELECT\n        MIN(MagicalEntangle(1, x_97.value)) AS logica_value\n      FROM\n        Trust AS t_12_Trust, JSON_EACH(JSON_ARRAY(0)) as x_97\n      WHERE\n        (t_12_Trust.person = t_11_NeedBond.person)) IS NULL)\n  \n) AS UNUSED_TABLE_NAME  ),\nt_9_MissingBond AS (SELECT\n  MissingBond_MultBodyAggAux.scene AS scene\nFROM\n  t_10_MissingBond_MultBodyAggAux AS MissingBond_MultBodyAggAux\nGROUP BY MissingBond_MultBodyAggAux.scene)\nSELECT\n  Scene.scene AS scene,\n  Scene.title AS title,\n  SceneLocation.place AS place,\n  Scene.actor AS actor,\n  Scene.priority AS priority,\n  Scene.cost AS cost\nFROM\n  Scene, t_0_SceneLocation AS SceneLocation, Clock\nWHERE\n  (Clock.tick >= Scene.earliest) AND\n  (Clock.tick < Scene.latest) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_37.value)) AS logica_value\n  FROM\n    Seen, JSON_EACH(JSON_ARRAY(0)) as x_37\n  WHERE\n    (Seen.scene = Scene.scene)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_40.value)) AS logica_value\n  FROM\n    t_5_MissingKnowledge AS MissingKnowledge, JSON_EACH(JSON_ARRAY(0)) as x_40\n  WHERE\n    (MissingKnowledge.scene = Scene.scene)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_49.value)) AS logica_value\n  FROM\n    t_6_MissingItem AS MissingItem, JSON_EACH(JSON_ARRAY(0)) as x_49\n  WHERE\n    (MissingItem.scene = Scene.scene)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_60.value)) AS logica_value\n  FROM\n    t_7_MissingConsent AS MissingConsent, JSON_EACH(JSON_ARRAY(0)) as x_60\n  WHERE\n    (MissingConsent.scene = Scene.scene)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_71.value)) AS logica_value\n  FROM\n    t_8_MissingChoice AS MissingChoice, JSON_EACH(JSON_ARRAY(0)) as x_71\n  WHERE\n    (MissingChoice.scene = Scene.scene)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_82.value)) AS logica_value\n  FROM\n    t_9_MissingBond AS MissingBond, JSON_EACH(JSON_ARRAY(0)) as x_82\n  WHERE\n    (MissingBond.scene = Scene.scene)) IS NULL) AND\n  (SceneLocation.scene = Scene.scene) AND\n  (Clock.world = 'night')\nGROUP BY Scene.scene, Scene.title, SceneLocation.place, Scene.actor, Scene.priority, Scene.cost"
+    },
+    "NextForced": {
+      "columns": {
+        "scene": "text"
+      },
+      "sql": "WITH t_1_HigherForced_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      t_2_EligibleScene.scene AS scene\n    FROM\n      EligibleScene AS t_2_EligibleScene, EligibleScene AS t_3_EligibleScene\n    WHERE\n      (t_3_EligibleScene.priority >= 100) AND\n      (t_3_EligibleScene.priority > t_2_EligibleScene.priority)\n   UNION ALL\n  \n    SELECT\n      t_4_EligibleScene.scene AS scene\n    FROM\n      EligibleScene AS t_4_EligibleScene, EligibleScene AS t_5_EligibleScene\n    WHERE\n      (t_4_EligibleScene.priority >= 100) AND\n      (t_5_EligibleScene.scene < t_4_EligibleScene.scene) AND\n      (t_5_EligibleScene.priority = t_4_EligibleScene.priority)\n  \n) AS UNUSED_TABLE_NAME  ),\nt_0_HigherForced AS (SELECT\n  HigherForced_MultBodyAggAux.scene AS scene\nFROM\n  t_1_HigherForced_MultBodyAggAux AS HigherForced_MultBodyAggAux\nGROUP BY HigherForced_MultBodyAggAux.scene)\nSELECT\n  EligibleScene.scene AS scene\nFROM\n  EligibleScene\nWHERE\n  (EligibleScene.priority >= 100) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_5.value)) AS logica_value\n  FROM\n    t_0_HigherForced AS HigherForced, JSON_EACH(JSON_ARRAY(0)) as x_5\n  WHERE\n    (HigherForced.scene = EligibleScene.scene)) IS NULL)\nGROUP BY EligibleScene.scene"
+    },
+    "Opportunity": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "cost": "integer"
+      },
+      "sql": "WITH t_1_HigherAtPlace_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      t_2_EligibleScene.scene AS scene\n    FROM\n      EligibleScene AS t_2_EligibleScene, EligibleScene AS t_3_EligibleScene\n    WHERE\n      (t_2_EligibleScene.priority < 100) AND\n      (t_3_EligibleScene.priority < 100) AND\n      (t_3_EligibleScene.priority > t_2_EligibleScene.priority) AND\n      (t_3_EligibleScene.place = t_2_EligibleScene.place)\n   UNION ALL\n  \n    SELECT\n      t_4_EligibleScene.scene AS scene\n    FROM\n      EligibleScene AS t_4_EligibleScene, EligibleScene AS t_5_EligibleScene\n    WHERE\n      (t_4_EligibleScene.priority < 100) AND\n      (t_5_EligibleScene.scene < t_4_EligibleScene.scene) AND\n      (t_5_EligibleScene.place = t_4_EligibleScene.place) AND\n      (t_5_EligibleScene.priority = t_4_EligibleScene.priority)\n  \n) AS UNUSED_TABLE_NAME  ),\nt_0_HigherAtPlace AS (SELECT\n  HigherAtPlace_MultBodyAggAux.scene AS scene\nFROM\n  t_1_HigherAtPlace_MultBodyAggAux AS HigherAtPlace_MultBodyAggAux\nGROUP BY HigherAtPlace_MultBodyAggAux.scene)\nSELECT\n  EligibleScene.scene AS scene,\n  EligibleScene.title AS title,\n  EligibleScene.place AS place,\n  EligibleScene.actor AS actor,\n  EligibleScene.cost AS cost\nFROM\n  EligibleScene\nWHERE\n  (EligibleScene.priority < 100) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_13.value)) AS logica_value\n  FROM\n    t_0_HigherAtPlace AS HigherAtPlace, JSON_EACH(JSON_ARRAY(0)) as x_13\n  WHERE\n    (HigherAtPlace.scene = EligibleScene.scene)) IS NULL)\nGROUP BY EligibleScene.scene, EligibleScene.title, EligibleScene.place, EligibleScene.actor, EligibleScene.cost"
+    },
+    "BroadcastReady": {
+      "columns": {
+        "ready": "text"
+      },
+      "sql": "SELECT\n  'yes' AS ready\nFROM\n  Choice, Item, Knows, Knows AS t_0_Knows, Consent, Consent AS t_1_Consent\nWHERE\n  (Choice.topic = 'power') AND\n  (Choice.value = 'on') AND\n  (Item.item = 'master_tape') AND\n  (Item.holder = 'station') AND\n  (Knows.clue = 'recording_edited') AND\n  (t_0_Knows.clue = 'voice_identity') AND\n  (Consent.person = 'cheng') AND\n  (Consent.topic = 'recording') AND\n  (t_1_Consent.person = 'mi') AND\n  (t_1_Consent.topic = 'broadcast')\nGROUP BY ('yes' || '')"
+    },
+    "MutualFuture": {
+      "columns": {
+        "person": "text"
+      },
+      "sql": "SELECT\n  Choice.value AS person\nFROM\n  Choice, Consent, Trust\nWHERE\n  (Trust.score >= 3) AND\n  (Choice.topic = 'partner') AND\n  (Consent.person = Choice.value) AND\n  (Consent.topic = 'future') AND\n  (Trust.person = Choice.value)\nGROUP BY Choice.value"
+    },
+    "EligibleEnding": {
+      "columns": {
+        "ending": "text",
+        "priority": "integer"
+      },
+      "sql": "WITH t_0_EligibleEnding_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      'cheng' AS ending,\n      100 AS priority\n    FROM\n      Choice, MutualFuture\n    WHERE\n      (Choice.value != 'undecided') AND\n      (Choice.topic = 'final') AND\n      (MutualFuture.person = 'cheng')\n   UNION ALL\n  \n    SELECT\n      'yao' AS ending,\n      100 AS priority\n    FROM\n      Choice AS t_1_Choice, MutualFuture AS t_2_MutualFuture\n    WHERE\n      (t_1_Choice.value != 'undecided') AND\n      (t_1_Choice.topic = 'final') AND\n      (t_2_MutualFuture.person = 'yao')\n   UNION ALL\n  \n    SELECT\n      'mi' AS ending,\n      100 AS priority\n    FROM\n      Choice AS t_3_Choice, MutualFuture AS t_4_MutualFuture\n    WHERE\n      (t_3_Choice.value != 'undecided') AND\n      (t_3_Choice.topic = 'final') AND\n      (t_4_MutualFuture.person = 'mi')\n   UNION ALL\n  \n    SELECT\n      'harbor' AS ending,\n      50 AS priority\n    FROM\n      Choice AS t_5_Choice, BroadcastReady\n    WHERE\n      (t_5_Choice.topic = 'final') AND\n      (t_5_Choice.value = 'broadcast') AND\n      (BroadcastReady.ready = 'yes')\n   UNION ALL\n  \n    SELECT\n      'quiet' AS ending,\n      0 AS priority\n    FROM\n      Choice AS t_6_Choice\n    WHERE\n      (t_6_Choice.value != 'undecided') AND\n      (t_6_Choice.topic = 'final')\n  \n) AS UNUSED_TABLE_NAME  )\nSELECT\n  EligibleEnding_MultBodyAggAux.ending AS ending,\n  EligibleEnding_MultBodyAggAux.priority AS priority\nFROM\n  t_0_EligibleEnding_MultBodyAggAux AS EligibleEnding_MultBodyAggAux\nGROUP BY EligibleEnding_MultBodyAggAux.ending, EligibleEnding_MultBodyAggAux.priority"
+    },
+    "NextEnding": {
+      "columns": {
+        "ending": "text"
+      },
+      "sql": "WITH t_0_HigherEnding AS (SELECT\n  t_1_EligibleEnding.ending AS ending\nFROM\n  EligibleEnding AS t_1_EligibleEnding, EligibleEnding AS t_2_EligibleEnding\nWHERE\n  (t_2_EligibleEnding.priority > t_1_EligibleEnding.priority)\nGROUP BY t_1_EligibleEnding.ending)\nSELECT\n  EligibleEnding.ending AS ending\nFROM\n  EligibleEnding\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_4.value)) AS logica_value\n  FROM\n    t_0_HigherEnding AS HigherEnding, JSON_EACH(JSON_ARRAY(0)) as x_4\n  WHERE\n    (HigherEnding.ending = EligibleEnding.ending)) IS NULL)\nGROUP BY EligibleEnding.ending"
+    },
+    "AvailableAction": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      },
+      "sql": "WITH t_1_SelectableScene_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      Opportunity.scene AS scene\n    FROM\n      Opportunity\n   UNION ALL\n  \n    SELECT\n      NextForced.scene AS scene\n    FROM\n      NextForced\n  \n) AS UNUSED_TABLE_NAME  ),\nt_0_SelectableScene AS (SELECT\n  SelectableScene_MultBodyAggAux.scene AS scene\nFROM\n  t_1_SelectableScene_MultBodyAggAux AS SelectableScene_MultBodyAggAux\nGROUP BY SelectableScene_MultBodyAggAux.scene),\nt_2_MissingActionPresence AS (SELECT\n  ActionNeedsHere.scene AS scene,\n  ActionNeedsHere.action AS action\nFROM\n  ActionNeedsHere\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_24.value)) AS logica_value\n  FROM\n    Here, JSON_EACH(JSON_ARRAY(0)) as x_24\n  WHERE\n    (Here.person = ActionNeedsHere.person) AND\n    (Here.place = ActionNeedsHere.place)) IS NULL)\nGROUP BY ActionNeedsHere.scene, ActionNeedsHere.action),\nt_3_MissingActionBroadcast AS (SELECT\n  ActionNeedsBroadcast.scene AS scene,\n  ActionNeedsBroadcast.action AS action\nFROM\n  ActionNeedsBroadcast\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_35.value)) AS logica_value\n  FROM\n    BroadcastReady, JSON_EACH(JSON_ARRAY(0)) as x_35\n  WHERE\n    (BroadcastReady.ready = 'yes')) IS NULL)\nGROUP BY ActionNeedsBroadcast.scene, ActionNeedsBroadcast.action),\nt_4_MissingActionChoice AS (SELECT\n  ActionNeedsChoice.scene AS scene,\n  ActionNeedsChoice.action AS action\nFROM\n  ActionNeedsChoice\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_49.value)) AS logica_value\n  FROM\n    Choice, JSON_EACH(JSON_ARRAY(0)) as x_49\n  WHERE\n    (Choice.topic = ActionNeedsChoice.topic) AND\n    (Choice.value = ActionNeedsChoice.value)) IS NULL)\nGROUP BY ActionNeedsChoice.scene, ActionNeedsChoice.action)\nSELECT\n  Action.scene AS scene,\n  Action.action AS action\nFROM\n  Action, t_0_SelectableScene AS SelectableScene\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_14.value)) AS logica_value\n  FROM\n    t_2_MissingActionPresence AS MissingActionPresence, JSON_EACH(JSON_ARRAY(0)) as x_14\n  WHERE\n    (MissingActionPresence.scene = Action.scene) AND\n    (MissingActionPresence.action = Action.action)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_28.value)) AS logica_value\n  FROM\n    t_3_MissingActionBroadcast AS MissingActionBroadcast, JSON_EACH(JSON_ARRAY(0)) as x_28\n  WHERE\n    (MissingActionBroadcast.scene = Action.scene) AND\n    (MissingActionBroadcast.action = Action.action)) IS NULL) AND\n  ((SELECT\n    MIN(MagicalEntangle(1, x_39.value)) AS logica_value\n  FROM\n    t_4_MissingActionChoice AS MissingActionChoice, JSON_EACH(JSON_ARRAY(0)) as x_39\n  WHERE\n    (MissingActionChoice.scene = Action.scene) AND\n    (MissingActionChoice.action = Action.action)) IS NULL) AND\n  (SelectableScene.scene = Action.scene)\nGROUP BY Action.scene, Action.action"
+    }
+  },
+  "backend": "sqlite",
+  "source": {
+    "file": "world.l",
+    "sha256": "e0f84a3069c0342368ed80dad33cd79e3f2a764c7cf8362a749f0b52a7663818",
+    "compiler": "logica 1.3.1415926535897",
+    "inputs": {
+      "schema.json": "032751039ef50f6a97b36dccac60350327eea5a286973e9b5d1a00988ae5ab71",
+      "world.l": "e0f84a3069c0342368ed80dad33cd79e3f2a764c7cf8362a749f0b52a7663818"
+    }
+  },
+  "dependencies": {
+    "Here": [
+      "Clock",
+      "Place",
+      "Presence"
+    ],
+    "Trust": [
+      "Bond"
+    ],
+    "EligibleScene": [
+      "Choice",
+      "Clock",
+      "Consent",
+      "Here",
+      "Item",
+      "Knows",
+      "NeedBond",
+      "NeedChoice",
+      "NeedConsent",
+      "NeedItem",
+      "NeedKnowledge",
+      "Scene",
+      "Seen",
+      "Trust"
+    ],
+    "NextForced": [
+      "EligibleScene"
+    ],
+    "Opportunity": [
+      "EligibleScene"
+    ],
+    "BroadcastReady": [
+      "Choice",
+      "Consent",
+      "Item",
+      "Knows"
+    ],
+    "MutualFuture": [
+      "Choice",
+      "Consent",
+      "Trust"
+    ],
+    "EligibleEnding": [
+      "BroadcastReady",
+      "Choice",
+      "MutualFuture"
+    ],
+    "NextEnding": [
+      "EligibleEnding"
+    ],
+    "AvailableAction": [
+      "Action",
+      "ActionNeedsBroadcast",
+      "ActionNeedsChoice",
+      "ActionNeedsHere",
+      "BroadcastReady",
+      "Choice",
+      "Here",
+      "NextForced",
+      "Opportunity"
+    ]
+  }
+}

@@ -22,6 +22,9 @@ def main(argv=None):
     parser.add_argument("--sdk", required=True, type=Path)
     parser.add_argument("--mode", choices=("cached", "live", "materialized"), default="cached")
     parser.add_argument("--backend", choices=("sqlite", "duckdb"), default="sqlite")
+    parser.add_argument("--game", type=Path, default=Path(__file__).resolve().parent / "examples" / "palace",
+                        help="Ren'Py project directory (default: examples/palace)")
+    parser.add_argument("--suite", default="relations", help="Test suite or testcase selector")
     parser.add_argument("--headless", action="store_true", help="Use xvfb-run and software rendering")
     parser.add_argument("--timeout", type=float, default=45)
     args = parser.parse_args(argv)
@@ -30,8 +33,10 @@ def main(argv=None):
     executable = args.sdk.resolve() / "renpy.sh"
     if not executable.is_file():
         parser.error("--sdk must point to a Linux Ren'Py SDK containing renpy.sh")
-    game = Path(__file__).resolve().parent / "examples" / "palace"
-    command = [str(executable), str(game), "test", "relations", "--report-detailed"]
+    game = args.game.resolve()
+    if not (game / "game").is_dir():
+        parser.error("--game must point to a Ren'Py project containing game/")
+    command = [str(executable), str(game), "test", args.suite, "--report-detailed"]
     if args.headless:
         command = ["xvfb-run", "-a", *command]
     environment = dict(os.environ, RELATIONS_MODE=args.mode, RELATIONS_BACKEND=args.backend,

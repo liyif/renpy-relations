@@ -1,0 +1,222 @@
+{
+  "facts": {
+    "Clock": {
+      "columns": {
+        "world": "text",
+        "tick": "integer"
+      },
+      "key": [
+        "world"
+      ]
+    },
+    "Presence": {
+      "columns": {
+        "person": "text",
+        "place": "text",
+        "start": "integer",
+        "stop": "integer"
+      }
+    },
+    "Place": {
+      "columns": {
+        "place": "text",
+        "start": "integer",
+        "stop": "integer"
+      },
+      "key": [
+        "place"
+      ]
+    },
+    "Bond": {
+      "columns": {
+        "person": "text",
+        "reason": "text",
+        "weight": "integer"
+      },
+      "key": [
+        "person",
+        "reason"
+      ]
+    },
+    "Knows": {
+      "columns": {
+        "clue": "text"
+      }
+    },
+    "Item": {
+      "columns": {
+        "item": "text",
+        "holder": "text"
+      },
+      "key": [
+        "item"
+      ]
+    },
+    "Consent": {
+      "columns": {
+        "person": "text",
+        "topic": "text"
+      }
+    },
+    "Choice": {
+      "columns": {
+        "topic": "text",
+        "value": "text"
+      },
+      "key": [
+        "topic"
+      ]
+    },
+    "Seen": {
+      "columns": {
+        "scene": "text",
+        "at_tick": "integer"
+      },
+      "key": [
+        "scene"
+      ]
+    },
+    "Scene": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "earliest": "integer",
+        "latest": "integer",
+        "priority": "integer",
+        "cost": "integer"
+      },
+      "key": [
+        "scene"
+      ]
+    },
+    "NeedKnowledge": {
+      "columns": {
+        "scene": "text",
+        "clue": "text"
+      }
+    },
+    "NeedItem": {
+      "columns": {
+        "scene": "text",
+        "item": "text",
+        "holder": "text"
+      }
+    },
+    "NeedConsent": {
+      "columns": {
+        "scene": "text",
+        "person": "text",
+        "topic": "text"
+      }
+    },
+    "NeedChoice": {
+      "columns": {
+        "scene": "text",
+        "topic": "text",
+        "value": "text"
+      }
+    },
+    "NeedBond": {
+      "columns": {
+        "scene": "text",
+        "person": "text",
+        "minimum": "integer"
+      }
+    },
+    "Action": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      }
+    },
+    "ActionNeedsHere": {
+      "columns": {
+        "scene": "text",
+        "action": "text",
+        "person": "text",
+        "place": "text"
+      }
+    },
+    "ActionNeedsBroadcast": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      }
+    },
+    "ActionNeedsChoice": {
+      "columns": {
+        "scene": "text",
+        "action": "text",
+        "topic": "text",
+        "value": "text"
+      }
+    }
+  },
+  "derived": {
+    "Here": {
+      "columns": {
+        "person": "text",
+        "place": "text"
+      }
+    },
+    "Trust": {
+      "columns": {
+        "person": "text",
+        "score": "integer"
+      }
+    },
+    "EligibleScene": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "priority": "integer",
+        "cost": "integer"
+      }
+    },
+    "NextForced": {
+      "columns": {
+        "scene": "text"
+      }
+    },
+    "Opportunity": {
+      "columns": {
+        "scene": "text",
+        "title": "text",
+        "place": "text",
+        "actor": "text",
+        "cost": "integer"
+      }
+    },
+    "BroadcastReady": {
+      "columns": {
+        "ready": "text"
+      }
+    },
+    "MutualFuture": {
+      "columns": {
+        "person": "text"
+      }
+    },
+    "EligibleEnding": {
+      "columns": {
+        "ending": "text",
+        "priority": "integer"
+      }
+    },
+    "NextEnding": {
+      "columns": {
+        "ending": "text"
+      }
+    },
+    "AvailableAction": {
+      "columns": {
+        "scene": "text",
+        "action": "text"
+      }
+    }
+  }
+}

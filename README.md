@@ -98,6 +98,8 @@ DuckDB 使用 `LogicDB("relations.duckdb.rules.json", backend="duckdb", mode="ca
 
 ## Ren’Py 接入与示例
 
+[`examples/tidelight`：《潮汐替我们保管》](examples/tidelight/README.md) 是完整可玩的中文短篇 Galgame，包含三位成年女主角、19 个事件与五个结局。时间、人物行程、线索、物品、同意与约定共同决定当前相遇及结局；场景结束后统一重新查询，适合观察关系驱动的剧情编排。[完整剧本](examples/tidelight/game/story.rpy)与[含剧透的试玩路线](examples/tidelight/ROUTES.md)均在样例内。
+
 `examples/palace` 是可运行的 Ren’Py 项目，展示阵营／担保两种访问资格、知识条件、一次性奖励、事实撤销、存读档和回滚。`baseline.py` 给出同一组条件的直接 Python 表达，便于比较规则修改成本。
 
 本次实际验证的环境为 **Linux x86_64、Ren’Py 8.5.3（内置 Python 3.12.8）**。SDK 没有 sqlite3；示例使用单独安装的 pysqlite3-binary。其他发行平台需要验证其 SQLite 驱动与二进制打包，尚未验证。

@@ -1,0 +1,1146 @@
+{
+  "title": "潮汐替我们保管",
+  "people": {
+    "cheng": "许澄",
+    "yao": "林遥",
+    "mi": "陆弥"
+  },
+  "places": {
+    "station": "旧电台",
+    "roof": "电台楼顶",
+    "workshop": "维修间",
+    "archive": "声音资料室",
+    "dock": "停航的码头",
+    "generator": "配电房",
+    "seawall": "防波堤"
+  },
+  "clues": {
+    "closure": "电台的租约午夜终止。告别这栋楼，不等于以后谁也不能再说话。",
+    "recording_edited": "旧节目里那句“我会一直在这里”后面，有一道被剪掉的接缝。",
+    "voice_identity": "录音是许澄的父亲许闻留给女儿的；归档单写着：重播前，请先问小澄。",
+    "breaker_map": "工作簿夹着配电图：先关支路，再换右侧保险，最后复位总闸。",
+    "master_exists": "未剪辑母带保存在声音资料室，陆弥负责借出登记。",
+    "closure_terms": "明天要归还的是设备与房屋。居民自己的录音，可以征得同意后带走。",
+    "yao_leaving": "林遥已拿到外地的学徒录用书，明早出发；她没有欠这座城一辈子。",
+    "mi_leaving": "陆弥获得声音艺术驻留名额。她想离开，也想保留与这里的联系。",
+    "ferry_cancelled": "暴雨让今晚最后一班渡船停航。时间多了一点，午夜并没有推迟。",
+    "signal_restored": "保险换好，发射机恢复供电。技术问题解决了，播什么仍要问当事人。",
+    "departure_is_not_loss": "防波堤上的刻字会被盐风磨浅。人能记得的，不一定需要留在原地。",
+    "all_here": "三把湿伞放在同一个桶里。没有人是被要求留下的。"
+  },
+  "facts": {
+    "Clock": [
+      {
+        "world": "night",
+        "tick": 0
+      }
+    ],
+    "Presence": [
+      {
+        "person": "cheng",
+        "place": "station",
+        "start": 0,
+        "stop": 4
+      },
+      {
+        "person": "cheng",
+        "place": "roof",
+        "start": 4,
+        "stop": 9
+      },
+      {
+        "person": "cheng",
+        "place": "station",
+        "start": 9,
+        "stop": 99
+      },
+      {
+        "person": "yao",
+        "place": "workshop",
+        "start": 0,
+        "stop": 7
+      },
+      {
+        "person": "yao",
+        "place": "generator",
+        "start": 7,
+        "stop": 10
+      },
+      {
+        "person": "yao",
+        "place": "station",
+        "start": 10,
+        "stop": 99
+      },
+      {
+        "person": "mi",
+        "place": "archive",
+        "start": 0,
+        "stop": 5
+      },
+      {
+        "person": "mi",
+        "place": "dock",
+        "start": 5,
+        "stop": 10
+      },
+      {
+        "person": "mi",
+        "place": "station",
+        "start": 10,
+        "stop": 99
+      }
+    ],
+    "Place": [
+      {
+        "place": "station",
+        "start": 0,
+        "stop": 99
+      },
+      {
+        "place": "roof",
+        "start": 0,
+        "stop": 99
+      },
+      {
+        "place": "workshop",
+        "start": 0,
+        "stop": 99
+      },
+      {
+        "place": "archive",
+        "start": 0,
+        "stop": 9
+      },
+      {
+        "place": "dock",
+        "start": 0,
+        "stop": 99
+      },
+      {
+        "place": "generator",
+        "start": 0,
+        "stop": 99
+      },
+      {
+        "place": "seawall",
+        "start": 0,
+        "stop": 99
+      }
+    ],
+    "Bond": [
+      {
+        "person": "cheng",
+        "reason": "reunion",
+        "weight": 1
+      },
+      {
+        "person": "yao",
+        "reason": "reunion",
+        "weight": 1
+      },
+      {
+        "person": "mi",
+        "reason": "reunion",
+        "weight": 1
+      }
+    ],
+    "Knows": [
+      {
+        "clue": "closure"
+      }
+    ],
+    "Item": [
+      {
+        "item": "cut_tape",
+        "holder": "station"
+      },
+      {
+        "item": "master_tape",
+        "holder": "archive"
+      },
+      {
+        "item": "spare_fuse",
+        "holder": "yao"
+      }
+    ],
+    "Consent": [],
+    "Choice": [
+      {
+        "topic": "power",
+        "value": "on"
+      },
+      {
+        "topic": "partner",
+        "value": "none"
+      },
+      {
+        "topic": "final",
+        "value": "undecided"
+      },
+      {
+        "topic": "privacy",
+        "value": "clean"
+      }
+    ],
+    "Seen": [],
+    "Scene": [
+      {
+        "scene": "catalog",
+        "title": "翻开最后一册工作簿",
+        "place": "station",
+        "actor": "self",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 35,
+        "cost": 1
+      },
+      {
+        "scene": "master_copy",
+        "title": "把母带带回电台",
+        "place": "archive",
+        "actor": "self",
+        "earliest": 0,
+        "latest": 9,
+        "priority": 70,
+        "cost": 1
+      },
+      {
+        "scene": "repair",
+        "title": "带备用保险去配电房",
+        "place": "generator",
+        "actor": "self",
+        "earliest": 7,
+        "latest": 12,
+        "priority": 90,
+        "cost": 1
+      },
+      {
+        "scene": "kettle",
+        "title": "烧一壶不必赶着喝完的水",
+        "place": "station",
+        "actor": "self",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 20,
+        "cost": 1
+      },
+      {
+        "scene": "seawall",
+        "title": "到防波堤走一小段",
+        "place": "seawall",
+        "actor": "self",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 10,
+        "cost": 1
+      },
+      {
+        "scene": "cheng_pause",
+        "title": "陪许澄听那段突然结束的录音",
+        "place": "with_actor",
+        "actor": "cheng",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 45,
+        "cost": 1
+      },
+      {
+        "scene": "cheng_letter",
+        "title": "问许澄，空白后面是什么",
+        "place": "with_actor",
+        "actor": "cheng",
+        "earliest": 4,
+        "latest": 12,
+        "priority": 65,
+        "cost": 1
+      },
+      {
+        "scene": "cheng_future",
+        "title": "把明天的问题留给许澄回答",
+        "place": "with_actor",
+        "actor": "cheng",
+        "earliest": 5,
+        "latest": 12,
+        "priority": 85,
+        "cost": 1
+      },
+      {
+        "scene": "yao_ticket",
+        "title": "看看林遥压在工具箱下的车票",
+        "place": "with_actor",
+        "actor": "yao",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 45,
+        "cost": 1
+      },
+      {
+        "scene": "yao_fuse",
+        "title": "向林遥借一枚备用保险",
+        "place": "with_actor",
+        "actor": "yao",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 55,
+        "cost": 1
+      },
+      {
+        "scene": "yao_future",
+        "title": "问林遥，抵达之后要不要来信",
+        "place": "with_actor",
+        "actor": "yao",
+        "earliest": 5,
+        "latest": 12,
+        "priority": 85,
+        "cost": 1
+      },
+      {
+        "scene": "mi_names",
+        "title": "听陆弥说起录音上的名字",
+        "place": "with_actor",
+        "actor": "mi",
+        "earliest": 0,
+        "latest": 12,
+        "priority": 45,
+        "cost": 1
+      },
+      {
+        "scene": "mi_departure",
+        "title": "和陆弥看一张暂时失效的船票",
+        "place": "with_actor",
+        "actor": "mi",
+        "earliest": 4,
+        "latest": 12,
+        "priority": 60,
+        "cost": 1
+      },
+      {
+        "scene": "mi_future",
+        "title": "与陆弥约一次没有主题的见面",
+        "place": "with_actor",
+        "actor": "mi",
+        "earliest": 6,
+        "latest": 12,
+        "priority": 85,
+        "cost": 1
+      },
+      {
+        "scene": "rumor",
+        "title": "被误听的那一句话",
+        "place": "station",
+        "actor": "self",
+        "earliest": 0,
+        "latest": 99,
+        "priority": 200,
+        "cost": 0
+      },
+      {
+        "scene": "storm",
+        "title": "渡船停航通知",
+        "place": "station",
+        "actor": "self",
+        "earliest": 4,
+        "latest": 99,
+        "priority": 140,
+        "cost": 0
+      },
+      {
+        "scene": "blackout",
+        "title": "指示灯熄灭的瞬间",
+        "place": "station",
+        "actor": "self",
+        "earliest": 7,
+        "latest": 99,
+        "priority": 150,
+        "cost": 0
+      },
+      {
+        "scene": "gather",
+        "title": "有人带着湿伞回来了",
+        "place": "station",
+        "actor": "self",
+        "earliest": 10,
+        "latest": 99,
+        "priority": 120,
+        "cost": 0
+      },
+      {
+        "scene": "last_broadcast",
+        "title": "午夜前的最后一个决定",
+        "place": "station",
+        "actor": "self",
+        "earliest": 12,
+        "latest": 99,
+        "priority": 100,
+        "cost": 0
+      }
+    ],
+    "NeedKnowledge": [
+      {
+        "scene": "master_copy",
+        "clue": "master_exists"
+      },
+      {
+        "scene": "repair",
+        "clue": "breaker_map"
+      },
+      {
+        "scene": "cheng_letter",
+        "clue": "recording_edited"
+      },
+      {
+        "scene": "cheng_letter",
+        "clue": "voice_identity"
+      },
+      {
+        "scene": "cheng_future",
+        "clue": "voice_identity"
+      },
+      {
+        "scene": "yao_fuse",
+        "clue": "breaker_map"
+      },
+      {
+        "scene": "yao_future",
+        "clue": "yao_leaving"
+      },
+      {
+        "scene": "mi_departure",
+        "clue": "ferry_cancelled"
+      },
+      {
+        "scene": "mi_future",
+        "clue": "mi_leaving"
+      }
+    ],
+    "NeedItem": [
+      {
+        "scene": "master_copy",
+        "item": "master_tape",
+        "holder": "archive"
+      },
+      {
+        "scene": "repair",
+        "item": "spare_fuse",
+        "holder": "station"
+      },
+      {
+        "scene": "gather",
+        "item": "master_tape",
+        "holder": "station"
+      },
+      {
+        "scene": "yao_fuse",
+        "item": "spare_fuse",
+        "holder": "yao"
+      }
+    ],
+    "NeedConsent": [
+      {
+        "scene": "master_copy",
+        "person": "mi",
+        "topic": "archive"
+      },
+      {
+        "scene": "repair",
+        "person": "yao",
+        "topic": "help"
+      },
+      {
+        "scene": "cheng_future",
+        "person": "cheng",
+        "topic": "recording"
+      },
+      {
+        "scene": "yao_future",
+        "person": "yao",
+        "topic": "help"
+      },
+      {
+        "scene": "mi_future",
+        "person": "mi",
+        "topic": "archive"
+      }
+    ],
+    "NeedChoice": [
+      {
+        "scene": "repair",
+        "topic": "power",
+        "value": "off"
+      },
+      {
+        "scene": "rumor",
+        "topic": "privacy",
+        "value": "breached"
+      },
+      {
+        "scene": "last_broadcast",
+        "topic": "final",
+        "value": "undecided"
+      },
+      {
+        "scene": "cheng_future",
+        "topic": "partner",
+        "value": "none"
+      },
+      {
+        "scene": "yao_future",
+        "topic": "partner",
+        "value": "none"
+      },
+      {
+        "scene": "mi_future",
+        "topic": "partner",
+        "value": "none"
+      }
+    ],
+    "NeedBond": [
+      {
+        "scene": "cheng_future",
+        "person": "cheng",
+        "minimum": 3
+      },
+      {
+        "scene": "gather",
+        "person": "cheng",
+        "minimum": 2
+      },
+      {
+        "scene": "yao_future",
+        "person": "yao",
+        "minimum": 3
+      },
+      {
+        "scene": "gather",
+        "person": "yao",
+        "minimum": 2
+      },
+      {
+        "scene": "mi_future",
+        "person": "mi",
+        "minimum": 3
+      },
+      {
+        "scene": "gather",
+        "person": "mi",
+        "minimum": 2
+      }
+    ],
+    "Action": [
+      {
+        "scene": "catalog",
+        "action": "default"
+      },
+      {
+        "scene": "master_copy",
+        "action": "default"
+      },
+      {
+        "scene": "repair",
+        "action": "default"
+      },
+      {
+        "scene": "kettle",
+        "action": "cheng"
+      },
+      {
+        "scene": "kettle",
+        "action": "yao"
+      },
+      {
+        "scene": "kettle",
+        "action": "mi"
+      },
+      {
+        "scene": "kettle",
+        "action": "self"
+      },
+      {
+        "scene": "seawall",
+        "action": "keep"
+      },
+      {
+        "scene": "seawall",
+        "action": "discard"
+      },
+      {
+        "scene": "cheng_pause",
+        "action": "listen"
+      },
+      {
+        "scene": "cheng_pause",
+        "action": "publish"
+      },
+      {
+        "scene": "cheng_letter",
+        "action": "ask"
+      },
+      {
+        "scene": "cheng_letter",
+        "action": "leave"
+      },
+      {
+        "scene": "cheng_future",
+        "action": "promise"
+      },
+      {
+        "scene": "cheng_future",
+        "action": "friend"
+      },
+      {
+        "scene": "yao_ticket",
+        "action": "support"
+      },
+      {
+        "scene": "yao_ticket",
+        "action": "stay"
+      },
+      {
+        "scene": "yao_fuse",
+        "action": "borrow"
+      },
+      {
+        "scene": "yao_fuse",
+        "action": "demand"
+      },
+      {
+        "scene": "yao_future",
+        "action": "promise"
+      },
+      {
+        "scene": "yao_future",
+        "action": "friend"
+      },
+      {
+        "scene": "mi_names",
+        "action": "ask"
+      },
+      {
+        "scene": "mi_names",
+        "action": "take"
+      },
+      {
+        "scene": "mi_departure",
+        "action": "support"
+      },
+      {
+        "scene": "mi_departure",
+        "action": "stay"
+      },
+      {
+        "scene": "mi_future",
+        "action": "promise"
+      },
+      {
+        "scene": "mi_future",
+        "action": "friend"
+      },
+      {
+        "scene": "rumor",
+        "action": "apologize"
+      },
+      {
+        "scene": "rumor",
+        "action": "defend"
+      },
+      {
+        "scene": "storm",
+        "action": "default"
+      },
+      {
+        "scene": "blackout",
+        "action": "default"
+      },
+      {
+        "scene": "gather",
+        "action": "default"
+      },
+      {
+        "scene": "last_broadcast",
+        "action": "broadcast"
+      },
+      {
+        "scene": "last_broadcast",
+        "action": "keep"
+      },
+      {
+        "scene": "last_broadcast",
+        "action": "silence"
+      }
+    ],
+    "ActionNeedsHere": [
+      {
+        "scene": "kettle",
+        "action": "cheng",
+        "person": "cheng",
+        "place": "station"
+      },
+      {
+        "scene": "kettle",
+        "action": "yao",
+        "person": "yao",
+        "place": "station"
+      },
+      {
+        "scene": "kettle",
+        "action": "mi",
+        "person": "mi",
+        "place": "station"
+      },
+      {
+        "scene": "mi_names",
+        "action": "take",
+        "person": "mi",
+        "place": "archive"
+      }
+    ],
+    "ActionNeedsBroadcast": [
+      {
+        "scene": "last_broadcast",
+        "action": "broadcast"
+      }
+    ],
+    "ActionNeedsChoice": [
+      {
+        "scene": "cheng_pause",
+        "action": "publish",
+        "topic": "power",
+        "value": "on"
+      }
+    ]
+  },
+  "actions": {
+    "catalog": {
+      "default": {
+        "knows": [
+          "recording_edited",
+          "voice_identity",
+          "breaker_map",
+          "master_exists",
+          "closure_terms"
+        ]
+      }
+    },
+    "master_copy": {
+      "default": {
+        "item": [
+          [
+            "master_tape",
+            "station"
+          ]
+        ]
+      }
+    },
+    "repair": {
+      "default": {
+        "item": [
+          [
+            "spare_fuse",
+            "generator"
+          ]
+        ],
+        "choice": [
+          [
+            "power",
+            "on"
+          ]
+        ],
+        "knows": [
+          "signal_restored"
+        ]
+      }
+    },
+    "kettle": {
+      "cheng": {
+        "bond": [
+          [
+            "cheng",
+            "tea",
+            1
+          ]
+        ]
+      },
+      "yao": {
+        "bond": [
+          [
+            "yao",
+            "tea",
+            1
+          ]
+        ]
+      },
+      "mi": {
+        "bond": [
+          [
+            "mi",
+            "tea",
+            1
+          ]
+        ]
+      },
+      "self": {}
+    },
+    "seawall": {
+      "keep": {
+        "knows": [
+          "departure_is_not_loss"
+        ]
+      },
+      "discard": {
+        "knows": [
+          "departure_is_not_loss"
+        ]
+      }
+    },
+    "cheng_pause": {
+      "listen": {
+        "knows": [
+          "recording_edited"
+        ],
+        "bond": [
+          [
+            "cheng",
+            "pause",
+            1
+          ]
+        ]
+      },
+      "publish": {
+        "knows": [
+          "recording_edited"
+        ],
+        "bond": [
+          [
+            "cheng",
+            "pause",
+            -1
+          ]
+        ],
+        "choice": [
+          [
+            "privacy",
+            "breached"
+          ]
+        ]
+      }
+    },
+    "cheng_letter": {
+      "ask": {
+        "bond": [
+          [
+            "cheng",
+            "letter",
+            1
+          ]
+        ],
+        "consent": [
+          [
+            "cheng",
+            "recording"
+          ]
+        ]
+      },
+      "leave": {
+        "bond": [
+          [
+            "cheng",
+            "letter",
+            0
+          ]
+        ]
+      }
+    },
+    "cheng_future": {
+      "promise": {
+        "choice": [
+          [
+            "partner",
+            "cheng"
+          ]
+        ],
+        "consent": [
+          [
+            "cheng",
+            "future"
+          ]
+        ]
+      },
+      "friend": {
+        "bond": [
+          [
+            "cheng",
+            "honesty",
+            1
+          ]
+        ]
+      }
+    },
+    "yao_ticket": {
+      "support": {
+        "knows": [
+          "yao_leaving",
+          "breaker_map"
+        ],
+        "bond": [
+          [
+            "yao",
+            "ticket",
+            1
+          ]
+        ]
+      },
+      "stay": {
+        "knows": [
+          "yao_leaving",
+          "breaker_map"
+        ],
+        "bond": [
+          [
+            "yao",
+            "ticket",
+            -1
+          ]
+        ]
+      }
+    },
+    "yao_fuse": {
+      "borrow": {
+        "consent": [
+          [
+            "yao",
+            "help"
+          ]
+        ],
+        "item": [
+          [
+            "spare_fuse",
+            "station"
+          ]
+        ],
+        "bond": [
+          [
+            "yao",
+            "help",
+            1
+          ]
+        ]
+      },
+      "demand": {
+        "bond": [
+          [
+            "yao",
+            "help",
+            -1
+          ]
+        ]
+      }
+    },
+    "yao_future": {
+      "promise": {
+        "choice": [
+          [
+            "partner",
+            "yao"
+          ]
+        ],
+        "consent": [
+          [
+            "yao",
+            "future"
+          ]
+        ]
+      },
+      "friend": {
+        "bond": [
+          [
+            "yao",
+            "honesty",
+            1
+          ]
+        ]
+      }
+    },
+    "mi_names": {
+      "ask": {
+        "knows": [
+          "master_exists"
+        ],
+        "consent": [
+          [
+            "mi",
+            "archive"
+          ]
+        ],
+        "bond": [
+          [
+            "mi",
+            "names",
+            1
+          ]
+        ]
+      },
+      "take": {
+        "knows": [
+          "master_exists"
+        ],
+        "item": [
+          [
+            "master_tape",
+            "station"
+          ]
+        ],
+        "choice": [
+          [
+            "privacy",
+            "breached"
+          ]
+        ],
+        "bond": [
+          [
+            "mi",
+            "names",
+            -1
+          ]
+        ]
+      }
+    },
+    "mi_departure": {
+      "support": {
+        "knows": [
+          "mi_leaving"
+        ],
+        "consent": [
+          [
+            "mi",
+            "broadcast"
+          ]
+        ],
+        "bond": [
+          [
+            "mi",
+            "ticket",
+            1
+          ]
+        ]
+      },
+      "stay": {
+        "knows": [
+          "mi_leaving"
+        ],
+        "bond": [
+          [
+            "mi",
+            "ticket",
+            -1
+          ]
+        ]
+      }
+    },
+    "mi_future": {
+      "promise": {
+        "choice": [
+          [
+            "partner",
+            "mi"
+          ]
+        ],
+        "consent": [
+          [
+            "mi",
+            "future"
+          ]
+        ]
+      },
+      "friend": {
+        "bond": [
+          [
+            "mi",
+            "honesty",
+            1
+          ]
+        ]
+      }
+    },
+    "rumor": {
+      "apologize": {
+        "choice": [
+          [
+            "privacy",
+            "repaired"
+          ]
+        ],
+        "bond": [
+          [
+            "cheng",
+            "apology",
+            1
+          ],
+          [
+            "mi",
+            "apology",
+            1
+          ]
+        ]
+      },
+      "defend": {
+        "choice": [
+          [
+            "privacy",
+            "defended"
+          ]
+        ]
+      }
+    },
+    "storm": {
+      "default": {
+        "knows": [
+          "ferry_cancelled"
+        ]
+      }
+    },
+    "blackout": {
+      "default": {
+        "choice": [
+          [
+            "power",
+            "off"
+          ]
+        ]
+      }
+    },
+    "gather": {
+      "default": {
+        "knows": [
+          "all_here"
+        ]
+      }
+    },
+    "last_broadcast": {
+      "broadcast": {
+        "choice": [
+          [
+            "final",
+            "broadcast"
+          ]
+        ]
+      },
+      "keep": {
+        "choice": [
+          [
+            "final",
+            "keep"
+          ]
+        ]
+      },
+      "silence": {
+        "choice": [
+          [
+            "final",
+            "silence"
+          ]
+        ]
+      }
+    }
+  }
+}
