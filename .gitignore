@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.rpyc
+examples/palace/game/python-packages/
+examples/palace/game/cache/
+examples/palace/game/saves/
+examples/palace/log.txt
+examples/palace/traceback.txt
+examples/palace/errors.txt
+examples/palace/profile.txt
+examples/palace/test-results/

@@ -1,0 +1,14 @@
+{
+  "facts": {
+    "Member": {"columns": {"character": "text", "faction": "text"}},
+    "FactionAccess": {"columns": {"faction": "text", "location": "text"}},
+    "Sponsor": {"columns": {"character": "text", "location": "text"}},
+    "Knows": {"columns": {"character": "text", "secret": "text"}},
+    "RewardClaimed": {"columns": {"character": "text", "reward": "text"}}
+  },
+  "derived": {
+    "CanEnter": {"columns": {"character": "text", "location": "text"}},
+    "CanInvestigate": {"columns": {"character": "text"}},
+    "CanClaimReward": {"columns": {"character": "text", "reward": "text"}}
+  }
+}

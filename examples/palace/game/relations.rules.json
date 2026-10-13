@@ -1,0 +1,67 @@
+{
+  "format": "renpy-relations",
+  "version": 1,
+  "facts": {
+    "Member": {
+      "columns": {
+        "character": "text",
+        "faction": "text"
+      }
+    },
+    "FactionAccess": {
+      "columns": {
+        "faction": "text",
+        "location": "text"
+      }
+    },
+    "Sponsor": {
+      "columns": {
+        "character": "text",
+        "location": "text"
+      }
+    },
+    "Knows": {
+      "columns": {
+        "character": "text",
+        "secret": "text"
+      }
+    },
+    "RewardClaimed": {
+      "columns": {
+        "character": "text",
+        "reward": "text"
+      }
+    }
+  },
+  "derived": {
+    "CanEnter": {
+      "columns": {
+        "character": "text",
+        "location": "text"
+      },
+      "sql": "WITH t_0_CanEnter_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      Member.character AS character,\n      FactionAccess.location AS location\n    FROM\n      Member, FactionAccess\n    WHERE\n      (FactionAccess.faction = Member.faction)\n   UNION ALL\n  \n    SELECT\n      Sponsor.character AS character,\n      Sponsor.location AS location\n    FROM\n      Sponsor\n  \n) AS UNUSED_TABLE_NAME  )\nSELECT\n  CanEnter_MultBodyAggAux.character AS character,\n  CanEnter_MultBodyAggAux.location AS location\nFROM\n  t_0_CanEnter_MultBodyAggAux AS CanEnter_MultBodyAggAux\nGROUP BY CanEnter_MultBodyAggAux.character, CanEnter_MultBodyAggAux.location"
+    },
+    "CanInvestigate": {
+      "columns": {
+        "character": "text"
+      },
+      "sql": "SELECT\n  CanEnter.character AS character\nFROM\n  CanEnter, Knows\nWHERE\n  (CanEnter.location = 'archive') AND\n  (Knows.character = CanEnter.character) AND\n  (Knows.secret = 'forged_letter')\nGROUP BY CanEnter.character"
+    },
+    "CanClaimReward": {
+      "columns": {
+        "character": "text",
+        "reward": "text"
+      },
+      "sql": "SELECT\n  CanInvestigate.character AS character,\n  'investigation' AS reward\nFROM\n  CanInvestigate\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_5.value)) AS logica_value\n  FROM\n    RewardClaimed, JSON_EACH(JSON_ARRAY(0)) as x_5\n  WHERE\n    (RewardClaimed.character = CanInvestigate.character) AND\n    (RewardClaimed.reward = 'investigation')) IS NULL)\nGROUP BY CanInvestigate.character, ('investigation' || '')"
+    }
+  },
+  "source": {
+    "file": "world.l",
+    "sha256": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59",
+    "compiler": "logica 1.3.1415926535897",
+    "inputs": {
+      "schema.json": "81c1d992668e5039c0fa05dcd05fd6b88e2c5d3df18b6e6c79267254d68faf40",
+      "world.l": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59"
+    }
+  }
+}
