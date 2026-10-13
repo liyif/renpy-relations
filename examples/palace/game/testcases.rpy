@@ -78,6 +78,7 @@ testsuite relations:
         assert eval logic.has("CanEnter", character="hero", location="archive")
         $ changed = RuleSet.load(os.path.join(config.gamedir, "relations.rules.json")).document
         $ changed["derived"]["CanEnter"]["sql"] = "SELECT character, location FROM Sponsor WHERE 0"
+        $ changed["dependencies"]["CanEnter"] = ["Sponsor"]
         run Function(logic.reload_rules, RuleSet(changed))
         assert eval logic.has("Sponsor", character="hero", location="archive")
         assert eval not logic.has("CanEnter", character="hero", location="archive")
@@ -101,6 +102,7 @@ testsuite relations:
         assert eval logic.has("CanEnter", character="hero", location="archive")
         $ changed = RuleSet(original).document
         $ changed["derived"]["CanEnter"]["sql"] = "SELECT character, location FROM Sponsor WHERE 0"
+        $ changed["dependencies"]["CanEnter"] = ["Sponsor"]
         $ watched.write_text(json.dumps(changed), encoding="utf-8")
         run Function(renpy.restart_interaction)
         assert eval not logic.has("CanEnter", character="hero", location="archive")

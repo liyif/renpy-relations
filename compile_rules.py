@@ -76,8 +76,10 @@ def compile_rules(source, schema, output):
     try:
         for name in document["derived"]:
             logic.query(name)
+        document["dependencies"] = {name: logic.describe(name)["reads"] for name in document["derived"]}
     finally:
         logic.close()
+    bundle = RuleSet(document)
     if _inputs(source, schema) != inputs_before:
         raise RuleError("Source/schema changed during compilation; rebuild to get a consistent bundle")
     content = json.dumps(bundle.document, ensure_ascii=False, indent=2) + "\n"

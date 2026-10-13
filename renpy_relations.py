@@ -77,7 +77,7 @@ class RuleSet:
             raise RuleError("Expected a renpy-relations rule bundle")
         if type(doc.get("version")) is not int or doc["version"] != 1:
             raise RuleError("Unsupported rule bundle version")
-        if set(doc) - {"format", "version", "facts", "derived", "source"}:
+        if set(doc) - {"format", "version", "facts", "derived", "source", "dependencies"}:
             raise RuleError("Unknown rule bundle fields")
         names = set()
         for kind in ("facts", "derived"):
@@ -114,6 +114,15 @@ class RuleSet:
                     if not isinstance(sql, str) or not sql.strip():
                         raise RuleError(f"{name} needs compiled SELECT SQL")
                     spec["sql"] = sql.strip().rstrip(";").strip()
+        if "dependencies" in doc:
+            dependencies = doc["dependencies"]
+            if not isinstance(dependencies, dict) or set(dependencies) != set(doc["derived"]):
+                raise RuleError("Dependencies must describe every derived relation")
+            known = doc["facts"].keys() | doc["derived"].keys()
+            for name, reads in dependencies.items():
+                if (not isinstance(reads, list) or any(not isinstance(n, str) or n not in known for n in reads)
+                        or len(set(reads)) != len(reads)):
+                    raise RuleError(f"Invalid dependencies for {name}")
         self.fact_schema_id = _digest(doc["facts"])
         self.content_id = _digest({k: doc[k] for k in ("facts", "derived")})
 
@@ -157,8 +166,34 @@ class _World:
     engine: object
     tables: dict
     dependencies: dict = field(default_factory=dict)
+    reads: dict = field(default_factory=dict)
     order: tuple = ()
     valid: set = field(default_factory=set)
+
+    def affected(self, conn, facts):
+        """SQLite follows reverse edges; Python only binds changed fact names."""
+        conn.exec_driver_sql('DELETE FROM temp.__rr_changed')
+        conn.exec_driver_sql('INSERT INTO temp.__rr_changed VALUES (?)', [(n,) for n in facts])
+        return [r[0] for r in conn.exec_driver_sql('''
+            WITH RECURSIVE affected(name) AS (
+                SELECT name FROM temp.__rr_changed
+                UNION
+                SELECT e.target FROM temp.__rr_edges e JOIN affected a ON e.source=a.name
+            )
+            SELECT n.name FROM temp.__rr_nodes n JOIN affected a USING(name)
+            WHERE n.derived=1 ORDER BY n.rank
+        ''')]
+
+    def needed(self, conn, name):
+        return [r[0] for r in conn.exec_driver_sql('''
+            WITH RECURSIVE needed(name) AS (
+                VALUES (?)
+                UNION
+                SELECT e.source FROM temp.__rr_edges e JOIN needed n ON e.target=n.name
+            )
+            SELECT n.name FROM temp.__rr_nodes n JOIN needed a USING(name)
+            WHERE n.derived=1 ORDER BY n.rank
+        ''', (name,))]
 
 
 def _new_engine():
@@ -225,26 +260,42 @@ def _validate_sql(conn, world, rules):
             raise RuleError(f"{name}: unsupported or invalid rule SQL: {detail}") from exc
         finally:
             raw.set_authorizer(None)
-        dependencies[name] = tuple(sorted(reads & derived.keys()))
+        dependencies[name] = tuple(sorted(reads))
 
-    order = []
-    visiting = set()
-
-    def visit(name):
-        if name in visiting:
-            raise RuleError(f"Cyclic derived relation dependency at {name}")
-        if name in order:
-            return
-        visiting.add(name)
-        for dependency in dependencies[name]:
-            visit(dependency)
-        visiting.remove(name)
-        order.append(name)
-
-    for name in derived:
-        visit(name)
-    world.dependencies = dependencies
-    world.order = tuple(order)
+    # SQL resolution above reports edges, including negative/subquery reads.
+    # Graph algorithms execute in SQLite, without Python DFS or SQL text parsing.
+    conn.exec_driver_sql('CREATE TEMP TABLE __rr_edges (source TEXT, target TEXT, PRIMARY KEY(source,target)) WITHOUT ROWID')
+    conn.exec_driver_sql('CREATE INDEX temp.__rr_reverse ON __rr_edges(target,source)')
+    conn.exec_driver_sql('CREATE TEMP TABLE __rr_nodes (name TEXT PRIMARY KEY, derived INTEGER, rank INTEGER) WITHOUT ROWID')
+    conn.exec_driver_sql('CREATE TEMP TABLE __rr_changed (name TEXT PRIMARY KEY) WITHOUT ROWID')
+    if world.tables:
+        conn.exec_driver_sql('INSERT INTO temp.__rr_nodes VALUES (?,?,0)',
+                             [(name, int(name in derived)) for name in world.tables])
+    edges = [(source, target) for target, sources in dependencies.items() for source in sources]
+    if edges:
+        conn.exec_driver_sql('INSERT INTO temp.__rr_edges VALUES (?,?)', edges)
+    # Distinct ancestor counts strictly increase along each edge in a DAG.
+    # UNION deduplicates diamonds and terminates even when a cycle is present.
+    ranks = conn.exec_driver_sql('''
+        WITH RECURSIVE ancestors(node, ancestor) AS (
+            SELECT target, source FROM temp.__rr_edges
+            UNION
+            SELECT a.node, e.source FROM ancestors a JOIN temp.__rr_edges e ON e.target=a.ancestor
+        )
+        SELECT node, count(*), max(node=ancestor) FROM ancestors GROUP BY node
+    ''').all()
+    if any(row[2] for row in ranks):
+        raise RuleError("Cyclic derived relation dependency")
+    if ranks:
+        conn.exec_driver_sql('UPDATE temp.__rr_nodes SET rank=? WHERE name=?', [(r[1], r[0]) for r in ranks])
+    declared = rules._document.get("dependencies")
+    if declared is not None and any(set(declared[n]) != set(reads) for n, reads in dependencies.items()):
+        raise RuleError("Compiled dependencies differ from actual SQL reads; rebuild rules")
+    world.reads = dependencies
+    world.dependencies = {name: tuple(n for n in names if n in derived)
+                          for name, names in dependencies.items()}
+    world.order = tuple(r[0] for r in conn.exec_driver_sql(
+        'SELECT name FROM temp.__rr_nodes WHERE derived=1 ORDER BY rank,name'))
 
 
 def _projection(world, rules, name):
@@ -353,7 +404,7 @@ class LogicDB:
             self._rules, self._loaded_file = _read_bundle(self._path)
         self._world = _build_world(self._rules, mode, None)
         self._tx = None
-        self._dirty = False
+        self._dirty = set()
         self._notifying = False
         self._on_snapshot = on_snapshot
         self._renpy_binding = None
@@ -384,19 +435,20 @@ class LogicDB:
     def batch(self):
         """Commit facts and eager outputs together, then publish one snapshot."""
         self._idle()
-        self._dirty = False
+        self._dirty = set()
         with self._world.engine.begin() as conn:
             self._tx = conn
             try:
                 yield self
-                if self._dirty and self.mode == "materialized":
-                    for name in self._world.order:
+                affected = self._world.affected(conn, self._dirty) if self._dirty and self.mode != "live" else []
+                if self.mode == "materialized":
+                    for name in affected:
                         _fill(conn, self._world, self._rules, name)
             finally:
                 self._tx = None
         if not self._dirty:
             return
-        self._world.valid.clear()
+        self._world.valid.difference_update(affected)
         try:
             value = self.snapshot()
             self._notifying = True
@@ -422,7 +474,8 @@ class LogicDB:
         statement = sqlite_insert(table).values(**values).on_conflict_do_nothing(
             index_elements=list(table.columns),
         )
-        self._dirty |= self._tx.execute(statement).rowcount > 0
+        if self._tx.execute(statement).rowcount > 0:
+            self._dirty.add(name)
 
     def remove(self, name, **filters):
         """Retract matching facts. An empty filter is forbidden."""
@@ -433,20 +486,21 @@ class LogicDB:
             with self.batch():
                 self.remove(name, **filters)
             return
-        self._dirty |= self._tx.execute(delete(table).where(
+        if self._tx.execute(delete(table).where(
             *(table.c[k] == value for k, value in filters.items()),
-        )).rowcount > 0
+        )).rowcount > 0:
+            self._dirty.add(name)
 
     def _ensure_cached(self, conn, name, staged):
         world = self._world
-        if name not in world.dependencies or name in world.valid or name in staged:
+        if name not in world.dependencies or name in world.valid:
             return
-        for dependency in world.dependencies[name]:
-            self._ensure_cached(conn, dependency, staged)
-        started = perf_counter()
-        _fill(conn, world, self._rules, name)
-        self._materialization_seconds += perf_counter() - started
-        staged.add(name)
+        for dependency in world.needed(conn, name):
+            if dependency not in world.valid:
+                started = perf_counter()
+                _fill(conn, world, self._rules, dependency)
+                self._materialization_seconds += perf_counter() - started
+                staged.add(dependency)
 
     def _read(self, name, filters, *, exists):
         self._idle()
@@ -530,8 +584,9 @@ class LogicDB:
         self._table(name, {})
         kind = "facts" if name in self._rules._document["facts"] else "derived"
         return {"name": name, "kind": kind,
-                **self._rules.document[kind][name],
-                "dependencies": list(self._world.dependencies.get(name, ())) }
+                **json.loads(json.dumps(self._rules._document[kind][name])),
+                "dependencies": list(self._world.dependencies.get(name, ())),
+                "reads": list(self._world.reads.get(name, ())) }
 
     def stats(self):
         """Small, non-evaluating diagnostics for the cache experiment."""

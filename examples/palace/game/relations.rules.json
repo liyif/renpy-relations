@@ -63,5 +63,20 @@
       "schema.json": "81c1d992668e5039c0fa05dcd05fd6b88e2c5d3df18b6e6c79267254d68faf40",
       "world.l": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59"
     }
+  },
+  "dependencies": {
+    "CanEnter": [
+      "FactionAccess",
+      "Member",
+      "Sponsor"
+    ],
+    "CanInvestigate": [
+      "CanEnter",
+      "Knows"
+    ],
+    "CanClaimReward": [
+      "CanInvestigate",
+      "RewardClaimed"
+    ]
   }
 }

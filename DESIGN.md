@@ -34,7 +34,9 @@ SQLAlchemy Core 用于数据库定义和参数绑定；不提供可写的公开 
 
 派生输出按声明类型显式转换；TEMP VIEW 与 TEMP TABLE 使用相同的投影，避免查询比较语义因物化模式不同而变化。布尔输出归一化为 0／1，NULL 保留。
 
-运行时使用 SQLite 自身解析查询，检查输出列、函数和实际读取的关系，建立派生关系依赖顺序。不手写 SQL 依赖解析器；跨派生关系的循环依赖拒绝加载。查询内部的递归 CTE 由 SQLite 执行。
+构建阶段用 SQLite 自身解析生成的 SQL，检查输出列、函数和直接读取的事实／派生关系，清单写入产物 `dependencies`。运行时也核验实际 SQL 读取与清单一致；旧产物没有清单时直接收集。它描述语法解析时的依赖，包含否定、空表和子查询，不是当前数据恰好执行的分支。不手写 SQL 依赖解析器。
+
+直接边保存在私有 TEMP 表并建立双向索引。循环检查、依赖排序、读取时的祖先集合和事实修改后的后继集合均由 SQLite 递归 CTE 执行，Python 只绑定名称与消费执行计划，不实现 DFS/BFS。加载时按不同祖先数排序；DAG 中沿依赖边祖先数严格增加，循环通过自我可达检测。该排序需要计算祖先闭包，长链／稠密图的加载成本可能很高，独立探针记录此限制。查询内部的递归 CTE 仍由 SQLite 执行。
 
 ## 3. 缓存重写
 
@@ -48,13 +50,13 @@ SQLAlchemy Core 用于数据库定义和参数绑定；不提供可写的公开 
 
 `cached` 按完整派生关系缓存，先准备其派生依赖，再计算目标关系。过滤、NULL 比较、类型转换和存在性判断统一交给 SQLite；`query()` 与 `has()` 共享缓存。
 
-- 有实际事实变更的成功事务：所有派生缓存失效。
+- 有实际事实变更的成功事务：只使依赖于已修改事实关系的派生缓存及其后继失效；materialized 只按顺序重建这些关系。
 - 失败事务：事实、物化结果及原有缓存有效性一起保留。
 - 恢复快照、成功重载规则：缓存重新建立。
 - 查询返回独立的 Python 行字典，调用方修改结果不影响缓存。
 - 缓存大小由各派生关系的数据量决定，不随过滤条件的组合数量增长。
 
-第一版采用全局失效；不做 IVM 或按事实变化推导精确失效范围。事务内禁止读取派生结果，避免读取处于中间状态的世界。
+失效粒度是事实关系，不是行或过滤值。修改同一个通用状态表的任何一行，都会影响所有读取该表的推导；共享全局条件也会扩大失效范围。batch 合并实际发生变更的事实关系；重复 add、未匹配 remove 和失败事务不失效。不做元组级 IVM。事务内禁止读取派生结果，避免读取处于中间状态的世界。
 
 ## 4. 原子性与快照
 
@@ -95,5 +97,7 @@ Ren’Py store 中只保存 `default logic_snapshot = None` 对应的不可变�
 参考：
 
 - [Logica 官方仓库](https://github.com/EvgSkv/logica)
+- [SQLite SQL 解析时的 authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
+- [SQLite 递归 CTE](https://www.sqlite.org/lang_with.html)
 - [Ren’Py after_default_callbacks](https://www.renpy.org/doc/html/config.html#var-config.after_default_callbacks)
 - [Ren’Py 存档、读档与回滚](https://www.renpy.org/doc/html/save_load_rollback.html)

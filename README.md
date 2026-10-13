@@ -41,7 +41,9 @@ CanEnter(character: c, location: l) distinct :-
 
 编译器使用固定版本 Logica 的解析器和 SQL 生成器。导出关系之间保持外部表引用，内部辅助谓词正常展开；运行时由 SQLite 解析依赖并排序。事实属于外部数据，不能同时在 `.l` 中定义。
 
-编译器校验所有查询、输出列和依赖，成功后原子替换产物。失败保留上一份可用规则。源文件／schema 在编译途中变化时也不发布产物。JSON 包含格式版本、关系声明、SQL 和源文件信息，可直接交给后端。
+编译器校验所有查询、输出列和依赖，成功后原子替换产物。失败保留上一份可用规则。源文件／schema 在编译途中变化时也不发布产物。JSON 包含格式版本、关系声明、SQL、直接依赖清单和源文件信息，可直接交给后端。
+
+`dependencies` 包含直接读取的事实／派生关系，由 SQLite 解析编译 SQL 时报告，包括否定和空表读取。运行时校验清单与 SQL 一致；手工修改 SQL 也必须更新依赖或重新编译。旧的无依赖清单产物仍可加载。
 
 ## 后端接口
 
@@ -70,12 +72,14 @@ logic.close()
 | 模式 | 计算与保存方式 |
 | --- | --- |
 | `cached`（默认） | 首次读取某派生关系时，在 SQLite TEMP TABLE 中物化该关系及其依赖 |
-| `materialized` | 初始化和每次事实变更提交时重建全部派生 TEMP TABLE |
+| `materialized` | 初始化时计算全部派生 TEMP TABLE；提交时只重建受影响的派生关系 |
 | `live` | 使用 TEMP VIEW，每次读取由 SQLite 执行 |
 
-派生输出按声明类型显式转换，布尔值归一化为 0／1，NULL 保留，三种模式使用相同投影。没有按过滤参数保存的 Python 查询结果缓存；has 和 query 复用完整关系。成功的实际事实变更使缓存全局失效；失败事务、重复 add 和未匹配的 remove 保留原有缓存。
+派生输出按声明类型显式转换，布尔值归一化为 0／1，NULL 保留，三种模式使用相同投影。没有按过滤参数保存的 Python 查询结果缓存；has 和 query 复用完整关系。实际事实变更只使依赖于已修改事实关系的推导及其后继失效；失败事务、重复 add 和未匹配的 remove 保留原有缓存。
 
-`describe(name)` 查看关系声明、SQL 和派生依赖，不执行查询。`stats()` 查看已缓存关系、成功的惰性物化次数、惰性物化总耗时以及当前快照字节数。它们用于观察实验，不是完整性能分析器。
+SQLite 执行依赖图的排序、循环检查和失效传播，Python 不遍历依赖图。当前精度到事实关系：通用状态表内互不相关的行仍会共享失效范围。加载时的祖先闭包成本见多规则基准的长链探针。
+
+`describe(name)` 查看关系声明、SQL、派生依赖及包含事实的直接读取 `reads`，不执行规则查询。`stats()` 查看已缓存关系、成功的惰性物化次数、惰性物化总耗时以及当前快照字节数。它们用于观察实验，不是完整性能分析器。
 
 ## Ren’Py 接入与示例
 
@@ -136,7 +140,7 @@ uv run --locked python compile_rules.py examples/palace/world.l \
 - 规则不得读取系统时钟、数据库随机数或连接状态；相关函数拒绝加载。游戏需要随机或时间时，应把结果写成事实。
 - 规则 SQL 是受信任的构建产物；校验不是针对任意恶意 SQL 的安全沙箱。
 - 快照是带版本与事实 schema 标识的压缩 JSON，只保存事实。首次原型的 SQLite 内存镜像不兼容，本轮没有存档迁移。
-- 所有事实修改必须经过后端接口。运行方式同步、单线程，缓存采用全局失效，未做增量维护。
+- 所有事实修改必须经过后端接口。运行方式同步、单线程，按事实关系传播失效，未做元组级增量维护。
 - 每次实际事实提交生成完整逻辑快照；使用 batch 合并一次游戏行动。大事实集上的成本见下述基准。
 
 ## 大数据基准
@@ -158,6 +162,16 @@ uv run --locked python benchmarks/run.py \
 可用 `--sizes 1000 --repetitions 1` 做快速检查；`--out` 必须指向空目录。输出 JSON、CSV、Markdown，生成的大型快照不提交。SDK 后端测量不包含界面和回滚历史成本。
 
 [测量协议](benchmarks/DESIGN.md) · [实测解读](benchmarks/README.md) · [完整基准报告](benchmarks/results/2026-10-13-sdk-baseline/REPORT.md)
+
+视觉小说的多条件负载另有基准：128／512 条事实，事实数:派生规则数为 1:1／1:10；每次行动只读 24 个条件。对照旧版全局失效与 SQL 依赖图失效，涵盖独立事实关系和通用状态表两种布局。
+
+```sh
+uv run --locked python benchmarks/rules.py \
+  --python /path/to/renpy-sdk/lib/py3-linux-x86_64/python \
+  --packages examples/palace/game/python-packages
+```
+
+[多规则协议](benchmarks/RULES_DESIGN.md) · [多规则结果解读](benchmarks/MANY_RULES.md) · [完整对照报告](benchmarks/results/2026-10-13-many-rules/REPORT.md)
 
 ## 验证
 

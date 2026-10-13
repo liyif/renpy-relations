@@ -106,6 +106,9 @@ def test_exported_relations_remain_dependencies_and_share_cached_results(inputs)
     compile_rules(source, schema, output)
     db = LogicDB(output)
     try:
+        metadata = json.loads(output.read_text())["dependencies"]
+        assert metadata["CanEnter"] == ["FactionAccess", "Member", "Sponsor"]
+        assert metadata["CanClaimReward"] == ["CanInvestigate", "RewardClaimed"]
         db.add("Sponsor", character="hero", location="archive")
         db.add("Knows", character="hero", secret="forged_letter")
         assert db.describe("CanInvestigate")["dependencies"] == ["CanEnter"]
