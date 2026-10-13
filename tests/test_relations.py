@@ -1,6 +1,6 @@
 import json
 from types import SimpleNamespace
-import zlib
+import sqlite3
 
 import pytest
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -234,8 +234,8 @@ def test_schema_mismatch_and_corrupt_snapshot_do_not_destroy_the_world(rules):
         other.close()
 
 
-@pytest.mark.parametrize("invalid_number", ["Infinity", "1e999"])
-def test_snapshot_normalization_failure_keeps_original_world_and_cache(invalid_number, mode):
+@pytest.mark.parametrize("damage", ["metadata", "schema"])
+def test_snapshot_validation_failure_keeps_original_world_and_cache(damage, mode):
     rules = RuleSet({"format": "renpy-relations", "version": 1,
                      "facts": {"Resource": {"columns": {"amount": "real"}}},
                      "derived": {"Available": {"columns": {"amount": "real"},
@@ -245,8 +245,14 @@ def test_snapshot_normalization_failure_keeps_original_world_and_cache(invalid_n
         db.add("Resource", amount=1.0)
         assert db.query("Available") == [{"amount": 1.0}]
         stats = db.stats()
-        original = zlib.decompress(db.snapshot()).decode("utf-8")
-        corrupt = zlib.compress(original.replace('"amount":1.0', f'"amount":{invalid_number}').encode())
+        with sqlite3.connect(":memory:") as inspection:
+            inspection.deserialize(db.snapshot())
+            if damage == "metadata":
+                inspection.execute("UPDATE __rr_metadata SET version=999")
+            else:
+                inspection.execute("CREATE TABLE extra(value TEXT)")
+            inspection.commit()
+            corrupt = inspection.serialize()
         with pytest.raises(RuleError):
             db.restore(corrupt)
         assert db.query("Resource") == [{"amount": 1.0}]

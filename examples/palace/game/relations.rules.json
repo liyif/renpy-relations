@@ -55,6 +55,7 @@
       "sql": "SELECT\n  CanInvestigate.character AS character,\n  'investigation' AS reward\nFROM\n  CanInvestigate\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_5.value)) AS logica_value\n  FROM\n    RewardClaimed, JSON_EACH(JSON_ARRAY(0)) as x_5\n  WHERE\n    (RewardClaimed.character = CanInvestigate.character) AND\n    (RewardClaimed.reward = 'investigation')) IS NULL)\nGROUP BY CanInvestigate.character, ('investigation' || '')"
     }
   },
+  "backend": "sqlite",
   "source": {
     "file": "world.l",
     "sha256": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59",

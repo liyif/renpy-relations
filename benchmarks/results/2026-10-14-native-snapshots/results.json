@@ -1,0 +1,386 @@
+{
+  "baseline_ref": "45d0c21",
+  "created_at": "2026-10-14T01:12:43.000563+08:00",
+  "runs": [
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "sqlite3",
+      "legacy": true,
+      "size": 10000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "2bc65db913489553f1223d84a277be85bd51bc690f0e1eadd9417eaebc36c680",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.50.4",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.016438937047496438,
+          "snapshot_reused": 0.0168553008697927,
+          "plain_commit": 0.023434516973793507,
+          "history_commit": 0.016520122066140175,
+          "restore": 0.030637883115559816,
+          "snapshot_bytes": 33471
+        },
+        {
+          "snapshot": 0.023205569945275784,
+          "snapshot_reused": 0.015965314116328955,
+          "plain_commit": 0.01634598011150956,
+          "history_commit": 0.01609605411067605,
+          "restore": 0.03336254903115332,
+          "snapshot_bytes": 33478
+        },
+        {
+          "snapshot": 0.016137834172695875,
+          "snapshot_reused": 0.01601560995914042,
+          "plain_commit": 0.01627333089709282,
+          "history_commit": 0.01698488905094564,
+          "restore": 0.03762866393662989,
+          "snapshot_bytes": 33485
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "legacy": true,
+      "size": 10000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "2bc65db913489553f1223d84a277be85bd51bc690f0e1eadd9417eaebc36c680",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.01814512093551457,
+          "snapshot_reused": 0.017664613900706172,
+          "plain_commit": 0.024422871181741357,
+          "history_commit": 0.01735559501685202,
+          "restore": 0.03156007104553282,
+          "snapshot_bytes": 33471
+        },
+        {
+          "snapshot": 0.02568166214041412,
+          "snapshot_reused": 0.01692592608742416,
+          "plain_commit": 0.017108894186094403,
+          "history_commit": 0.017621371895074844,
+          "restore": 0.045050935819745064,
+          "snapshot_bytes": 33478
+        },
+        {
+          "snapshot": 0.016372669953852892,
+          "snapshot_reused": 0.01777070597745478,
+          "plain_commit": 0.016873626969754696,
+          "history_commit": 0.01713808998465538,
+          "restore": 0.03985282499343157,
+          "snapshot_bytes": 33485
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "sqlite3",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.50.4",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0003668891731649637,
+          "snapshot_reused": 5.010515451431274e-07,
+          "plain_commit": 0.0003178361803293228,
+          "history_commit": 0.00035353400744497776,
+          "restore": 0.0024853190407156944,
+          "snapshot_bytes": 438272
+        },
+        {
+          "snapshot": 0.00012343516573309898,
+          "snapshot_reused": 1.7997808754444122e-07,
+          "plain_commit": 0.0002967661712318659,
+          "history_commit": 0.0003024269826710224,
+          "restore": 0.0016558181960135698,
+          "snapshot_bytes": 438272
+        },
+        {
+          "snapshot": 2.3635104298591614e-05,
+          "snapshot_reused": 1.802109181880951e-07,
+          "plain_commit": 0.00020503089763224125,
+          "history_commit": 0.00027803005650639534,
+          "restore": 0.001738264923915267,
+          "snapshot_bytes": 438272
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0007285391911864281,
+          "snapshot_reused": 5.208421498537064e-07,
+          "plain_commit": 0.0002916061785072088,
+          "history_commit": 0.0007794760167598724,
+          "restore": 0.002168365055695176,
+          "snapshot_bytes": 438272
+        },
+        {
+          "snapshot": 0.00048342207446694374,
+          "snapshot_reused": 2.8102658689022064e-07,
+          "plain_commit": 0.00025474606081843376,
+          "history_commit": 0.0006679638754576445,
+          "restore": 0.002039529150351882,
+          "snapshot_bytes": 438272
+        },
+        {
+          "snapshot": 0.00047311210073530674,
+          "snapshot_reused": 2.8009526431560516e-07,
+          "plain_commit": 0.0002456179354339838,
+          "history_commit": 0.0006467639468610287,
+          "restore": 0.0019842342007905245,
+          "snapshot_bytes": 438272
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.013114577857777476,
+          "snapshot_reused": 9.320210665464401e-07,
+          "plain_commit": 0.002770052058622241,
+          "history_commit": 0.016105141025036573,
+          "restore": 0.04941591992974281,
+          "snapshot_bytes": 1323008
+        },
+        {
+          "snapshot": 0.012201637029647827,
+          "snapshot_reused": 1.1320225894451141e-06,
+          "plain_commit": 0.004377386998385191,
+          "history_commit": 0.015386298997327685,
+          "restore": 0.04976574704051018,
+          "snapshot_bytes": 1323008
+        },
+        {
+          "snapshot": 0.011877659009769559,
+          "snapshot_reused": 7.508788257837296e-07,
+          "plain_commit": 0.0032908148132264614,
+          "history_commit": 0.01869672304019332,
+          "restore": 0.051716507179662585,
+          "snapshot_bytes": 1323008
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "sqlite3",
+      "legacy": true,
+      "size": 100000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "2bc65db913489553f1223d84a277be85bd51bc690f0e1eadd9417eaebc36c680",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.50.4",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.17929241387173533,
+          "snapshot_reused": 0.17815718008205295,
+          "plain_commit": 0.17812796402722597,
+          "history_commit": 0.18336731404997408,
+          "restore": 0.3731629028916359,
+          "snapshot_bytes": 320503
+        },
+        {
+          "snapshot": 0.18587102694436908,
+          "snapshot_reused": 0.17379521997645497,
+          "plain_commit": 0.17724655009806156,
+          "history_commit": 0.17714596795849502,
+          "restore": 0.35563826095312834,
+          "snapshot_bytes": 320510
+        },
+        {
+          "snapshot": 0.17147661512717605,
+          "snapshot_reused": 0.17174952593632042,
+          "plain_commit": 0.17395207518711686,
+          "history_commit": 0.17291869199834764,
+          "restore": 0.3478345840703696,
+          "snapshot_bytes": 320515
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "legacy": true,
+      "size": 100000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "2bc65db913489553f1223d84a277be85bd51bc690f0e1eadd9417eaebc36c680",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.1934853969141841,
+          "snapshot_reused": 0.18642455409280956,
+          "plain_commit": 0.18897917494177818,
+          "history_commit": 0.1861744849011302,
+          "restore": 0.3740042559802532,
+          "snapshot_bytes": 320503
+        },
+        {
+          "snapshot": 0.18435124796815217,
+          "snapshot_reused": 0.18419041112065315,
+          "plain_commit": 0.18699815310537815,
+          "history_commit": 0.1870923328679055,
+          "restore": 0.3701940739993006,
+          "snapshot_bytes": 320510
+        },
+        {
+          "snapshot": 0.17821079608984292,
+          "snapshot_reused": 0.18079448188655078,
+          "plain_commit": 0.18393893796019256,
+          "history_commit": 0.1801341010723263,
+          "restore": 0.36110421596094966,
+          "snapshot_bytes": 320515
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "sqlite3",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.50.4",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0014822459779679775,
+          "snapshot_reused": 9.208451956510544e-07,
+          "plain_commit": 0.00048635690473020077,
+          "history_commit": 0.0012451838701963425,
+          "restore": 0.009108807891607285,
+          "snapshot_bytes": 4349952
+        },
+        {
+          "snapshot": 0.0008094629738479853,
+          "snapshot_reused": 2.7101486921310425e-07,
+          "plain_commit": 0.00029181712307035923,
+          "history_commit": 0.0005391279701143503,
+          "restore": 0.007535519078373909,
+          "snapshot_bytes": 4349952
+        },
+        {
+          "snapshot": 0.0002895919606089592,
+          "snapshot_reused": 4.810281097888947e-07,
+          "plain_commit": 0.00025156885385513306,
+          "history_commit": 0.0005358019843697548,
+          "restore": 0.007280522026121616,
+          "snapshot_bytes": 4349952
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.00521619594655931,
+          "snapshot_reused": 8.610077202320099e-07,
+          "plain_commit": 0.0004126161802560091,
+          "history_commit": 0.004091572016477585,
+          "restore": 0.013011198956519365,
+          "snapshot_bytes": 4349952
+        },
+        {
+          "snapshot": 0.003979607950896025,
+          "snapshot_reused": 3.608874976634979e-07,
+          "plain_commit": 0.000337773934006691,
+          "history_commit": 0.0038033120799809694,
+          "restore": 0.00929844006896019,
+          "snapshot_bytes": 4349952
+        },
+        {
+          "snapshot": 0.003907490987330675,
+          "snapshot_reused": 3.511086106300354e-07,
+          "plain_commit": 0.0003646360710263252,
+          "history_commit": 0.002895541023463011,
+          "restore": 0.009018005104735494,
+          "snapshot_bytes": 4349952
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0994918248616159,
+          "snapshot_reused": 1.0521616786718369e-06,
+          "plain_commit": 0.0036778331268578768,
+          "history_commit": 0.10077139502391219,
+          "restore": 0.10572042991407216,
+          "snapshot_bytes": 5517312
+        },
+        {
+          "snapshot": 0.09814860206097364,
+          "snapshot_reused": 7.511116564273834e-07,
+          "plain_commit": 0.003321712836623192,
+          "history_commit": 0.10398447001352906,
+          "restore": 0.10437431395985186,
+          "snapshot_bytes": 5517312
+        },
+        {
+          "snapshot": 0.09942071791738272,
+          "snapshot_reused": 5.811452865600586e-07,
+          "plain_commit": 0.003167599905282259,
+          "history_commit": 0.1022029030136764,
+          "restore": 0.10415727994404733,
+          "snapshot_bytes": 5517312
+        }
+      ]
+    }
+  ]
+}

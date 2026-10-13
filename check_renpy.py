@@ -21,6 +21,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sdk", required=True, type=Path)
     parser.add_argument("--mode", choices=("cached", "live", "materialized"), default="cached")
+    parser.add_argument("--backend", choices=("sqlite", "duckdb"), default="sqlite")
     parser.add_argument("--headless", action="store_true", help="Use xvfb-run and software rendering")
     parser.add_argument("--timeout", type=float, default=45)
     args = parser.parse_args(argv)
@@ -33,7 +34,8 @@ def main(argv=None):
     command = [str(executable), str(game), "test", "relations", "--report-detailed"]
     if args.headless:
         command = ["xvfb-run", "-a", *command]
-    environment = dict(os.environ, RELATIONS_MODE=args.mode, SDL_AUDIODRIVER="dummy")
+    environment = dict(os.environ, RELATIONS_MODE=args.mode, RELATIONS_BACKEND=args.backend,
+                       SDL_AUDIODRIVER="dummy")
     if args.headless:
         environment.update(SDL_VIDEODRIVER="x11", LIBGL_ALWAYS_SOFTWARE="1")
     lines = queue.Queue()

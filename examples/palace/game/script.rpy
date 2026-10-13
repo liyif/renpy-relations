@@ -15,11 +15,16 @@ init python:
     import sys
 
     # Repository demo only. In a packaged game put the module in python-packages.
+    # Ren'Py's virtual package importer does not discover top-level native modules.
+    sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
     sys.path.insert(0, os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
     from renpy_relations import LogicDB, RuleSet
 
+    relations_backend = os.environ.get("RELATIONS_BACKEND", "sqlite")
+    relations_rules_path = os.path.join(config.gamedir,
+        "relations.duckdb.rules.json" if relations_backend == "duckdb" else "relations.rules.json")
     logic = LogicDB(
-        os.path.join(config.gamedir, "relations.rules.json"),
+        relations_rules_path, backend=relations_backend,
         mode=os.environ.get("RELATIONS_MODE", "cached"),
     )
     logic.install_renpy(config, watch_rules=True)

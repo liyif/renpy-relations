@@ -15,12 +15,30 @@ EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "palace"
 COMPILER = Path(__file__).resolve().parents[1] / "compile_rules.py"
 
 
-@pytest.fixture
-def inputs(tmp_path):
+@pytest.fixture(params=["sqlite", "duckdb"])
+def inputs(tmp_path, request):
     source, schema, output = (tmp_path / p for p in ("world.l", "schema.json", "rules.json"))
     shutil.copyfile(EXAMPLE / "world.l", source)
     shutil.copyfile(EXAMPLE / "schema.json", schema)
+    if request.param == "duckdb":
+        pytest.importorskip("duckdb")
+        source.write_text(source.read_text().replace('@Engine("sqlite")', '@Engine("duckdb")'))
     return source, schema, output
+
+
+def test_explicit_compilation_target_does_not_edit_source(tmp_path):
+    pytest.importorskip("duckdb")
+    source = EXAMPLE / "world.l"
+    before = source.read_bytes()
+    output = tmp_path / "duckdb.json"
+    bundle = compile_rules(source, EXAMPLE / "schema.json", output, backend="duckdb")
+    assert source.read_bytes() == before
+    assert bundle.backend == "duckdb"
+    db = LogicDB(bundle, backend="duckdb")
+    try:
+        assert db.describe("CanClaimReward")["reads"] == ["CanInvestigate", "RewardClaimed"]
+    finally:
+        db.close()
 
 
 @pytest.mark.parametrize("mode", ["live", "materialized", "cached"])

@@ -30,13 +30,13 @@ SQLAlchemy Core 用于数据库定义和参数绑定；不提供可写的公开 
 
 产物包含格式名称、格式版本、事实 schema、派生关系 schema 与各自的 SQL，附带源文件及编译器信息。运行时不依赖 Logica，不从规则集中加载 Python 代码。
 
-第一版接受能编译成单条、确定性的 SQLite SELECT 的规则，包括适用的 WITH 查询。支持 SQLite 自带函数／JSON 表函数，以及 Logica 否定查询使用的纯函数 `MagicalEntangle(x, y) = x`。其他自定义 SQLite 函数或多步执行输出会给出错误；不承诺完整 Logica 支持。时钟与随机结果由游戏写成事实，规则不能直接读取系统时钟或数据库随机数。
+第一版接受能编译成单条、确定性的目标后端 SELECT 的规则，包括适用的 WITH 查询。SQLite 支持自带函数／JSON 表函数，以及 Logica 否定查询使用的纯函数 `MagicalEntangle(x, y) = x`。其他自定义 SQLite 函数或多步执行输出会给出错误；不承诺完整 Logica 支持。时钟与随机结果由游戏写成事实，规则不能直接读取系统时钟或数据库随机数。
 
 派生输出按声明类型显式转换；TEMP VIEW 与 TEMP TABLE 使用相同的投影，避免查询比较语义因物化模式不同而变化。布尔输出归一化为 0／1，NULL 保留。
 
-构建阶段用 SQLite 自身解析生成的 SQL，检查输出列、函数和直接读取的事实／派生关系，清单写入产物 `dependencies`。运行时也核验实际 SQL 读取与清单一致；旧产物没有清单时直接收集。它描述语法解析时的依赖，包含否定、空表和子查询，不是当前数据恰好执行的分支。不手写 SQL 依赖解析器。
+构建阶段用目标数据库原生解析生成的 SQL，检查输出列、函数和直接读取的事实／派生关系，清单写入产物 `dependencies`。运行时也核验实际 SQL 读取与清单一致；旧产物没有清单时直接收集。它描述语法解析时的依赖，包含否定、空表和子查询，不是当前数据恰好执行的分支。不手写 SQL 依赖解析器。
 
-直接边保存在私有 TEMP 表并建立双向索引。循环检查、依赖排序、读取时的祖先集合和事实修改后的后继集合均由 SQLite 递归 CTE 执行，Python 只绑定名称与消费执行计划，不实现 DFS/BFS。加载时按不同祖先数排序；DAG 中沿依赖边祖先数严格增加，循环通过自我可达检测。该排序需要计算祖先闭包，长链／稠密图的加载成本可能很高，独立探针记录此限制。查询内部的递归 CTE 仍由 SQLite 执行。
+直接边保存在私有 TEMP 表并建立双向索引。循环检查、依赖排序、读取时的祖先集合和事实修改后的后继集合均由 所选数据库的递归 CTE 执行，Python 只绑定名称与消费执行计划，不实现 DFS/BFS。加载时按不同祖先数排序；DAG 中沿依赖边祖先数严格增加，循环通过自我可达检测。该排序需要计算祖先闭包，长链／稠密图的加载成本可能很高，独立探针记录此限制。查询内部的递归 CTE 仍由 SQLite 执行。
 
 ## 3. 缓存重写
 
@@ -44,9 +44,9 @@ SQLAlchemy Core 用于数据库定义和参数绑定；不提供可写的公开 
 
 | 模式 | 派生数据位置 | 计算时机 |
 | --- | --- | --- |
-| `live` | SQLite TEMP VIEW | 每次查询 |
-| `materialized` | SQLite TEMP TABLE | 初始化和事实提交时 |
-| `cached`（默认） | SQLite TEMP TABLE | 某派生关系首次被读取时 |
+| `live` | TEMP VIEW | 每次查询 |
+| `materialized` | TEMP TABLE | 初始化和事实提交时 |
+| `cached`（默认） | TEMP TABLE | 某派生关系首次被读取时 |
 
 `cached` 按完整派生关系缓存，先准备其派生依赖，再计算目标关系。过滤、NULL 比较、类型转换和存在性判断统一交给 SQLite；`query()` 与 `has()` 共享缓存。
 
@@ -60,9 +60,11 @@ SQLAlchemy Core 用于数据库定义和参数绑定；不提供可写的公开 
 
 ## 4. 原子性与快照
 
-事实事务包含事实写入以及 eager 模式的派生重建。事务失败时一起回滚；成功后发布新的事实快照。快照发布失败则恢复最后接受的事实状态。
+事实事务包含事实写入以及 eager 模式的派生重建。事务失败时一起回滚；绑定快照接收者时，成功后发布新的事实快照，发布失败恢复最后接受的事实状态。未绑定时普通提交不生成快照。
 
-快照保存事实及事实 schema 标识，不保存 TEMP 数据。采用带格式版本的压缩 JSON 字节串，而非 SQLite 原始内存镜像：真实 Ren’Py 8.5.3 SDK 没有 sqlite3，外置 pysqlite3 驱动也没有 serialize／deserialize。逻辑事实快照避免依赖这一驱动扩展。恢复前校验 schema；本轮不做存档迁移。规则版本不绑定存档：相同事实可以由修改后的规则重新解释。
+快照为原生数据库镜像，只保存事实和内部 `__rr_metadata`，记录格式、版本 2、后端和事实 schema 标识，不保存 TEMP 推导／依赖图。SQLite 优先 serialize／deserialize；SDK pysqlite3 使用原生 backup 在内存数据库和私有临时文件之间复制页。DuckDB 使用 COPY FROM DATABASE 创建独立文件镜像并关闭附加连接后读取；恢复也经原生复制。取消逐行 Python 对象、JSON 转换和每次压缩。标准序列化路径无需临时文件，其他路径的临时文件在操作结束后清理。
+
+显式 snapshot 惰性生成，事实未变化时复用不可变字节串；恢复时复用已验证的输入，不再导出一次。旧压缩 JSON、早期无元信息镜像及跨后端镜像不兼容，没有迁移承诺。完整镜像仍随数据库大小增长，未压缩镜像通常更大。Ren’Py 绑定仍逐有效提交保存完整状态；增量历史不在这次实现范围。checkpoint／MVCC 不作为可持久化的剧情历史版本。规则版本不绑定存档：相同事实可以由修改后的规则重新解释。
 
 恢复和重载都先构建候选内存数据库，成功后替换现有数据库。失败时当前数据库继续可用。事实 schema 不变时允许派生关系增加、删除和修改；事实 schema 改变需要新游戏／新的 LogicDB。
 
@@ -98,6 +100,18 @@ Ren’Py store 中只保存 `default logic_snapshot = None` 对应的不可变�
 
 - [Logica 官方仓库](https://github.com/EvgSkv/logica)
 - [SQLite SQL 解析时的 authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
-- [SQLite 递归 CTE](https://www.sqlite.org/lang_with.html)
+- [所选数据库的递归 CTE](https://www.sqlite.org/lang_with.html)
 - [Ren’Py after_default_callbacks](https://www.renpy.org/doc/html/config.html#var-config.after_default_callbacks)
 - [Ren’Py 存档、读档与回滚](https://www.renpy.org/doc/html/save_load_rollback.html)
+
+## 9. 可选后端（2026-10-14）
+
+游戏接口、三种模式、事实级失效和 Ren’Py 绑定共用；连接、冲突插入、SQL 读取验证、类型投影、原生快照由内部 SQLite／DuckDB 实现集中处理。运行时继续是一个文件，不增加通用插件框架。
+
+规则产物带 backend，未标记的旧产物默认 SQLite。编译器的 --backend 可覆盖源文件引擎而不编辑源文件；Logica 分别生成 SQL，不做 Python SQL 转译。DuckDB 提取编译器 execution.main_predicate_sql，保留 WITH，去除未使用的初始化 schema／类型前导；有 UDF／多步执行的输出拒绝。运行时显式 backend 必须匹配产物，热重载不能切换后端。
+
+SQLite 继续使用 authorizer；DuckDB 使用 extract_statements／get_table_names，并在原生 SQL 中查询编译 AST 与函数目录，拒绝不支持的外部读取、动态 SQL、系统目录和不确定性函数。结果清单包含空表、count(*)、否定和子查询的读取。图算法在各自数据库中执行，不用 Python 解析 SQL 或遍历依赖图。
+
+DuckDB 使用单线程连接设置，与同步游戏接口一致。integer 保持 64 位，real 在 DuckDB 使用 DOUBLE，避免默认 FLOAT 的精度损失；SQLite 数值主键使用 BIGINT 声明，避免 INTEGER PRIMARY KEY 的隐式 rowid 别名干扰全元组冲突目标。两库的类型转换不完全相同，不承诺任意后端专属 SQL 可以互换。
+
+选择 DuckDB 的理由是实验实际负载上的执行差异，不是已实现增量历史。双后端都需要真实引擎的存读档／回滚／热重载验证；快照性能测量单独隔离提交、完整导出、重复导出和恢复，不以省略历史记录的提交对比绑定历史的提交。

@@ -2,9 +2,9 @@
 
 在 Ren’Py 中使用关系事实与声明式规则的实验。
 
-游戏脚本修改事实，Logica 描述派生关系，SQLite 执行查询。这个实验检验的是：复杂的资格、关系和剧情条件，能否通过很薄的集成获得成熟的关系计算能力。
+游戏脚本修改事实，Logica 描述派生关系，SQLite 或 DuckDB 执行查询。这个实验检验的是：复杂的资格、关系和剧情条件，能否通过很薄的集成获得成熟的关系计算能力。
 
-运行时是一个 `renpy_relations.py`，依赖 SQLAlchemy 和 SQLite 驱动；Logica 只用于开发时编译。[设计与取舍见 DESIGN.md](DESIGN.md)。
+运行时是一个 `renpy_relations.py`，依赖 SQLAlchemy 和所选数据库驱动；Logica 只用于开发时编译。[设计与取舍见 DESIGN.md](DESIGN.md)。
 
 ## 开发与编译
 
@@ -39,11 +39,22 @@ CanEnter(character: c, location: l) distinct :-
 
 字段类型为 `text`、`integer`、`real`、`boolean`。事实字段不可为空，完整元组有唯一约束，重复断言忽略。可选 `"key": ["character"]` 定义事实主键；不同值违反主键时明确失败。替换单值事实可在一个 batch 中先 remove 再 add。
 
-编译器使用固定版本 Logica 的解析器和 SQL 生成器。导出关系之间保持外部表引用，内部辅助谓词正常展开；运行时由 SQLite 解析依赖并排序。事实属于外部数据，不能同时在 `.l` 中定义。
+编译器使用固定版本 Logica 的解析器和 SQL 生成器。导出关系之间保持外部表引用，内部辅助谓词正常展开；运行时由所选数据库解析依赖并排序。事实属于外部数据，不能同时在 `.l` 中定义。
 
 编译器校验所有查询、输出列和依赖，成功后原子替换产物。失败保留上一份可用规则。源文件／schema 在编译途中变化时也不发布产物。JSON 包含格式版本、关系声明、SQL、直接依赖清单和源文件信息，可直接交给后端。
 
-`dependencies` 包含直接读取的事实／派生关系，由 SQLite 解析编译 SQL 时报告，包括否定和空表读取。运行时校验清单与 SQL 一致；手工修改 SQL 也必须更新依赖或重新编译。旧的无依赖清单产物仍可加载。
+`dependencies` 包含直接读取的事实／派生关系，由数据库原生解析编译 SQL 时报告，包括否定和空表读取。运行时校验清单与 SQL 一致；手工修改 SQL 也必须更新依赖或重新编译。旧的无依赖清单产物仍可加载。
+
+选择 DuckDB 时安装可选依赖并生成对应 SQL，无需修改源文件：
+
+```sh
+uv sync --locked --extra duckdb
+uv run --locked --extra duckdb python compile_rules.py examples/palace/world.l \
+  --schema examples/palace/schema.json --backend duckdb \
+  --output examples/palace/game/relations.duckdb.rules.json
+```
+
+也可在源文件声明 `@Engine("duckdb")`。产物带 `backend` 标识，缺省标识的旧产物按 SQLite 解释；不能把 SQLite SQL 产物直接交给 DuckDB。
 
 ## 后端接口
 
@@ -63,23 +74,27 @@ logic.reload_rules()
 logic.close()
 ```
 
+DuckDB 使用 `LogicDB("relations.duckdb.rules.json", backend="duckdb", mode="cached")`。省略 `backend` 时采用产物中的选择；显式选择与产物不符会报错。热重载不能切换后端。
+
 过滤值通过 SQLAlchemy 绑定，返回独立的行字典，行顺序未定义。修改只允许作用于事实；派生关系只读。事务内禁止 query、has、snapshot、restore、reload 和嵌套 batch。
 
 独立接入可传入 `on_snapshot` 回调，它应原子接收字节串，成功返回表示接受；抛错时后端恢复上一份已接受的事实快照。Ren’Py 绑定自带该回调。
+
+未绑定快照接收者时，普通事实提交只执行数据库事务与依赖失效，不生成整库快照。显式 `snapshot()` 惰性生成并复用镜像；事实变化后失效。绑定接收者时，每次有效提交仍发布完整镜像，重复断言、空 batch 和未匹配删除不发布。
 
 三种模式共享接口：
 
 | 模式 | 计算与保存方式 |
 | --- | --- |
-| `cached`（默认） | 首次读取某派生关系时，在 SQLite TEMP TABLE 中物化该关系及其依赖 |
+| `cached`（默认） | 首次读取某派生关系时，在 TEMP TABLE 中物化该关系及其依赖 |
 | `materialized` | 初始化时计算全部派生 TEMP TABLE；提交时只重建受影响的派生关系 |
-| `live` | 使用 TEMP VIEW，每次读取由 SQLite 执行 |
+| `live` | 使用 TEMP VIEW，每次读取由所选数据库执行 |
 
 派生输出按声明类型显式转换，布尔值归一化为 0／1，NULL 保留，三种模式使用相同投影。没有按过滤参数保存的 Python 查询结果缓存；has 和 query 复用完整关系。实际事实变更只使依赖于已修改事实关系的推导及其后继失效；失败事务、重复 add 和未匹配的 remove 保留原有缓存。
 
-SQLite 执行依赖图的排序、循环检查和失效传播，Python 不遍历依赖图。当前精度到事实关系：通用状态表内互不相关的行仍会共享失效范围。加载时的祖先闭包成本见多规则基准的长链探针。
+数据库执行依赖图的排序、循环检查和失效传播，Python 不遍历依赖图。SQLite 使用 authorizer 报告读取，DuckDB 使用原生查询解析接口。当前精度到事实关系：通用状态表内互不相关的行仍会共享失效范围。加载时的祖先闭包成本见多规则基准的长链探针。
 
-`describe(name)` 查看关系声明、SQL、派生依赖及包含事实的直接读取 `reads`，不执行规则查询。`stats()` 查看已缓存关系、成功的惰性物化次数、惰性物化总耗时以及当前快照字节数。它们用于观察实验，不是完整性能分析器。
+`describe(name)` 查看关系声明、SQL、派生依赖及包含事实的直接读取 `reads`，不执行规则查询。`stats()` 查看后端、已缓存关系、成功的惰性物化次数、惰性物化总耗时和缓存的镜像字节数（尚未生成时为 0）。它们用于观察实验，不是完整性能分析器。
 
 ## Ren’Py 接入与示例
 
@@ -101,6 +116,8 @@ uv pip install --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
 
 依赖必须匹配 **Ren’Py 内置 Python**，不能直接复制开发环境中其他 Python 版本的二进制包。SQLAlchemy 固定为实测兼容的 2.0.43；较新的 2.0.54／2.1 使用了该 SDK 裁剪掉的 sysconfig 接口。
 
+DuckDB 示例使用同一安装流程，在 `uv export` 中额外加上 `--extra duckdb`。然后以 `RELATIONS_BACKEND=duckdb /path/to/renpy-sdk/renpy.sh examples/palace` 启动。DuckDB／duckdb-engine 的版本也由 uv 锁定。
+
 在其他游戏中，将 `renpy_relations.py` 放入 `game/python-packages`，规则产物放在 `game`，然后：
 
 ```renpy
@@ -108,12 +125,16 @@ default logic_snapshot = None
 
 init python:
     import os
+    import sys
+    sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
     from renpy_relations import LogicDB
     logic = LogicDB(os.path.join(config.gamedir, "relations.rules.json"))
     logic.install_renpy(config)
 ```
 
 数据库对象放在初始化变量中，store 只保存不可变快照字节串。提交事实时更新快照；启动、读档和回滚后恢复事实并重建派生对象。相同绑定重复安装不会重复注册回调。
+
+实际包目录搜索路径使 Python 能找到 DuckDB 的顶层原生扩展；该扩展必须随游戏作为实际文件部署，不能只放入资源归档。
 
 规则负责条件判断；发放奖励、剧情跳转等由 Ren’Py 脚本执行，结果以事实记录。一次性奖励应检查资格，再写入 RewardClaimed，不能让条件查询本身发奖励。
 
@@ -135,13 +156,24 @@ uv run --locked python compile_rules.py examples/palace/world.l \
 
 ## 支持范围与实验边界
 
-- 接受确定性的单条 SQLite SELECT，包含适用的 WITH／递归 CTE；跨派生关系的循环依赖拒绝加载。
-- 支持 SQLite 自带函数、JSON 表函数，以及 Logica 否定查询用的纯函数 MagicalEntangle。其他扩展函数、多语句工作流、外部执行器不在本轮支持范围。
+- 接受目标后端支持的确定性单条 SELECT，包含适用的 WITH／递归 CTE；跨派生关系的循环依赖拒绝加载。
+- SQLite 支持自带函数、JSON 表函数和纯函数 MagicalEntangle。DuckDB 支持经原生函数目录检查的确定性函数，以及 unnest／range／generate_series／JSON 表函数；拒绝动态查询、外部文件读取和系统目录读取。复杂记录类型、UDF 与多语句 Logica 工作流不在本轮支持范围。
 - 规则不得读取系统时钟、数据库随机数或连接状态；相关函数拒绝加载。游戏需要随机或时间时，应把结果写成事实。
 - 规则 SQL 是受信任的构建产物；校验不是针对任意恶意 SQL 的安全沙箱。
-- 快照是带版本与事实 schema 标识的压缩 JSON，只保存事实。首次原型的 SQLite 内存镜像不兼容，本轮没有存档迁移。
+- 快照是原生数据库镜像，仅保存事实和内部格式／版本／后端／事实 schema 元信息。SQLite 优先内存 serialize／deserialize，SDK pysqlite3 回退原生 backup；DuckDB 使用原生数据库复制与独立文件镜像。恢复验证候选 schema 和元信息后才替换当前世界。
+- 新快照版本为 2，不接受旧压缩 JSON、无元信息原型镜像或另一后端的镜像。本轮不提供存档迁移。两个数据库的类型转换和函数语义仍有差异；游戏应按声明类型提供字段值。
 - 所有事实修改必须经过后端接口。运行方式同步、单线程，按事实关系传播失效，未做元组级增量维护。
-- 每次实际事实提交生成完整逻辑快照；使用 batch 合并一次游戏行动。大事实集上的成本见下述基准。
+- Ren’Py 绑定每次实际事实提交生成完整镜像；使用 batch 合并一次游戏行动。镜像未额外压缩，通常比原压缩 JSON 大。尚未实现增量历史，数据库 checkpoint／MVCC 不能替代独立剧情历史。
+
+## 提交与原生快照对照
+
+```sh
+uv run --locked --extra duckdb --group renpy-linux python benchmarks/snapshots.py \
+  --sizes 10000 100000 --repetitions 3 --baseline-ref 45d0c21 \
+  --out benchmarks/results/my-native-snapshots
+```
+
+分别测量普通提交、绑定历史接收者的提交、首次／重复快照和恢复，包含标准库序列化、pysqlite3 备份回退和 DuckDB 数据库复制。[实际结果与限制](benchmarks/results/2026-10-14-native-snapshots/REPORT.md)。它只隔离快照路径，不代表剧情查询速度。
 
 ## 大数据基准
 
@@ -177,7 +209,7 @@ uv run --locked python benchmarks/conditions.py \
 
 ## 验证
 
-后端检查使用真实 SQLite；编译检查使用真实 Logica，覆盖三种模式、依赖缓存、事务失败、快照、热重载、编译失败和观察重建。
+后端检查使用真实 SQLite／DuckDB；编译检查使用真实 Logica，覆盖三种模式、依赖缓存、事务失败、快照、热重载、编译失败和观察重建。完整双后端检查使用 `uv run --locked --extra duckdb --group renpy-linux pytest`；未安装可选依赖时跳过相关检查。
 
 Ren’Py 自身的测试用例位于示例 `game/testcases.rpy`：
 
@@ -186,6 +218,7 @@ Ren’Py 自身的测试用例位于示例 `game/testcases.rpy`：
 uv run --locked python check_renpy.py --sdk /path/to/renpy-sdk --headless
 uv run --locked python check_renpy.py --sdk /path/to/renpy-sdk --headless --mode live
 uv run --locked python check_renpy.py --sdk /path/to/renpy-sdk --headless --mode materialized
+uv run --locked --extra duckdb python check_renpy.py --sdk /path/to/renpy-sdk --headless --backend duckdb
 ```
 
 `--headless` 需要 Linux 的 xvfb-run；省略时使用正常显示器。脚本以 SDK 输出的完整测试报告为结果，超时／崩溃／失败报告均返回失败，并回收隔离的测试进程与临时存档。Ren’Py 8.5.3 的测试结束阶段会继续循环，启动脚本在收到报告后终止该进程组；没有修改 SDK 源码。

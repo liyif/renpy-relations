@@ -4,7 +4,8 @@
     logic.add("Sponsor", character="hero", location="archive")
     assert logic.has("CanEnter", character="hero", location="archive")
 
-Only facts and their schema identifier are saved. Derived data lives in TEMP.
+SQLite or DuckDB is selected by the compiled rule bundle. Native images save
+only facts and format/schema metadata. Derived data lives in TEMP.
 All writes go through batch/add/remove; queries are read-only and forbidden in
 a batch. Rule SQL is trusted build-time output, gameplay values are bound.
 """
@@ -15,22 +16,20 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import tempfile
 from time import perf_counter
-import zlib
 
 try:
     import sqlite3
 except ImportError:
     try:
         import pysqlite3 as sqlite3
-    except ImportError as exc:
-        raise ImportError(
-            "This Python runtime has no SQLite driver. See README.md for Ren'Py runtime installation."
-        ) from exc
+    except ImportError:
+        sqlite3 = None
 
 from sqlalchemy import (
-    Boolean, Column, Float, Integer, MetaData, String, Table,
-    UniqueConstraint, create_engine, delete, event, select,
+    BigInteger, Boolean, Column, Double, Float, MetaData, String, Table,
+    UniqueConstraint, create_engine, delete, event, literal_column, select,
 )
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import SQLAlchemyError
@@ -41,7 +40,9 @@ class RuleError(ValueError):
     """Invalid/incompatible rules or snapshot; an existing world is preserved."""
 
 
-_TYPES = {"text": String, "integer": Integer, "real": Float, "boolean": Boolean}
+# BIGINT avoids SQLite's implicit INTEGER PRIMARY KEY / rowid alias. It also
+# keeps explicit whole-tuple conflict targets valid when the key is numeric.
+_TYPES = {"text": String, "integer": BigInteger, "real": Float, "boolean": Boolean}
 _SQL_TYPES = {"text": "TEXT", "integer": "INTEGER", "real": "REAL", "boolean": "INTEGER"}
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_]*\Z")
 _VOLATILE_FUNCTIONS = frozenset({
@@ -77,8 +78,11 @@ class RuleSet:
             raise RuleError("Expected a renpy-relations rule bundle")
         if type(doc.get("version")) is not int or doc["version"] != 1:
             raise RuleError("Unsupported rule bundle version")
-        if set(doc) - {"format", "version", "facts", "derived", "source", "dependencies"}:
+        if set(doc) - {"format", "version", "backend", "facts", "derived", "source", "dependencies"}:
             raise RuleError("Unknown rule bundle fields")
+        self.backend = doc.get("backend", "sqlite")
+        if self.backend not in ("sqlite", "duckdb"):
+            raise RuleError("backend must be sqlite or duckdb")
         names = set()
         for kind in ("facts", "derived"):
             relations = doc.get(kind)
@@ -124,7 +128,8 @@ class RuleSet:
                         or len(set(reads)) != len(reads)):
                     raise RuleError(f"Invalid dependencies for {name}")
         self.fact_schema_id = _digest(doc["facts"])
-        self.content_id = _digest({k: doc[k] for k in ("facts", "derived")})
+        self.content_id = _digest({"backend": self.backend,
+                                   **{k: doc[k] for k in ("facts", "derived")}})
 
     @classmethod
     def load(cls, path):
@@ -141,14 +146,21 @@ class RuleSet:
         for kind in ("facts", "derived"):
             for name, spec in self._document[kind].items():
                 key = spec.get("key", [])
+                types = dict(_TYPES)
+                if self.backend == "duckdb":
+                    types.update(integer=BigInteger, real=Double)
+                # Schema identity ignores dictionary order. Native database DDL
+                # must therefore use a stable order too, including unique indexes.
+                fields = sorted(spec["columns"]) if kind == "facts" else list(spec["columns"])
                 columns = [Column(
-                    column, _TYPES[type_name](), nullable=kind == "derived",
-                    primary_key=column in key,
-                ) for column, type_name in spec["columns"].items()]
-                constraints = [UniqueConstraint(*spec["columns"])] if kind == "facts" else []
+                    column, types[spec["columns"][column]](), nullable=kind == "derived",
+                    primary_key=column in key, autoincrement=False,
+                ) for column in fields]
+                constraints = [UniqueConstraint(*fields)] if kind == "facts" else []
                 tables[name] = Table(
                     name, metadata, *columns, *constraints,
                     schema="main" if kind == "facts" else "temp",
+                    prefixes=["TEMPORARY"] if self.backend == "duckdb" and kind == "derived" else [],
                 )
         return tables
 
@@ -165,13 +177,14 @@ def _read_bundle(path):
 class _World:
     engine: object
     tables: dict
+    backend: object
     dependencies: dict = field(default_factory=dict)
     reads: dict = field(default_factory=dict)
     order: tuple = ()
     valid: set = field(default_factory=set)
 
     def affected(self, conn, facts):
-        """SQLite follows reverse edges; Python only binds changed fact names."""
+        """The database follows reverse edges; Python binds changed fact names."""
         conn.exec_driver_sql('DELETE FROM temp.__rr_changed')
         conn.exec_driver_sql('INSERT INTO temp.__rr_changed VALUES (?)', [(n,) for n in facts])
         return [r[0] for r in conn.exec_driver_sql('''
@@ -217,7 +230,224 @@ def _new_engine():
     return engine
 
 
-def _validate_sql(conn, world, rules):
+class _SQLiteBackend:
+    name = "sqlite"
+    sql_types = _SQL_TYPES
+    graph_suffix = " WITHOUT ROWID"
+
+    def __init__(self):
+        if sqlite3 is None:
+            raise ImportError("No SQLite driver; see README.md for Ren'Py installation")
+        self.errors = (SQLAlchemyError, sqlite3.Error)
+
+    def engine(self):
+        return _new_engine()
+
+    def insert(self, table, values):
+        return sqlite_insert(table).values(**values).on_conflict_do_nothing(
+            index_elements=list(table.columns))
+
+    def changed(self, conn, statement):
+        result = conn.execute(statement)
+        try:
+            return result.rowcount > 0
+        finally:
+            result.close()
+
+    def reads(self, conn, world, rules):
+        return _sqlite_reads(conn, world, rules)
+
+    def schema(self, conn):
+        return conn.exec_driver_sql(
+            'SELECT type,name,tbl_name,sql FROM main.sqlite_schema ORDER BY type,name').all()
+
+    def check(self, conn):
+        if conn.exec_driver_sql('PRAGMA main.quick_check').all() != [("ok",)]:
+            raise RuleError("Invalid SQLite snapshot")
+
+    def snapshot(self, engine):
+        with engine.connect() as conn:
+            raw = conn.connection.dbapi_connection
+            if hasattr(raw, "serialize"):
+                return raw.serialize(name="main")
+            # SDK pysqlite3 exposes backup but not serialize. SQLite copies pages;
+            # no fact rows cross the Python boundary.
+            with tempfile.TemporaryDirectory(prefix="relations-snapshot-") as directory:
+                path = Path(directory) / "facts.sqlite"
+                target = sqlite3.connect(str(path))
+                try:
+                    raw.backup(target, name="main")
+                finally:
+                    target.close()
+                return path.read_bytes()
+
+    def restore(self, engine, image, facts):
+        if not image.startswith(b"SQLite format 3\0"):
+            raise RuleError("Snapshot is not a SQLite image (backend/format mismatch)")
+        with engine.connect() as conn:
+            raw = conn.connection.dbapi_connection
+            if hasattr(raw, "deserialize"):
+                raw.deserialize(image, name="main")
+                return
+            with tempfile.TemporaryDirectory(prefix="relations-restore-") as directory:
+                path = Path(directory) / "facts.sqlite"
+                path.write_bytes(image)
+                source = sqlite3.connect(str(path))
+                try:
+                    source.backup(raw, name="main")
+                finally:
+                    source.close()
+
+
+class _DuckDBBackend:
+    name = "duckdb"
+    sql_types = {**_SQL_TYPES, "integer": "BIGINT", "real": "DOUBLE"}
+    graph_suffix = ""
+
+    def __init__(self):
+        try:
+            import duckdb
+            import duckdb_engine  # Register the SQLAlchemy dialect.
+        except ImportError as exc:
+            raise ImportError("DuckDB backend requires the uv extra: --extra duckdb") from exc
+        self.errors = (SQLAlchemyError, duckdb.Error)
+
+    def engine(self):
+        return create_engine("duckdb:///:memory:", poolclass=StaticPool,
+                             connect_args={"config": {"threads": 1}})
+
+    def insert(self, table, values):
+        from sqlalchemy.dialects.postgresql import insert
+        return insert(table).values(**values).on_conflict_do_nothing(
+            index_elements=list(table.columns))
+
+    def changed(self, conn, statement):
+        # DuckDB's DB-API rowcount is -1. Return a constant, not every field of
+        # every deleted row; SQLite uses rowcount and allocates no return rows.
+        result = conn.execute(statement.returning(literal_column("1")))
+        try:
+            return result.first() is not None
+        finally:
+            result.close()
+
+    def reads(self, conn, world, rules):
+        raw = conn.connection.dbapi_connection
+        canonical = {n.casefold(): n for n in world.tables}
+        dependencies = {}
+        for name, spec in rules._document["derived"].items():
+            sql = spec["sql"]
+            try:
+                statements = raw.extract_statements(sql)
+                if len(statements) != 1 or str(statements[0].type) != "StatementType.SELECT":
+                    raise RuleError("only one SELECT is supported")
+                reads = raw.get_table_names(sql)
+                if any(n.casefold() not in canonical for n in reads):
+                    raise RuleError("undeclared relation in rule SQL")
+                # DuckDB parses the AST and inspects it in native SQL. Neither
+                # dependency extraction nor SQL parsing traverses Python objects.
+                rejected = conn.exec_driver_sql('''
+                    WITH ast AS (SELECT * FROM json_tree(json_serialize_sql(?)))
+                    SELECT DISTINCT json_extract_string(a.value,'$')
+                    FROM ast a LEFT JOIN duckdb_functions() f
+                      ON lower(f.function_name)=lower(json_extract_string(a.value,'$'))
+                    WHERE a.key='function_name' AND
+                      (f.stability IS DISTINCT FROM 'CONSISTENT')
+                      AND lower(json_extract_string(a.value,'$')) NOT IN
+                        ('unnest','range','generate_series','json_each','json_tree')
+                    UNION
+                    SELECT json_extract_string(value,'$[0]') FROM ast
+                    WHERE key='column_names' AND json_array_length(value)=1
+                      AND lower(json_extract_string(value,'$[0]')) IN
+                        ('current_date','current_time','current_timestamp','localtime','localtimestamp')
+                    UNION
+                    SELECT 'catalog view: ' || json_extract_string(a.value,'$')
+                    FROM ast a JOIN duckdb_views() v
+                      ON lower(v.view_name)=lower(json_extract_string(a.value,'$'))
+                    WHERE a.key='table_name' AND v.internal
+                      AND NOT list_contains(?, lower(v.view_name))
+                    UNION
+                    SELECT 'foreign schema/catalog: ' || json_extract_string(value,'$') FROM ast
+                    WHERE (key='schema_name' AND lower(json_extract_string(value,'$')) NOT IN ('','main','temp'))
+                       OR (key='catalog_name' AND lower(json_extract_string(value,'$')) NOT IN ('','temp',lower(current_database())))
+                ''', (sql, list(canonical))).all()
+                if rejected:
+                    raise RuleError(f"unsupported/non-deterministic functions: {rejected}")
+                result = conn.exec_driver_sql(f'SELECT * FROM ({sql}) AS __rr_source LIMIT 0')
+                columns = list(result.keys())
+                result.close()
+                if len(columns) != len(spec["columns"]) or set(columns) != set(spec["columns"]):
+                    raise RuleError(f"expected columns {list(spec['columns'])}, got {columns}")
+                dependencies[name] = tuple(sorted(canonical[n.casefold()] for n in reads))
+            except (RuleError, *self.errors) as exc:
+                raise RuleError(f"{name}: unsupported or invalid rule SQL: {exc}") from exc
+        return dependencies
+
+    def schema(self, conn):
+        return conn.exec_driver_sql('''
+            SELECT 'table',schema_name || '.' || table_name,sql FROM duckdb_tables()
+              WHERE database_name=current_database()
+            UNION ALL SELECT 'view',schema_name || '.' || view_name,sql FROM duckdb_views()
+              WHERE database_name=current_database() AND NOT internal
+            UNION ALL SELECT 'index',schema_name || '.' || index_name,sql FROM duckdb_indexes()
+              WHERE database_name=current_database()
+            UNION ALL SELECT 'sequence',schema_name || '.' || sequence_name,sql FROM duckdb_sequences()
+              WHERE database_name=current_database()
+            UNION ALL SELECT 'function',schema_name || '.' || function_name,coalesce(macro_definition,'') FROM duckdb_functions()
+              WHERE database_name=current_database() AND NOT internal
+            UNION ALL SELECT 'schema',schema_name,'' FROM duckdb_schemas()
+              WHERE database_name=current_database() AND NOT internal
+            UNION ALL SELECT 'type',schema_name || '.' || type_name,logical_type FROM duckdb_types()
+              WHERE database_name=current_database() AND NOT internal
+            ORDER BY 1,2,3
+        ''').all()
+
+    def check(self, conn):
+        pass  # DuckDB validates its storage format while opening/copying the image.
+
+    def _copy_file(self, engine, path, *, restore=False, facts=()):
+        # ATTACH does not support bound paths. Quote a private temporary path.
+        literal = "'" + str(path).replace("'", "''") + "'"
+        with engine.connect() as conn:
+            raw = conn.connection.dbapi_connection
+            attached = False
+            try:
+                raw.execute(f"ATTACH {literal} AS __rr_image" + (" (READ_ONLY)" if restore else ""))
+                attached = True
+                quote = engine.dialect.identifier_preparer.quote
+                raw.execute("SELECT current_database()")
+                current = quote(raw.fetchone()[0])
+                if restore:
+                    raw.execute("BEGIN")
+                    try:
+                        for name in (*facts, "__rr_metadata"):
+                            raw.execute(f"DROP TABLE main.{quote(name)}")
+                        raw.execute(f"COPY FROM DATABASE __rr_image TO {current}")
+                        raw.execute("COMMIT")
+                    except Exception:
+                        raw.execute("ROLLBACK")
+                        raise
+                else:
+                    raw.execute(f"COPY FROM DATABASE {current} TO __rr_image")
+            finally:
+                if attached:
+                    raw.execute("DETACH __rr_image")
+
+    def snapshot(self, engine):
+        with tempfile.TemporaryDirectory(prefix="relations-snapshot-") as directory:
+            path = Path(directory) / "facts.duckdb"
+            self._copy_file(engine, path)
+            return path.read_bytes()
+
+    def restore(self, engine, image, facts):
+        if image[8:12] != b"DUCK":
+            raise RuleError("Snapshot is not a DuckDB image (backend/format mismatch)")
+        with tempfile.TemporaryDirectory(prefix="relations-restore-") as directory:
+            path = Path(directory) / "facts.duckdb"
+            path.write_bytes(image)
+            self._copy_file(engine, path, restore=True, facts=facts)
+
+
+def _sqlite_reads(conn, world, rules):
     """Let SQLite resolve names/columns and report actual relation dependencies."""
     raw = conn.connection.dbapi_connection
     canonical = {name.casefold(): name for name in world.tables}
@@ -262,12 +492,19 @@ def _validate_sql(conn, world, rules):
             raw.set_authorizer(None)
         dependencies[name] = tuple(sorted(reads))
 
+    return dependencies
+
+
+def _validate_sql(conn, world, rules):
+    dependencies = world.backend.reads(conn, world, rules)
+    derived = rules._document["derived"]
     # SQL resolution above reports edges, including negative/subquery reads.
     # Graph algorithms execute in SQLite, without Python DFS or SQL text parsing.
-    conn.exec_driver_sql('CREATE TEMP TABLE __rr_edges (source TEXT, target TEXT, PRIMARY KEY(source,target)) WITHOUT ROWID')
-    conn.exec_driver_sql('CREATE INDEX temp.__rr_reverse ON __rr_edges(target,source)')
-    conn.exec_driver_sql('CREATE TEMP TABLE __rr_nodes (name TEXT PRIMARY KEY, derived INTEGER, rank INTEGER) WITHOUT ROWID')
-    conn.exec_driver_sql('CREATE TEMP TABLE __rr_changed (name TEXT PRIMARY KEY) WITHOUT ROWID')
+    suffix = world.backend.graph_suffix
+    conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_edges (source TEXT, target TEXT, PRIMARY KEY(source,target)){suffix}')
+    conn.exec_driver_sql('CREATE INDEX __rr_reverse ON __rr_edges(target,source)')
+    conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_nodes (name TEXT PRIMARY KEY, derived INTEGER, rank INTEGER){suffix}')
+    conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_changed (name TEXT PRIMARY KEY){suffix}')
     if world.tables:
         conn.exec_driver_sql('INSERT INTO temp.__rr_nodes VALUES (?,?,0)',
                              [(name, int(name in derived)) for name in world.tables])
@@ -282,7 +519,7 @@ def _validate_sql(conn, world, rules):
             UNION
             SELECT a.node, e.source FROM ancestors a JOIN temp.__rr_edges e ON e.target=a.ancestor
         )
-        SELECT node, count(*), max(node=ancestor) FROM ancestors GROUP BY node
+        SELECT node, count(*), max(CASE WHEN node=ancestor THEN 1 ELSE 0 END) FROM ancestors GROUP BY node
     ''').all()
     if any(row[2] for row in ranks):
         raise RuleError("Cyclic derived relation dependency")
@@ -307,7 +544,7 @@ def _projection(world, rules, name):
         value = identifier
         if type_name == "boolean":
             value = f"CASE WHEN {identifier} IS NULL THEN NULL WHEN {identifier} THEN 1 ELSE 0 END"
-        expressions.append(f"CAST({value} AS {_SQL_TYPES[type_name]}) AS {identifier}")
+        expressions.append(f"CAST({value} AS {world.backend.sql_types[type_name]}) AS {identifier}")
     sql = rules._document["derived"][name]["sql"]
     # Explicit casts give views and materialized tables the same field semantics.
     return f'SELECT {", ".join(expressions)} FROM ({sql}) AS __rr_source'
@@ -325,33 +562,25 @@ def _fill(conn, world, rules, name):
 
 
 def _build_world(rules, mode, snapshot, *, preflight=False):
-    saved_facts = None
-    if snapshot is not None:
-        try:
-            saved = json.loads(zlib.decompress(snapshot).decode("utf-8"))
-            if (not isinstance(saved, dict) or saved.get("format") != "renpy-relations-snapshot"
-                    or type(saved.get("version")) is not int or saved["version"] != 1):
-                raise RuleError("Unsupported snapshot format")
-            if saved.get("fact_schema_id") != rules.fact_schema_id:
-                raise RuleError("Snapshot fact schema differs; migration is not supported")
-            saved_facts = saved.get("facts")
-            if not isinstance(saved_facts, dict) or set(saved_facts) != set(rules._document["facts"]):
-                raise RuleError("Snapshot must contain exactly the declared fact relations")
-            for name, rows in saved_facts.items():
-                if (not isinstance(rows, list) or any(
-                        not isinstance(row, dict) or set(row) != set(rules._document["facts"][name]["columns"])
-                        for row in rows)):
-                    raise RuleError(f"Invalid snapshot rows for {name}")
-        except (zlib.error, json.JSONDecodeError, UnicodeError) as exc:
-            raise RuleError(f"Invalid fact snapshot: {exc}") from exc
-    world = _World(_new_engine(), rules._tables())
+    backend = {"sqlite": _SQLiteBackend, "duckdb": _DuckDBBackend}[rules.backend]()
+    world = _World(backend.engine(), rules._tables(), backend)
+    metadata = ("renpy-relations-snapshot", 2, rules.backend, rules.fact_schema_id)
     try:
         with world.engine.begin() as conn:
             for name in rules._document["facts"]:
-                table = world.tables[name]
-                table.create(conn)
-                if saved_facts is not None and saved_facts[name]:
-                    conn.execute(table.insert(), saved_facts[name])
+                world.tables[name].create(conn)
+            conn.exec_driver_sql('CREATE TABLE __rr_metadata (format TEXT NOT NULL, version INTEGER NOT NULL, backend TEXT NOT NULL, fact_schema_id TEXT NOT NULL)')
+            conn.exec_driver_sql('INSERT INTO __rr_metadata VALUES (?,?,?,?)', metadata)
+            expected_schema = backend.schema(conn)
+        if snapshot is not None:
+            backend.restore(world.engine, snapshot, rules._document["facts"])
+            with world.engine.begin() as conn:
+                backend.check(conn)
+                if backend.schema(conn) != expected_schema:
+                    raise RuleError("Snapshot fact schema differs; migration is not supported")
+                if conn.exec_driver_sql('SELECT * FROM __rr_metadata').all() != [metadata]:
+                    raise RuleError("Snapshot backend/version/fact schema differs")
+        with world.engine.begin() as conn:
             # Placeholder tables let SQLite resolve even forward references.
             for name in rules._document["derived"]:
                 world.tables[name].create(conn)
@@ -372,28 +601,19 @@ def _build_world(rules, mode, snapshot, *, preflight=False):
         return world
     except Exception as exc:
         world.engine.dispose()
-        if isinstance(exc, (SQLAlchemyError, sqlite3.Error)):
+        if isinstance(exc, backend.errors):
             raise RuleError(f"Cannot prepare rules/snapshot: {exc}") from exc
         raise
 
 
 def _snapshot_world(world, rules):
-    with world.engine.begin() as conn:
-        facts = {name: [dict(row) for row in conn.execute(
-            select(world.tables[name])).mappings()]
-            for name in rules._document["facts"]}
-    payload = {"format": "renpy-relations-snapshot", "version": 1,
-               "fact_schema_id": rules.fact_schema_id, "facts": facts}
-    # Logical facts are portable across DB-API drivers, including pysqlite3,
-    # which does not expose serialize/deserialize.
-    return zlib.compress(json.dumps(payload, sort_keys=True, ensure_ascii=False,
-                                   separators=(",", ":"), allow_nan=False).encode("utf-8"))
+    return world.backend.snapshot(world.engine)
 
 
 class LogicDB:
     """Facts, queries and lifecycle operations over one synchronous world."""
 
-    def __init__(self, rules, *, mode="cached", on_snapshot=None):
+    def __init__(self, rules, *, backend=None, mode="cached", on_snapshot=None):
         if mode not in ("live", "materialized", "cached"):
             raise ValueError("mode must be live, materialized or cached")
         self.mode = mode
@@ -402,6 +622,9 @@ class LogicDB:
             self._rules, self._loaded_file = rules, None
         else:
             self._rules, self._loaded_file = _read_bundle(self._path)
+        if backend is not None and backend != self._rules.backend:
+            raise RuleError(f"Rule bundle backend is {self._rules.backend}, requested {backend}")
+        self.backend = self._rules.backend
         self._world = _build_world(self._rules, mode, None)
         self._tx = None
         self._dirty = set()
@@ -410,7 +633,7 @@ class LogicDB:
         self._renpy_binding = None
         self._materializations = {}
         self._materialization_seconds = 0.0
-        self._saved = self.snapshot()
+        self._saved = None
 
     def _idle(self):
         if self._world is None:
@@ -435,6 +658,9 @@ class LogicDB:
     def batch(self):
         """Commit facts and eager outputs together, then publish one snapshot."""
         self._idle()
+        # With a sink, None denotes the empty world; subsequent accepted commits
+        # retain their image. Binding a populated world captures its baseline once.
+        before = self._saved
         self._dirty = set()
         with self._world.engine.begin() as conn:
             self._tx = conn
@@ -449,17 +675,19 @@ class LogicDB:
         if not self._dirty:
             return
         self._world.valid.difference_update(affected)
+        self._saved = None
+        if self._on_snapshot is None:
+            return
         try:
             value = self.snapshot()
             self._notifying = True
             try:
-                if self._on_snapshot is not None:
-                    self._on_snapshot(value)
+                self._on_snapshot(value)
             finally:
                 self._notifying = False
             self._saved = value
         except Exception:
-            self.restore(self._saved)
+            self.restore(before)
             raise
 
     def add(self, name, **values):
@@ -471,10 +699,8 @@ class LogicDB:
             with self.batch():
                 self.add(name, **values)
             return
-        statement = sqlite_insert(table).values(**values).on_conflict_do_nothing(
-            index_elements=list(table.columns),
-        )
-        if self._tx.execute(statement).rowcount > 0:
+        statement = self._world.backend.insert(table, values)
+        if self._world.backend.changed(self._tx, statement):
             self._dirty.add(name)
 
     def remove(self, name, **filters):
@@ -486,9 +712,10 @@ class LogicDB:
             with self.batch():
                 self.remove(name, **filters)
             return
-        if self._tx.execute(delete(table).where(
+        statement = delete(table).where(
             *(table.c[k] == value for k, value in filters.items()),
-        )).rowcount > 0:
+        )
+        if self._world.backend.changed(self._tx, statement):
             self._dirty.add(name)
 
     def _ensure_cached(self, conn, name, staged):
@@ -530,7 +757,9 @@ class LogicDB:
 
     def snapshot(self):
         self._idle()
-        return _snapshot_world(self._world, self._rules)
+        if self._saved is None:
+            self._saved = _snapshot_world(self._world, self._rules)
+        return self._saved
 
     def _swap(self, candidate):
         previous = self._world
@@ -543,13 +772,8 @@ class LogicDB:
         if snapshot is not None and not isinstance(snapshot, bytes):
             raise TypeError("snapshot must be bytes or None")
         candidate = _build_world(self._rules, self.mode, snapshot)
-        try:
-            value = _snapshot_world(candidate, self._rules)
-        except Exception as exc:
-            candidate.engine.dispose()
-            raise RuleError(f"Invalid fact snapshot: {exc}") from exc
         self._swap(candidate)
-        self._saved = value
+        self._saved = snapshot
 
     def reload_rules(self, rules=None):
         """Keep facts, preflight new outputs, then atomically replace all rules."""
@@ -561,6 +785,8 @@ class LogicDB:
             bundle, content = rules, None
         else:
             bundle, content = _read_bundle(path)
+        if bundle.backend != self.backend:
+            raise RuleError("Hot reload cannot change backend; compile for the selected backend")
         if bundle.fact_schema_id != self._rules.fact_schema_id:
             raise RuleError("Hot reload cannot change the fact schema; start a new world")
         candidate = _build_world(bundle, self.mode, self.snapshot(), preflight=True)
@@ -591,16 +817,17 @@ class LogicDB:
     def stats(self):
         """Small, non-evaluating diagnostics for the cache experiment."""
         self._idle()
-        return {"mode": self.mode, "cached_relations": sorted(self._world.valid),
+        return {"mode": self.mode, "backend": self.backend, "cached_relations": sorted(self._world.valid),
                 "materializations": dict(self._materializations),
                 "materialization_seconds": self._materialization_seconds,
-                "snapshot_bytes": len(self._saved)}
+                "snapshot_bytes": len(self._saved) if self._saved is not None else 0}
 
     def close(self):
         if self._world is not None:
             self._idle()
             self._world.engine.dispose()
             self._world = None
+            self._saved = None
 
     def install_renpy(self, config, snapshot_variable="logic_snapshot", *, watch_rules=False):
         """Bind once in init python; declare the snapshot with `default` in .rpy."""
@@ -637,6 +864,7 @@ class LogicDB:
                     renpy.exports.notify("Rule reload failed; previous rules remain active. See log.txt.")
                     last_error = str(exc)
 
+        self.snapshot()
         self._on_snapshot = write_snapshot
         config.after_default_callbacks.append(after_defaults)
         if watch_rules:

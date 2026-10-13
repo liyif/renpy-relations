@@ -12,7 +12,7 @@ import time
 from renpy_relations import LogicDB, RuleError, RuleSet
 
 
-def compile_rules(source, schema, output):
+def compile_rules(source, schema, output, *, backend=None):
     """Build and validate everything before atomically replacing the output."""
     source, schema, output = (Path(p).resolve() for p in (source, schema, output))
     inputs_before = _inputs(source, schema)
@@ -47,6 +47,15 @@ def compile_rules(source, schema, output):
 
     try:
         parsed = parse.ParseFile(source_bytes.decode("utf-8"), import_root=str(source.parent))["rule"]
+        if backend is not None:
+            if backend not in ("sqlite", "duckdb"):
+                raise RuleError("backend must be sqlite or duckdb")
+            parsed = [r for r in parsed if r["head"]["predicate_name"] != "@Engine"]
+            parsed += parse.ParseFile(f'@Engine("{backend}");')["rule"]
+        selected_backend = universe.Annotations(parsed, {}).Engine()
+        if selected_backend not in ("sqlite", "duckdb"):
+            raise RuleError("Rules must target sqlite or duckdb")
+        document["backend"] = selected_backend
         heads = {rule["head"]["predicate_name"] for rule in parsed}
         exports = set(document["derived"])
         if exports - heads:
@@ -57,9 +66,16 @@ def compile_rules(source, schema, output):
             definitions = [rule for rule in parsed
                            if rule["head"]["predicate_name"] not in exports - {name}]
             program = universe.LogicaProgram(definitions)
-            if program.annotations.Engine() != "sqlite":
-                raise RuleError('Rules must declare @Engine("sqlite")')
-            spec["sql"] = program.FormattedPredicateSql(name)
+            compiled = program.FormattedPredicateSql(name)
+            if selected_backend == "duckdb":
+                # Logica's executable script includes unused type/schema setup.
+                # Its execution object exposes the generated SELECT separately.
+                # Workflows/UDFs still need side effects and remain unsupported.
+                if program.execution.defines_and_exports or program.execution.NeededUdfDefinitions():
+                    raise RuleError(f"{name}: multi-statement workflows/UDFs are unsupported")
+                spec["sql"] = program.execution.main_predicate_sql
+            else:
+                spec["sql"] = compiled
     except RuleError:
         raise
     except Exception as exc:
@@ -110,7 +126,8 @@ def _inputs(source, schema):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", type=Path, help="Logica source with @Engine(\"sqlite\")")
+    parser.add_argument("source", type=Path, help="Logica source with a SQLite or DuckDB engine")
+    parser.add_argument("--backend", choices=("sqlite", "duckdb"), help="Override the source engine")
     parser.add_argument("--schema", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--watch", action="store_true", help="Rebuild when local .l/schema files change")
@@ -119,7 +136,7 @@ def main(argv=None):
 
     def build():
         try:
-            bundle = compile_rules(source, schema, args.output)
+            bundle = compile_rules(source, schema, args.output, backend=args.backend)
             print(f"Built {args.output} ({len(bundle.document['derived'])} derived relations)", flush=True)
             return True
         except (RuleError, OSError) as exc:

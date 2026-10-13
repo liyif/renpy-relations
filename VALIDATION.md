@@ -103,3 +103,46 @@ Standards／Spec复核所指出的周期重复表达式和修改后完整集合�
 ## 尚未验证（当前范围）
 
 Windows、macOS、Android、iOS、Web 发行与打包；大规则集的性能；完整 Logica 功能覆盖；大数据下完整 Ren’Py 界面、回滚历史与存档归档成本。上述范围没有兼容性或性能结论。第一版不包含存档迁移、增量维护和自定义规则执行器。
+
+
+## 2026-10-14：可选 DuckDB 与原生快照
+
+本节为最新结果；上文保留 2026-10-13 历史实现的验证记录。运行依赖仍为 SQLAlchemy 2.0.43，新增可选 DuckDB 1.5.6／duckdb-engine 0.17.0，由 uv.lock 锁定。开发 Python 3.12.13；真实 SDK 为 Ren’Py 8.5.3／Python 3.12.8，Linux x86_64。
+
+```sh
+uv run --locked --extra duckdb --group renpy-linux pytest -q
+uv run --locked --extra duckdb python -m py_compile renpy_relations.py compile_rules.py check_renpy.py benchmarks/snapshots.py
+/path/to/renpy-sdk/renpy.sh examples/palace lint
+```
+
+最终 **132 项通过**，Python 编译与 Ren’Py lint 通过。测试包括两后端的真实 Logica 编译、引擎标识匹配、三模式、事务撤销、重复事实与数值主键冲突、64 位整数／实数精度、选择性失效和否定、原生镜像／pysqlite3 备份回退、损坏镜像拒绝、发布及备份失败恢复、旧快照按新规则解释、声明重排兼容、Ren’Py 接入约定，以及基准启动失败／超时记录。未绑定与空操作提交不生成镜像；未变事实重复 snapshot 复用同一字节串。
+
+SDK 依赖经 uv 导出，额外包含 --extra duckdb，并按 Python 3.12／Linux ABI 安装到示例的实际 python-packages 目录。DuckDB 顶层原生扩展通过显式实际目录搜索路径加载，不修改 SDK。
+
+对 SQLite／DuckDB 各运行 cached、live、materialized：
+
+```sh
+uv run --locked --extra duckdb python check_renpy.py \
+  --sdk /path/to/renpy-sdk --headless --backend duckdb --mode cached
+```
+
+| 后端 | 模式 | 场景 | 钩子 | 断言 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| SQLite | cached | 7/7 | 15/15 | 43/43 | PASSED |
+| SQLite | live | 7/7 | 15/15 | 43/43 | PASSED |
+| SQLite | materialized | 7/7 | 15/15 | 43/43 | PASSED |
+| DuckDB | cached | 7/7 | 15/15 | 43/43 | PASSED |
+| DuckDB | live | 7/7 | 15/15 | 43/43 | PASSED |
+| DuckDB | materialized | 7/7 | 15/15 | 43/43 | PASSED |
+
+包含真实存读档、回滚、新游戏、手动／自动热重载与检查屏幕。SQLite 实际运行 pysqlite3 的原生 backup 回退，DuckDB 实际运行原生数据库复制。进程均由启动器清理。
+
+快照对照使用开发 Python，分别测标准 sqlite3、pysqlite3 和 DuckDB；pysqlite3 是 SDK 相同驱动，但性能数据不冒充真实 SDK 测量。10 个独立进程配置、每配置 3 次，共 30 个样本。最终 runtime 源文件 SHA-256 与所有新版测量记录匹配。
+
+[完整快照报告](benchmarks/results/2026-10-14-native-snapshots/REPORT.md)及同目录 results.json 保留原始数据。10 万事实下，pysqlite3 的完整快照由约 184.4 ms 降至 4.0 ms，普通提交由约 187.0 ms 降至 0.36 ms；绑定历史接收者的提交约 3.8 ms。未压缩 SQLite 镜像约 4.15 MiB，旧压缩 JSON 约 0.31 MiB。DuckDB 完整镜像约 99.4 ms、5.26 MiB；这项负载没有显示其快照更快，也不能据此推断剧情查询速度。
+
+Standards 独立审查发现 SQLite 批量删除为兼容 DuckDB 使用 RETURNING、造成无用返回缓冲；已改成后端内的变更检测，SQLite rowcount，DuckDB RETURNING 常量，并补回归检查。复核无遗留问题。
+
+Spec 独立审查发现字典字段重排不改变 schema 标识，却被原生 DDL 比较误判；已稳定事实字段和唯一约束顺序，补充两后端重载／恢复回归。复核无遗留问题。
+
+快照版本现为 2，旧压缩 JSON 与无元信息原型镜像不兼容；不提供跨后端存档迁移。Ren’Py 仍按有效提交保存完整镜像，尚未实现增量历史。其他发行平台未验证。

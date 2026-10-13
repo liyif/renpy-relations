@@ -18,7 +18,7 @@ testsuite relations:
 
     after testcase:
         $ renpy.unlink_save("relations-test")
-        run Function(logic.reload_rules, os.path.join(config.gamedir, "relations.rules.json"))
+        run Function(logic.reload_rules, relations_rules_path)
         $ (Path(config.gamedir) / "cache" / "relations-watch-test.json").unlink(missing_ok=True)
 
     testcase combined_rules_and_reward:
@@ -76,13 +76,13 @@ testsuite relations:
         click "Ask for a sponsor"
         advance until screen "choice"
         assert eval logic.has("CanEnter", character="hero", location="archive")
-        $ changed = RuleSet.load(os.path.join(config.gamedir, "relations.rules.json")).document
+        $ changed = RuleSet.load(relations_rules_path).document
         $ changed["derived"]["CanEnter"]["sql"] = "SELECT character, location FROM Sponsor WHERE 0"
         $ changed["dependencies"]["CanEnter"] = ["Sponsor"]
         run Function(logic.reload_rules, RuleSet(changed))
         assert eval logic.has("Sponsor", character="hero", location="archive")
         assert eval not logic.has("CanEnter", character="hero", location="archive")
-        run Function(logic.reload_rules, os.path.join(config.gamedir, "relations.rules.json"))
+        run Function(logic.reload_rules, relations_rules_path)
         assert eval logic.has("CanEnter", character="hero", location="archive")
 
     testcase inspector:
@@ -94,7 +94,7 @@ testsuite relations:
     testcase auto_reload:
         click "Ask for a sponsor"
         advance until screen "choice"
-        $ original = RuleSet.load(os.path.join(config.gamedir, "relations.rules.json")).document
+        $ original = RuleSet.load(relations_rules_path).document
         $ watched = Path(config.gamedir) / "cache" / "relations-watch-test.json"
         $ watched.parent.mkdir(parents=True, exist_ok=True)
         $ watched.write_text(json.dumps(original), encoding="utf-8")
