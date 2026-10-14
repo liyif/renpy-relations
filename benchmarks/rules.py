@@ -24,6 +24,7 @@ def dataset(facts, ratio, shape, *, conditions=None, backend="sqlite"):
     else:
         declarations.update({f"State{d}": {"columns": columns} for d in range(32)})
     derived = {}
+    dependencies = {}
     for domain in range(32):
         per_domain = (facts * ratio // 32 if conditions is None else
                       2 + conditions // 32 + int(domain < conditions % 32))
@@ -34,8 +35,10 @@ def dataset(facts, ratio, shape, *, conditions=None, backend="sqlite"):
                 sql = f"SELECT flag FROM {source} WHERE enabled=1"
                 if shape == "shared_table":
                     sql += f" AND domain={domain}"
+                reads = [source]
             elif i == 1:
                 sql = f"SELECT flag FROM D{domain}Rule0 WHERE flag != 'blocked'"
+                reads = [f"D{domain}Rule0"]
             else:
                 sql = (f"SELECT flag FROM D{domain}Rule1 r WHERE EXISTS "
                        "(SELECT 1 FROM GlobalState WHERE enabled=1) AND NOT EXISTS "
@@ -45,8 +48,11 @@ def dataset(facts, ratio, shape, *, conditions=None, backend="sqlite"):
                     modulus = ordinal + 2
                     forbidden = ordinal % 2
                     sql += f" AND CAST(substr(r.flag,2) AS INTEGER) % {modulus} != {forbidden}"
+                reads = [f"D{domain}Rule1", "GlobalState", "Blocked"]
             derived[name] = {"columns": {"flag": "text"}, "sql": sql}
-    document = {"format": "renpy-relations", "version": 1, "facts": declarations, "derived": derived}
+            dependencies[name] = reads
+    document = {"format": "renpy-relations", "version": 1, "facts": declarations,
+                "derived": derived, "dependencies": dependencies}
     if backend != "sqlite":
         document["backend"] = backend
     return document
@@ -224,7 +230,7 @@ def report(output, document):
         rebuilt = str(statistics.median(r["local_rebuilt"] for r in good)) if good and key[3] == "cached" else "—"
         lines.append("| " + " | ".join(map(str, key)) + f" | {len(good)}/{len(runs)} | " + " | ".join(values) + f" | {rebuilt} |")
     lines += ["", "原始阶段 CPU、RSS、逐查询样本、cached 失效／重建数、驱动编译选项、源码摘要在 results.json。", "",
-              "生成受控 SQL，未测全量 Logica 编译。关系级失效无法识别共享事实表中互不相关的行。load 为加载规则包：native 使用构建期编译的计划，baseline 在加载时收集依赖。", "",
+              "生成受控 SQL，未测全量 Logica 编译。关系级失效无法识别共享事实表中互不相关的行。load 为加载规则包：native 使用包内依赖，baseline 在加载时自行分析依赖。", "",
               "失败／超时不填零，不加入成功汇总；没有清空 OS 页缓存。history_all 与运行内存记录见原始数据。"]
     for r in document["runs"]:
         if r["status"] != "ok":
@@ -283,25 +289,22 @@ def main():
                 "source_sha256": {n: hashlib.sha256(s).hexdigest() for n, s in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
                                 for n in ("benchmarks/rules.py", "benchmarks/graph.py", "benchmarks/run.py", "uv.lock",
-                                          "compile_rules.py", "rule_compiler.py")},
+                                          "compile_rules.py")},
                 "runs": []}
-    # Imported here, not at module scope: the worker subprocess must resolve
-    # `renpy_relations` from --runtime, and importing the build compiler would
-    # otherwise preload the current runtime first.
-    from rule_compiler import compile_document
-
     for facts in args.facts:
         for ratio in args.ratios:
             for shape in args.shapes:
-                # The native runtime loads a sealed plan; the historical
-                # baseline runtime cannot read plan fields, so it keeps the
-                # plain declarations. Compilation happens in this host process.
-                plain = work / f"{facts}-{ratio}-{shape}-plain.json"
-                native = work / f"{facts}-{ratio}-{shape}-native.json"
+                # The native runtime reads the compiled dependency edges; the
+                # historical baseline runtime rejects the field and derives
+                # edges itself, so it gets a plain bundle.
                 declarations = dataset(facts, ratio, shape)
-                atomic_json(plain, declarations)
-                atomic_json(native, compile_document(declarations))
-                bundles = {"baseline": plain, "native": native}
+                plain = {key: value for key, value in declarations.items() if key != "dependencies"}
+                bundles = {
+                    "baseline": work / f"{facts}-{ratio}-{shape}-baseline.json",
+                    "native": work / f"{facts}-{ratio}-{shape}-native.json",
+                }
+                atomic_json(bundles["baseline"], plain)
+                atomic_json(bundles["native"], declarations)
                 for mode in args.modes:
                     for repeat in range(args.repetitions):
                         for variant in (["baseline", "native"] if repeat % 2 == 0 else ["native", "baseline"]):

@@ -9,8 +9,7 @@ import sys
 import tempfile
 import time
 
-from renpy_relations import RuleError, RuleSet
-from rule_compiler import prepare_rules
+from renpy_relations import LogicDB, RuleError, RuleSet
 
 
 def compile_rules(source, schema, output, *, backend=None):
@@ -34,7 +33,9 @@ def compile_rules(source, schema, output, *, backend=None):
         "derived": {name: {**spec, "sql": "SELECT 1"}
                     for name, spec in declarations["derived"].items()},
     }
-    RuleSet(document)  # Validate declarations before invoking the compiler.
+    # Validate declarations before invoking the compiler; edges are filled in
+    # once Logica has produced SQL.
+    RuleSet({**document, "dependencies": {name: [] for name in document["derived"]}})
     try:
         compiler_version = version("logica")
     except PackageNotFoundError as exc:
@@ -59,10 +60,12 @@ def compile_rules(source, schema, output, *, backend=None):
         document["backend"] = selected_backend
         heads = {rule["head"]["predicate_name"] for rule in parsed}
         exports = set(document["derived"])
+        canonical = {name.casefold(): name for name in exports | set(document["facts"])}
         if exports - heads:
             raise RuleError(f"Exported predicates are not defined: {sorted(exports - heads)}")
-        if heads & document["facts"].keys():
+        if {name.casefold() for name in heads} & {name.casefold() for name in document["facts"]}:
             raise RuleError("Facts are external tables and cannot also have rule definitions")
+        dependencies = {}
         for name, spec in document["derived"].items():
             definitions = [rule for rule in parsed
                            if rule["head"]["predicate_name"] not in exports - {name}]
@@ -77,10 +80,19 @@ def compile_rules(source, schema, output, *, backend=None):
                 spec["sql"] = program.execution.main_predicate_sql
             else:
                 spec["sql"] = compiled
+            # Logica reports the tables each export reads; exported predicates
+            # are external tables, inlined helpers are already flattened.
+            reads = {source for source, target in program.execution.data_dependency_edges
+                     if target == name}
+            unknown = sorted(source for source in reads if source.casefold() not in canonical)
+            if unknown:
+                raise RuleError(f"{name}: undeclared relations: {unknown}")
+            dependencies[name] = sorted({canonical[source.casefold()] for source in reads})
     except RuleError:
         raise
     except Exception as exc:
         raise RuleError(f"Logica compilation failed: {exc}") from exc
+    document["dependencies"] = dependencies
     document["source"] = {
         "file": source.name,
         "sha256": hashlib.sha256(source_bytes).hexdigest(),
@@ -88,7 +100,8 @@ def compile_rules(source, schema, output, *, backend=None):
         "inputs": {str(Path(p).relative_to(source.parent)) if Path(p).is_relative_to(source.parent)
                    else str(Path(p)): digest for p, digest in inputs_before},
     }
-    bundle = prepare_rules(document)
+    bundle = RuleSet(document)
+    _validate_outputs(bundle)
     if _inputs(source, schema) != inputs_before:
         raise RuleError("Source/schema changed during compilation; rebuild to get a consistent bundle")
     content = json.dumps(bundle.document, ensure_ascii=False, indent=2) + "\n"
@@ -108,6 +121,29 @@ def compile_rules(source, schema, output, *, backend=None):
         if temporary is not None:
             temporary.unlink(missing_ok=True)
     return bundle
+
+
+def _validate_outputs(bundle):
+    """Bind and execute outputs in an empty build world before publication.
+
+    Dependencies already came from Logica. These ordinary database operations
+    check output columns and references, without inspecting SQL ASTs or catalogs.
+    The materialized world also rejects cycles and executes typed projections.
+    """
+    db = LogicDB(bundle, mode="materialized")
+    try:
+        with db._world.engine.begin() as conn:
+            for name, spec in bundle.document["derived"].items():
+                result = conn.exec_driver_sql(f'SELECT * FROM ({spec["sql"]}) AS __rr_output LIMIT 0')
+                try:
+                    columns = list(result.keys())
+                finally:
+                    result.close()
+                expected = list(spec["columns"])
+                if len(columns) != len(expected) or {c.casefold() for c in columns} != {c.casefold() for c in expected}:
+                    raise RuleError(f"{name}: expected columns {expected}, got {columns}")
+    finally:
+        db.close()
 
 
 def _inputs(source, schema):

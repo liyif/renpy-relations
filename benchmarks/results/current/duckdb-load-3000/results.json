@@ -9,16 +9,16 @@
   "mode": "cached",
   "history_bound": false,
   "runtime": {
-    "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
-    "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+    "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+    "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
     "backend": "duckdb",
-    "driver": "sqlite3",
-    "sqlite": "3.50.4",
+    "driver": "pysqlite3",
+    "sqlite": "3.51.1",
     "sqlalchemy": "2.0.43",
     "temp_store_default": 0,
     "sqlite_compile_options": [
       "ATOMIC_INTRINSICS=1",
-      "COMPILER=clang-22.1.3",
+      "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
       "DEFAULT_AUTOVACUUM",
       "DEFAULT_CACHE_SIZE=-2000",
       "DEFAULT_FILE_FORMAT=4",
@@ -33,14 +33,15 @@
       "DEFAULT_WAL_SYNCHRONOUS=2",
       "DEFAULT_WORKER_THREADS=0",
       "DIRECT_OVERFLOW_READ",
-      "ENABLE_DBSTAT_VTAB",
       "ENABLE_FTS3",
       "ENABLE_FTS3_PARENTHESIS",
       "ENABLE_FTS4",
       "ENABLE_FTS5",
-      "ENABLE_GEOPOLY",
+      "ENABLE_LOAD_EXTENSION",
       "ENABLE_MATH_FUNCTIONS",
       "ENABLE_RTREE",
+      "ENABLE_STAT4",
+      "ENABLE_UPDATE_DELETE_LIMIT",
       "MALLOC_SOFT_LIMIT=1024",
       "MAX_ATTACHED=10",
       "MAX_COLUMN=2000",
@@ -50,38 +51,40 @@
       "MAX_FUNCTION_ARG=1000",
       "MAX_LENGTH=1000000000",
       "MAX_LIKE_PATTERN_LENGTH=50000",
-      "MAX_MMAP_SIZE=0x7fff0000",
+      "MAX_MMAP_SIZE=1099511627776",
       "MAX_PAGE_COUNT=0xfffffffe",
       "MAX_PAGE_SIZE=65536",
       "MAX_SQL_LENGTH=1000000000",
       "MAX_TRIGGER_DEPTH=1000",
-      "MAX_VARIABLE_NUMBER=32766",
+      "MAX_VARIABLE_NUMBER=250000",
       "MAX_VDBE_OP=250000000",
-      "MAX_WORKER_THREADS=8",
+      "MAX_WORKER_THREADS=0",
       "MUTEX_PTHREADS",
+      "SOUNDEX",
       "SYSTEM_MALLOC",
-      "TEMP_STORE=1",
-      "THREADSAFE=1"
+      "TEMP_STORE=3",
+      "THREADSAFE=1",
+      "USE_URI"
     ],
     "duckdb": "1.5.6"
   },
-  "runtime_sha256": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43",
-  "bundle_sha256": "b8770d1d51a086af5933c092fed71f37d3dce02db2122a4042239cb134dfff70",
+  "runtime_sha256": "400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd",
+  "bundle_sha256": "1c861581b5cb50017bfbb2a31fa6eddc83dc9d8f3e2f371552e93c6e02a46306",
   "phases": {
     "load": {
-      "seconds": 7.158500293036923,
-      "rss_bytes": 184246272,
-      "peak_rss_bytes": 482369536
+      "seconds": 1.863104498013854,
+      "rss_bytes": 181399552,
+      "peak_rss_bytes": 181399552
     },
     "ingest": {
-      "seconds": 0.24192753992974758,
-      "rss_bytes": 221294592,
-      "peak_rss_bytes": 482369536
+      "seconds": 0.25120450695976615,
+      "rss_bytes": 215535616,
+      "peak_rss_bytes": 215535616
     },
     "first_has": {
-      "seconds": 0.00470136315561831,
-      "rss_bytes": 221573120,
-      "peak_rss_bytes": 482369536
+      "seconds": 0.006183539051562548,
+      "rss_bytes": 206237696,
+      "peak_rss_bytes": 214282240
     }
   }
 }

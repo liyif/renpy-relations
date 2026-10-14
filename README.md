@@ -18,7 +18,7 @@ if logic.has("CanEnter", character="hero", location="archive"):
     ...
 ```
 
-运行时集中在 `renpy_relations.py`，使用 SQLAlchemy 和数据库驱动。Logica 与规则 SQL 分析（`rule_compiler.py`）仅用于构建，不随游戏运行；规则包携带构建期生成的执行计划。
+运行时集中在 `renpy_relations.py`，使用 SQLAlchemy 和数据库驱动。Logica 仅用于构建，不随游戏运行；规则包携带 Logica 编译时输出的依赖边。
 
 ## 试玩与接入
 
@@ -30,7 +30,7 @@ if logic.has("CanEnter", character="hero", location="archive"):
 ## 能力与边界
 
 - SQLite 与可选 DuckDB 后端；`cached`、`live`、`materialized` 三种查询模式。
-- 构建期解析 SQL 读取依赖并生成执行计划，运行时按计划执行并按已变更的事实关系传播缓存失效。
+- Logica 在构建期把每条规则读取的关系写入规则包，运行时据此按已变更的事实关系传播缓存失效。
 - 事实事务、原生数据库快照、原子恢复与规则热重载。
 - Ren’Py 存读档和回退接入；开发模式可观察关系与重载规则。
 
@@ -51,7 +51,7 @@ if logic.has("CanEnter", character="hero", location="archive"):
 | [DESIGN](DESIGN.md) | 当前架构、语义与取舍 |
 | [CONTRIBUTING](CONTRIBUTING.md) | 开发环境、测试和修改样例 |
 | [RELEASE](RELEASE.md) | 构建、校验与分发 |
-| [MIGRATION](MIGRATION.md) | 构建期执行计划迁移 |
+| [MIGRATION](MIGRATION.md) | 规则依赖来自 Logica 编译 |
 | [CHANGELOG](CHANGELOG.md) | 版本变化 |
 
 代码、文档、示例剧本和原创数据使用 [MIT](LICENSE)。字体与依赖保留各自许可证，见 [第三方说明](THIRD_PARTY_NOTICES.md)。可试玩包保留 Ren’Py 的 `LICENSE.txt`；其组件许可与源码入口见 [Ren’Py 许可说明](https://www.renpy.org/doc/html/license.html)。

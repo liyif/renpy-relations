@@ -56,15 +56,6 @@
     }
   },
   "backend": "duckdb",
-  "source": {
-    "file": "world.l",
-    "sha256": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59",
-    "compiler": "logica 1.3.1415926535897",
-    "inputs": {
-      "schema.json": "81c1d992668e5039c0fa05dcd05fd6b88e2c5d3df18b6e6c79267254d68faf40",
-      "world.l": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59"
-    }
-  },
   "dependencies": {
     "CanEnter": [
       "FactionAccess",
@@ -80,13 +71,13 @@
       "RewardClaimed"
     ]
   },
-  "plan": {
-    "version": 1,
-    "order": [
-      "CanEnter",
-      "CanInvestigate",
-      "CanClaimReward"
-    ],
-    "fingerprint": "5f89377a69e35b130e75b7901bd6cd2f62d17e1e725dce09a7716232dd44b351"
+  "source": {
+    "file": "world.l",
+    "sha256": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59",
+    "compiler": "logica 1.3.1415926535897",
+    "inputs": {
+      "schema.json": "81c1d992668e5039c0fa05dcd05fd6b88e2c5d3df18b6e6c79267254d68faf40",
+      "world.l": "3182331b8ffac3300d77ae9ee76fe14749b43830735f0fd6cc916557a2a0fa59"
+    }
   }
 }

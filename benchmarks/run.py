@@ -435,8 +435,7 @@ def main(argv=None):
                 "host": {"platform": platform.platform(), "cpu": cpu, "logical_cpus": os.cpu_count()},
                 "source": {"git_commit": git.stdout.strip(), "git_dirty": bool(dirty.stdout),
                            "sha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                                      for name in ("renpy_relations.py", "compile_rules.py", "rule_compiler.py",
-                                                   "benchmarks/run.py", "uv.lock")}},
+                                      for name in ("renpy_relations.py", "compile_rules.py", "benchmarks/run.py", "uv.lock")}},
                 "compiler": {"logica": version("logica"), "seconds": compile_seconds}, "runs": [], "summary": []}
     for size in args.sizes:
         seeds = {}

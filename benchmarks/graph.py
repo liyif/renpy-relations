@@ -29,22 +29,22 @@ def main():
         if args.packages:
             sys.path.insert(0, str(args.packages.resolve()))
         sys.path.insert(0, str(ROOT))
-        from renpy_relations import LogicDB
-        from rule_compiler import prepare_rules
+        from renpy_relations import LogicDB, RuleSet
 
         count = args.lengths[0]
         document = {"format": "renpy-relations", "version": 1, "backend": args.backend,
-                    "facts": {"Seed": {"columns": {"value": "text"}}}, "derived": {}}
+                    "facts": {"Seed": {"columns": {"value": "text"}}}, "derived": {}, "dependencies": {}}
         for i in range(count):
             source = "Seed" if i == 0 else f"Rule{i-1}"
             document["derived"][f"Rule{i}"] = {"columns": {"value": "text"}, "sql": f"SELECT value FROM {source}"}
+            document["dependencies"][f"Rule{i}"] = [source]
         record = {"length": count, "backend": args.backend, "status": "running", "current_phase": "load",
                   "runtime": runtime_info(args.backend)}
         atomic_json(args.out, record)
         db = None
         try:
             start, cpu = perf_counter(), process_time()
-            db = LogicDB(prepare_rules(document))
+            db = LogicDB(RuleSet(document))
             record.update(load_seconds=perf_counter() - start, cpu_seconds=process_time() - cpu, **memory())
             record["current_phase"] = "read_and_invalidate"
             atomic_json(args.out, record)

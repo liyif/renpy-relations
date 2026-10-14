@@ -116,7 +116,7 @@ def current_source_identity():
     """A workspace identity; only the executor may label it as measured."""
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
-    files = [ROOT / "renpy_relations.py", ROOT / "compile_rules.py", ROOT / "rule_compiler.py", ROOT / "uv.lock",
+    files = [ROOT / "renpy_relations.py", ROOT / "compile_rules.py", ROOT / "uv.lock",
              *sorted((ROOT / "benchmarks").glob("*.py"))]
     return {"captured_at": datetime.now(CLIENT_TIMEZONE).isoformat(), "git_commit": git.stdout.strip(),
             "git_dirty": bool(dirty.stdout),
@@ -266,8 +266,7 @@ def probe(args):
     if args.packages:
         sys.path.insert(0, str(args.packages.resolve()))
     sys.path.insert(0, str(ROOT))
-    from renpy_relations import LogicDB
-    from rule_compiler import prepare_rules
+    from renpy_relations import LogicDB, RuleSet
     from rules import dataset, populate
 
     facts = (args.condition_count + 73) // 10
@@ -290,7 +289,7 @@ def probe(args):
         return value
 
     try:
-        db = measure("load", lambda: LogicDB(prepare_rules(document)))
+        db = measure("load", lambda: LogicDB(RuleSet(document)))
         measure("ingest", lambda: populate(db, facts, "partitioned"))
         assert measure("first_has", lambda: db.has("D0Rule3", flag="v0"))
         record["status"] = "ok"

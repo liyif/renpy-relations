@@ -6,8 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 import renpy_relations as runtime
-from renpy_relations import LogicDB, RuleError
-from _helpers import compiled
+from renpy_relations import LogicDB, RuleError, RuleSet
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import event
 
@@ -20,14 +19,15 @@ def backend(request):
 
 
 def rules(backend):
-    return compiled({"format": "renpy-relations", "version": 1, "backend": backend,
+    return RuleSet({"format": "renpy-relations", "version": 1, "backend": backend,
         "facts": {"Permit": {"columns": {"who": "text"}},
                   "Blocked": {"columns": {"who": "text"}}},
         "derived": {
             "Visible": {"columns": {"who": "text"}, "sql": "SELECT who FROM Permit"},
             "Allowed": {"columns": {"who": "text"}, "sql": "SELECT who FROM Visible v WHERE NOT EXISTS (SELECT 1 FROM Blocked b WHERE b.who=v.who)"},
             "Counted": {"columns": {"n": "integer"}, "sql": "SELECT count(*) AS n FROM Blocked"},
-        }})
+        },
+        "dependencies": {"Visible": ["Permit"], "Allowed": ["Visible", "Blocked"], "Counted": ["Blocked"]}})
 
 
 @pytest.mark.parametrize("mode", ["cached", "live", "materialized"])
@@ -51,7 +51,7 @@ def test_native_snapshot_branching_reload_and_failed_batch(backend, mode):
         assert db.has("Allowed", who="hero")
         changed = rules(backend).document
         changed["derived"]["Visible"]["sql"] = "SELECT who FROM Permit WHERE who='other'"
-        db.reload_rules(compiled(changed))
+        db.reload_rules(RuleSet(changed))
         assert db.query("Allowed") == [{"who": "other"}]
         db.restore(snapshot)
         assert not db.has("Allowed")
@@ -150,7 +150,7 @@ def test_wrong_backend_and_damaged_images_preserve_world(backend):
         changed = rules(backend).document
         changed["backend"] = other_backend
         with pytest.raises(RuleError, match="backend"):
-            db.reload_rules(compiled(changed))
+            db.reload_rules(RuleSet(changed))
     finally:
         db.close()
 
@@ -193,10 +193,11 @@ def test_noop_batch_with_sink_does_not_copy_database(backend, monkeypatch):
 
 
 def test_keys_numbers_and_output_types(backend):
-    bundle = compiled({"format": "renpy-relations", "version": 1, "backend": backend,
+    bundle = RuleSet({"format": "renpy-relations", "version": 1, "backend": backend,
         "facts": {"Item": {"columns": {"id": "integer", "amount": "real", "active": "boolean"}, "key": ["id"]}},
         "derived": {"Visible": {"columns": {"id": "integer", "amount": "real", "active": "boolean"},
-                                 "sql": "SELECT * FROM Item"}}})
+                                 "sql": "SELECT * FROM Item"}},
+        "dependencies": {"Visible": ["Item"]}})
     db = LogicDB(bundle)
     try:
         values = {"id": 2**40, "amount": 1.23456789012345, "active": True}
@@ -233,17 +234,6 @@ def test_cached_invalidation_preserves_unrelated_relations(backend):
         db.close()
 
 
-@pytest.mark.parametrize("sql", ["SELECT random() AS who", "SELECT current_timestamp AS who",
-    "SELECT * FROM Permit; DELETE FROM Permit", "SELECT name AS who FROM sqlite_master",
-    "SELECT * FROM query('SELECT who FROM Permit')", "SELECT * FROM read_csv('/tmp/unknown.csv')"])
-def test_duckdb_rejects_unsupported_rules(sql):
-    pytest.importorskip("duckdb")
-    document = rules("duckdb").document
-    document["derived"]["Visible"]["sql"] = sql
-    with pytest.raises(RuleError):
-        LogicDB(compiled(document))
-
-
 def test_renpy_adapter_uses_backend_images_and_restores_branches(backend, monkeypatch):
     store = SimpleNamespace(logic_snapshot=None)
     monkeypatch.setitem(__import__("sys").modules, "renpy", SimpleNamespace(store=store))
@@ -269,7 +259,7 @@ def test_reordered_fact_declarations_keep_schema_and_snapshots_compatible(backen
     reordered = rules(backend).document
     reordered["facts"] = dict(reversed(original["facts"].items()))
     reordered["facts"]["Permit"] = {"columns": {"sequence": "integer", "who": "text"}}
-    first, second = compiled(original), compiled(reordered)
+    first, second = RuleSet(original), RuleSet(reordered)
     assert first.fact_schema_id == second.fact_schema_id
     db = LogicDB(first)
     other = LogicDB(second)
@@ -283,6 +273,43 @@ def test_reordered_fact_declarations_keep_schema_and_snapshots_compatible(backen
     finally:
         db.close()
         other.close()
+
+
+@pytest.mark.parametrize("mode", ["cached", "materialized", "live"])
+def test_data_dependent_reload_failure_preserves_world(backend, mode):
+    db = LogicDB(rules(backend), mode=mode)
+    try:
+        db.add("Permit", who="not_a_number")
+        assert db.has("Allowed", who="not_a_number")
+        cached = db.stats()["cached_relations"]
+        changed = rules(backend).document
+        expression = "json(who)" if backend == "sqlite" else "CAST(who AS BIGINT)"
+        changed["derived"]["Visible"]["sql"] = f"SELECT {expression} AS who FROM Permit"
+        with pytest.raises(RuleError):
+            db.reload_rules(RuleSet(changed))
+        assert db.stats()["cached_relations"] == cached
+        assert db.has("Allowed", who="not_a_number")
+    finally:
+        db.close()
+
+
+def test_failed_lazy_table_creation_rolls_back_and_can_retry(backend):
+    document = rules(backend).document
+    expression = "json(who)" if backend == "sqlite" else "CAST(who AS BIGINT)"
+    document["derived"]["Allowed"]["sql"] = f"SELECT {expression} AS who FROM Visible"
+    document["dependencies"]["Allowed"] = ["Visible"]
+    db = LogicDB(RuleSet(document))
+    try:
+        db.add("Permit", who="invalid")
+        with pytest.raises(db._world.backend.errors):
+            db.query("Allowed")
+        assert db.stats()["cached_relations"] == []
+        db.remove("Permit", who="invalid")
+        db.add("Permit", who="1")
+        assert db.query("Allowed") == [{"who": "1"}]
+        assert db.stats()["materializations"] == {"Visible": 1, "Allowed": 1}
+    finally:
+        db.close()
 
 
 def test_sqlite_bulk_removal_does_not_return_deleted_rows():

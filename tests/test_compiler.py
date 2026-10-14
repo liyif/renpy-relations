@@ -8,7 +8,7 @@ import time
 import pytest
 
 from compile_rules import compile_rules
-from renpy_relations import LogicDB, RuleError
+from renpy_relations import LogicDB, RuleError, RuleSet
 
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "palace"
@@ -89,16 +89,6 @@ def test_failed_compilation_preserves_previous_bundle_and_success_reloads(inputs
         db.close()
 
 
-def test_output_shape_mismatch_is_rejected_before_publication(inputs):
-    source, schema, output = inputs
-    declarations = json.loads(schema.read_text())
-    declarations["derived"]["CanEnter"]["columns"]["missing"] = "text"
-    schema.write_text(json.dumps(declarations))
-    with pytest.raises(RuleError, match="expected columns"):
-        compile_rules(source, schema, output)
-    assert not output.exists()
-
-
 def test_rule_input_changes_during_build_do_not_publish_mixed_outputs(inputs, monkeypatch):
     source, schema, output = inputs
     from logica.compiler import universe
@@ -169,8 +159,85 @@ def test_watch_builds_changed_rules_and_keeps_last_good_output_on_error(inputs, 
             process.wait(timeout=5)
 
 
-def test_uncompiled_bundle_is_rejected():
-    from renpy_relations import RuleSet
-    document = {"format": "renpy-relations", "version": 1, "facts": {}, "derived": {}}
-    with pytest.raises(RuleError, match="Uncompiled rule bundle"):
-        LogicDB(RuleSet(document))
+def test_bundle_without_dependencies_is_rejected():
+    document = {"format": "renpy-relations", "version": 1,
+                "facts": {"F": {"columns": {"v": "text"}}},
+                "derived": {"D": {"columns": {"v": "text"}, "sql": "SELECT v FROM F"}}}
+    with pytest.raises(RuleError, match="lacks dependencies"):
+        RuleSet(document)
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "duckdb"])
+@pytest.mark.parametrize("mode", ["cached", "materialized", "live"])
+def test_case_insensitive_reads_invalidate_compiled_conditions(tmp_path, backend, mode):
+    if backend == "duckdb":
+        pytest.importorskip("duckdb")
+    source, schema, output = (tmp_path / name for name in ("world.l", "schema.json", "rules.json"))
+    source.write_text(f'@Engine("{backend}"); D(v:x) :- f(v:x);')
+    schema.write_text(json.dumps({"facts": {"F": {"columns": {"v": "text"}}},
+                                  "derived": {"D": {"columns": {"v": "text"}}}}))
+    bundle = compile_rules(source, schema, output)
+    assert bundle.document["dependencies"] == {"D": ["F"]}
+    db = LogicDB(bundle, mode=mode)
+    try:
+        assert db.query("D") == []
+        db.add("F", v="new")
+        assert db.query("D") == [{"v": "new"}]
+        db.remove("F", v="new")
+        assert db.query("D") == []
+    finally:
+        db.close()
+
+
+@pytest.mark.parametrize("damage", ["missing_column", "extra_column", "unknown_relation", "cycle"])
+def test_invalid_compiled_output_preserves_last_good_bundle(inputs, damage):
+    source, schema, output = inputs
+    compile_rules(source, schema, output)
+    previous = output.read_bytes()
+    if damage in ("missing_column", "extra_column"):
+        declarations = json.loads(schema.read_text())
+        if damage == "missing_column":
+            declarations["derived"]["CanEnter"]["columns"]["missing"] = "text"
+        else:
+            # Use a leaf export so downstream binding cannot mask the missing
+            # shape check by failing on a removed column itself.
+            declarations["derived"]["CanClaimReward"]["columns"].pop("reward")
+        schema.write_text(json.dumps(declarations))
+    elif damage == "unknown_relation":
+        source.write_text(source.read_text().replace("Sponsor(", "TypoSponsor("))
+    else:
+        engine = source.read_text().split(";", 1)[0]
+        source.write_text(engine + ';\n' + '''
+            CanEnter(character: c, location: "archive") :- CanInvestigate(character: c);
+            CanInvestigate(character: c) :- CanEnter(character: c, location: "archive");
+            CanClaimReward(character: c, reward: "investigation") :- CanInvestigate(character: c);
+        ''')
+    with pytest.raises(RuleError, match="Cyclic" if damage == "cycle" else None):
+        compile_rules(source, schema, output)
+    assert output.read_bytes() == previous
+
+
+def test_inline_and_with_helpers_keep_negative_and_aggregate_reads(inputs):
+    source, schema, output = inputs
+    source.write_text(source.read_text().split(";", 1)[0] + ';\n' + '''
+        @With(Helper);
+        Helper(v:) :- Seed(v:), ~Blocked(v:);
+        Inline(v:) :- Helper(v:);
+        Allowed(v:) :- Inline(v:);
+        Counted(n? += 1) distinct :- Seed(v:);
+    ''')
+    schema.write_text(json.dumps({"facts": {name: {"columns": {"v": "text"}}
+                                              for name in ("Seed", "Blocked")},
+                                  "derived": {"Allowed": {"columns": {"v": "text"}},
+                                              "Counted": {"columns": {"n": "integer"}}}}))
+    bundle = compile_rules(source, schema, output)
+    assert bundle.document["dependencies"] == {"Allowed": ["Blocked", "Seed"], "Counted": ["Seed"]}
+    db = LogicDB(bundle)
+    try:
+        db.add("Seed", v="yes")
+        assert db.has("Allowed", v="yes")
+        assert db.query("Counted") == [{"n": 1}]
+        db.add("Blocked", v="yes")
+        assert not db.has("Allowed", v="yes")
+    finally:
+        db.close()

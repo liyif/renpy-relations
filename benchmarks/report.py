@@ -84,7 +84,7 @@ def main():
     if not suite.get("smoke") and {"conditions-sqlite", "conditions-duckdb", "snapshots"} <= completed:
         lines += ["## 本次观察", "",
                   "- 关系级失效的收益取决于事实布局。共享状态表会扩大重建范围；减少重建也不消除逐条件查询成本。",
-                  "- 规则 SQL 分析在构建期完成；运行时加载只执行计划，不再随规则数付出解析与目录反射成本。DuckDB 的编译代价由构建期承担。",
+                  "- 生产规则的依赖由 Logica 编译时提供，条件生成器同步生成已知依赖。运行时不从 SQL 收集依赖；数据库根据包内边计算执行顺序，其成本仍取决于图的规模与结构。",
                   "- 普通事务与历史保存的代价需要分开判断。Ren’Py 行动仍承担完整事实镜像的发布成本。", ""]
     lines += ["## 环境与测量身份", "",
               f"CPU：{cell(host.get('cpu', '未记录'))}；逻辑 CPU：{cell(host.get('logical_cpus', '未记录'))}。平台：{cell(host.get('platform', '未记录'))}。", ""]
@@ -241,7 +241,7 @@ def main():
             load = row.get("load_seconds", phase(row, "load"))
             first = row.get("first_read_seconds", phase(row, "first_has"))
             lines.append(f"| {cell(name)} | {cell(row.get('backend', '未记录'))} | {cell(row.get('length', row.get('conditions', '未记录')))} | `{cell(state)}` / `{cell(task.get('status', 'unknown'))}` | {number(budget, digits=0)} | {number(load, 1000)} | {number(first, 1000)} | {cell(detail)} |")
-    lines += ["", "长链同时检查修改后的失效结果。达到时限的进程已由启动器停止；原始阶段状态 running 是最后检查点，不表示仍在运行。探针的“加载”包含构建期编译与运行时加载，且仅覆盖导入与一次指定读取，不能代替全部条件的读取矩阵。", "",
+    lines += ["", "长链同时检查修改后的失效结果。达到时限的进程已由启动器停止；原始阶段状态 running 是最后检查点，不表示仍在运行。探针使用生成器提供的 SQL 与依赖；“加载”包含规则包构造、数据库初始化和原生图排序，不含 Logica 编译。较大条件探针只覆盖加载、导入与一次指定读取，不能代替全部条件的读取矩阵。", "",
               "## 结论的范围", "",
               "本报告展示已测配置的加载、整轮查询、事务与镜像成本。模式、事实布局、共享依赖、结果行数和驱动路径都可能改变这些成本；单一配置不构成数据库选择或游戏帧率保证。", "",
               "未测范围：", ""]

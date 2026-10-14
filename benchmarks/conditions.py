@@ -93,8 +93,7 @@ def main():
                              if line.startswith("model name")), "unknown"),
                 "source_sha256": {n: hashlib.sha256(c).hexdigest() for n, c in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
-                                for n in ("benchmarks/conditions.py", "benchmarks/rules.py", "benchmarks/run.py",
-                                          "uv.lock", "rule_compiler.py")},
+                                for n in ("benchmarks/conditions.py", "benchmarks/rules.py", "benchmarks/run.py", "uv.lock")},
                 "runs": [], "validations": []}
 
     def execute(count, facts, ratio, shape, backend, mode, repeat, variant, bundle, *, validation=False):
@@ -125,22 +124,20 @@ def main():
         document["validations" if validation else "runs"].append(run)
         report(output, document)
 
-    from rule_compiler import compile_document
-
     for count in args.conditions:
         for ratio in args.ratios:
             facts = (count + 64 + ratio - 1) // ratio
             for shape in args.shapes:
                 bundles = {}
                 for backend in args.backends:
-                    # Native loads a sealed plan; the historical baseline
-                    # runtime only understands plain declarations.
                     declarations = dataset(facts, ratio, shape, conditions=count, backend=backend)
-                    plain = work / f"{count}-{ratio}-{shape}-{backend}-plain.json"
-                    native = work / f"{count}-{ratio}-{shape}-{backend}-native.json"
-                    atomic_json(plain, declarations)
-                    atomic_json(native, compile_document(declarations))
-                    bundles[backend] = {"baseline": plain, "native": native}
+                    plain = {key: value for key, value in declarations.items() if key != "dependencies"}
+                    bundles[backend] = {
+                        "baseline": work / f"{count}-{ratio}-{shape}-{backend}-baseline.json",
+                        "native": work / f"{count}-{ratio}-{shape}-{backend}-native.json",
+                    }
+                    atomic_json(bundles[backend]["baseline"], plain)
+                    atomic_json(bundles[backend]["native"], declarations)
                 for mode in args.modes:
                     for backend in args.backends:
                         for variant in args.variants:

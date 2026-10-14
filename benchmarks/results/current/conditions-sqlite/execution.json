@@ -14,45 +14,46 @@
     "--backends",
     "sqlite",
     "--python",
-    "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+    "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+    "--packages",
+    "/tmp/relations-fixed-engine-20261015/palace/game/python-packages",
     "--out",
-    "/tmp/rb-controlled/conditions-sqlite"
+    "/tmp/relations-fixed-benchmark-20261015/conditions-sqlite"
   ],
-  "directory": "/tmp/rb-controlled/conditions-sqlite",
+  "directory": "/tmp/relations-fixed-benchmark-20261015/conditions-sqlite",
   "expected": {
     "runs": 108,
     "validations": 36
   },
-  "result": "/tmp/rb-controlled/conditions-sqlite/results.json",
+  "result": "/tmp/relations-fixed-benchmark-20261015/conditions-sqlite/results.json",
   "probe": false,
   "timeout": null,
-  "started_at": "2026-10-14T20:45:39.208898+08:00",
+  "started_at": "2026-10-15T00:32:40.698330+08:00",
   "measured_source": {
     "origin": "captured_before_execution",
-    "captured_at": "2026-10-14T20:45:39.212423+08:00",
-    "git_commit": "7c20f80a76ac9f895a247e5eaf2ff3bb9e60f482",
+    "captured_at": "2026-10-15T00:32:40.703591+08:00",
+    "git_commit": "c96c103578e646c5617483f482a78ff161a77506",
     "git_dirty": true,
     "sha256": {
-      "renpy_relations.py": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43",
-      "compile_rules.py": "f6128f5cf68334bb04424a8e366ac9a304132c68588f2e5cfe4505a7d10b2e13",
-      "rule_compiler.py": "ff5b024f04d91d534754fdb9695b1b08cd8d0193ab4b8d3a405372c34e3f1b73",
+      "renpy_relations.py": "400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd",
+      "compile_rules.py": "32852fdfe3fb09aa7ec5cbac390df0b1a2bc11d8f0310cc81a4ddddf7dc8b826",
       "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d",
       "benchmarks/baseline_sources.py": "a550891a7486af49c64e80d446e2151bfbecf5134c95336a139ebbce02e52873",
-      "benchmarks/conditions.py": "82cf1ae1a9e3245624b6ebb2118e1239eac68a4dd930d236c5079b5ccff377e0",
+      "benchmarks/conditions.py": "d3c1d29986215e26020435c6af0d9ac117c909ba46ee508873fa62a036ce802a",
       "benchmarks/gc_probe.py": "e60fae1b95e038b034bdd2923ec3ef92acac53c3fb2e4fcbfd03489a0e368df2",
-      "benchmarks/graph.py": "2bef471da89496ba698e63c69fb121c302a94d58195d1057c8ed6e4d45ab912b",
-      "benchmarks/report.py": "a01bcc84359b9c5a71f3be8d62776849c9c92eaf19f49f82abe4a765df4de056",
-      "benchmarks/rules.py": "cd49cfef1be0ce36e3c5ea30dcf8e348ee9e2db64a5c66898f5dcdbf96452474",
-      "benchmarks/run.py": "77ad16eb0edcccb36d9b2545ad04cea6990fdb8d036335d9cad471900ac6d064",
-      "benchmarks/snapshots.py": "503284f5690b7b3df71d1b1d07a8f026afa4a28ad74efd7f15bca9b4853808fa",
-      "benchmarks/suite.py": "1f09ccb2e164c0f4e22455b9bca0ff4feb7d7d142d499022cffc661aba62856d"
+      "benchmarks/graph.py": "29296d4ee0926271dbc5a43b9d23b5d43cf4b5807d961cc5dc354d2315a8ae2e",
+      "benchmarks/report.py": "19ee783e9a6a61a202f0fcf988d589445ec52dd3cb274451e61a39d94db433eb",
+      "benchmarks/rules.py": "c014bcb039330bea99228da695a5bde88818b61980887132593d673abb6369fa",
+      "benchmarks/run.py": "bc4df5e672e02b84f9566b07ff40bca6562720e6cf00de5fc53763709f8a922a",
+      "benchmarks/snapshots.py": "0cd0e3ecfd24b501ef24c8228ebf5cb07129235b7f4a948cd06774cfe143aa5f",
+      "benchmarks/suite.py": "42757498326db6d2c88ee3181311238e5771744647194f5cc53ba96323103dca"
     }
   },
   "returncode": 0,
   "status": "completed",
-  "seconds": 1548.0276601291262,
-  "finished_at": "2026-10-14T21:11:27.240777+08:00",
-  "log": "/tmp/rb-controlled/conditions-sqlite.log",
+  "seconds": 1750.236625205027,
+  "finished_at": "2026-10-15T01:01:50.941089+08:00",
+  "log": "/tmp/relations-fixed-benchmark-20261015/conditions-sqlite.log",
   "result_validation": {
     "previous_status": "completed",
     "status": "completed",
@@ -60,12 +61,11 @@
       "observed": {
         "origin": "child_result_hashes",
         "sha256": {
-          "benchmarks/conditions.py": "82cf1ae1a9e3245624b6ebb2118e1239eac68a4dd930d236c5079b5ccff377e0",
-          "benchmarks/rules.py": "cd49cfef1be0ce36e3c5ea30dcf8e348ee9e2db64a5c66898f5dcdbf96452474",
-          "benchmarks/run.py": "77ad16eb0edcccb36d9b2545ad04cea6990fdb8d036335d9cad471900ac6d064",
+          "benchmarks/conditions.py": "d3c1d29986215e26020435c6af0d9ac117c909ba46ee508873fa62a036ce802a",
+          "benchmarks/rules.py": "c014bcb039330bea99228da695a5bde88818b61980887132593d673abb6369fa",
+          "benchmarks/run.py": "bc4df5e672e02b84f9566b07ff40bca6562720e6cf00de5fc53763709f8a922a",
           "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d",
-          "rule_compiler.py": "ff5b024f04d91d534754fdb9695b1b08cd8d0193ab4b8d3a405372c34e3f1b73",
-          "renpy_relations.py": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43"
+          "renpy_relations.py": "400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd"
         },
         "conflicts": []
       },

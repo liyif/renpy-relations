@@ -7,9 +7,9 @@
 SQLite or DuckDB is selected by the compiled rule bundle. Native images save
 only facts and format/schema metadata. Derived data lives in TEMP.
 All writes go through batch/add/remove; queries are read-only and forbidden in
-a batch. Rule SQL is trusted build-time output: rule_compiler.py analyzes it
-into a sealed plan (dependency edges, topological order, fingerprint), and this
-runtime only executes that plan. Gameplay values are bound.
+a batch. Rule SQL and dependency edges are trusted build-time output from
+compile_rules.py; this runtime only executes them and derives the evaluation
+order from the declared edges. Gameplay values are bound.
 """
 
 from contextlib import contextmanager
@@ -65,7 +65,7 @@ def _name(value):
 
 
 class RuleSet:
-    """Validated, copy-isolated JSON rule definitions. SQL analysis is performed explicitly by the build compiler."""
+    """Validated, copy-isolated JSON rule definitions. Dependencies are compiled build-time output."""
 
     def __init__(self, document):
         try:
@@ -77,7 +77,7 @@ class RuleSet:
             raise RuleError("Expected a renpy-relations rule bundle")
         if type(doc.get("version")) is not int or doc["version"] != 1:
             raise RuleError("Unsupported rule bundle version")
-        if set(doc) - {"format", "version", "backend", "facts", "derived", "source", "dependencies", "plan"}:
+        if set(doc) - {"format", "version", "backend", "facts", "derived", "source", "dependencies"}:
             raise RuleError("Unknown rule bundle fields")
         self.backend = doc.get("backend", "sqlite")
         if self.backend not in ("sqlite", "duckdb"):
@@ -127,27 +127,13 @@ class RuleSet:
                         or len(set(reads)) != len(reads)):
                     raise RuleError(f"Invalid dependencies for {name}")
         self.fact_schema_id = _digest(doc["facts"])
-        self.content_id = _digest({"backend": self.backend,
-                                   **{k: doc[k] for k in ("facts", "derived")}})
-        self.order = None
-        self.reads = None
         self._table_definitions = None
-        if "plan" in doc:
-            plan = doc["plan"]
-            if not isinstance(plan, dict) or set(plan) != {"version", "order", "fingerprint"} or plan["version"] != 1:
-                raise RuleError("Invalid compiled plan version/fields")
-            order = plan["order"]
-            if not isinstance(order, list) or any(not isinstance(n, str) for n in order) or len(order) != len(doc["derived"]) or set(order) != set(doc["derived"]):
-                raise RuleError("Compiled plan order must contain every derived relation once")
-            if "dependencies" not in doc or plan["fingerprint"] != _digest({"rules": self.content_id, "dependencies": doc["dependencies"], "order": order}):
-                raise RuleError("Compiled plan/dependencies differ from rule content; rebuild rules")
-            positions = {name: index for index, name in enumerate(order)}
-            if any(positions[source] >= positions[target] for target, sources in doc["dependencies"].items()
-                   for source in sources if source in positions):
-                raise RuleError("Compiled plan is not topologically ordered")
-            self.order = tuple(order)
-            self.reads = {name: tuple(reads) for name, reads in doc["dependencies"].items()}
-
+        if doc["derived"] and "dependencies" not in doc:
+            raise RuleError("Rule bundle lacks dependencies; compile with compile_rules.py")
+        self.reads = {name: tuple(sorted(reads)) for name, reads in doc.get("dependencies", {}).items()}
+        # Edges among derived relations drive invalidation and evaluation order.
+        self.dependencies = {name: tuple(n for n in reads if n in doc["derived"])
+                             for name, reads in self.reads.items()}
 
     @classmethod
     def load(cls, path):
@@ -455,23 +441,44 @@ class _DuckDBBackend:
                     raise
 
 
-def _install_plan(conn, world, rules):
-    if rules.order is None:
-        raise RuleError("Uncompiled rule bundle; use compile_rules.py or rule_compiler.prepare_rules()")
+def _install_graph(conn, world, rules):
     world.reads = rules.reads
-    world.dependencies = {name: tuple(n for n in reads if n in rules._document["derived"])
-                          for name, reads in rules.reads.items()}
-    world.order = rules.order
+    world.dependencies = rules.dependencies
     suffix = world.backend.graph_suffix
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_edges (source TEXT, target TEXT, PRIMARY KEY(source,target)){suffix}')
     conn.exec_driver_sql('CREATE INDEX __rr_reverse ON __rr_edges(target,source)')
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_nodes (name TEXT PRIMARY KEY, derived INTEGER, rank INTEGER){suffix}')
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_changed (name TEXT PRIMARY KEY){suffix}')
-    positions = {name: rank for rank, name in enumerate(rules.order)}
-    world.backend.load_rows(conn, 'temp.__rr_nodes', [(name, int(name in positions), positions.get(name, -1))
+    world.backend.load_rows(conn, 'temp.__rr_nodes', [(name, int(name in rules.dependencies), 0)
                                                   for name in world.tables])
     world.backend.load_rows(conn, 'temp.__rr_edges', [(source, target) for target, reads in rules.reads.items()
                                                   for source in reads])
+    # The native query propagates depths from roots, deduplicating diamonds at
+    # the same depth. A DAG has no path as long as its node count. Bounding the
+    # recursion also terminates cycles reachable from a root; rootless cycles
+    # leave nodes unranked. No SQL text or graph traversal is handled in Python.
+    count = len(world.tables)
+    conn.exec_driver_sql('''
+        CREATE TEMP TABLE __rr_ranks AS
+        WITH RECURSIVE levels(name, rank) AS (
+            SELECT n.name, 0 FROM temp.__rr_nodes n
+            WHERE NOT EXISTS (SELECT 1 FROM temp.__rr_edges e WHERE e.target=n.name)
+            UNION
+            SELECT e.target, l.rank+1 FROM levels l
+            JOIN temp.__rr_edges e ON e.source=l.name WHERE l.rank<?
+        )
+        SELECT name, max(rank) AS rank FROM levels GROUP BY name
+    ''', (count,))
+    ranked, maximum = conn.exec_driver_sql('SELECT count(*), max(rank) FROM temp.__rr_ranks').one()
+    if ranked != count or (maximum is not None and maximum >= count):
+        raise RuleError("Cyclic derived relation dependency")
+    conn.exec_driver_sql('''
+        UPDATE temp.__rr_nodes SET rank=r.rank FROM temp.__rr_ranks r
+        WHERE r.name=__rr_nodes.name
+    ''')
+    conn.exec_driver_sql('DROP TABLE temp.__rr_ranks')
+    world.order = tuple(r[0] for r in conn.exec_driver_sql(
+        'SELECT name FROM temp.__rr_nodes WHERE derived=1 ORDER BY rank,name'))
 
 
 def _projection(world, rules, name):
@@ -505,8 +512,6 @@ def _fill(conn, world, rules, name):
 
 
 def _build_world(rules, mode, snapshot, *, preflight=False):
-    if rules.order is None:
-        raise RuleError("Uncompiled rule bundle; use compile_rules.py or rule_compiler.prepare_rules()")
     backend = {"sqlite": _SQLiteBackend, "duckdb": _DuckDBBackend}[rules.backend]()
     world = _World(backend.engine(), rules._tables(), backend)
     metadata = ("renpy-relations-snapshot", 2, rules.backend, rules.fact_schema_id)
@@ -525,7 +530,7 @@ def _build_world(rules, mode, snapshot, *, preflight=False):
                 if conn.exec_driver_sql('SELECT * FROM __rr_metadata').all() != [metadata]:
                     raise RuleError("Snapshot backend/version/fact schema differs")
         with world.engine.begin() as conn:
-            _install_plan(conn, world, rules)
+            _install_graph(conn, world, rules)
             if mode == "materialized" or preflight:
                 backend.create_tables(conn, [world.tables[name] for name in world.order])
                 world.created.update(world.order)

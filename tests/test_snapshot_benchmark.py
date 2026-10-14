@@ -43,6 +43,18 @@ def test_snapshot_benchmark_runs_independent_workers_with_selected_driver(tmp_pa
     assert all(r["driver"] == "sqlite3" and len(r["samples"]) == 1 for r in document["runs"])
 
 
+@pytest.mark.parametrize("reference", ["8827c21", "45d0c21"])
+def test_snapshot_benchmark_keeps_legacy_bundle_format(tmp_path, reference):
+    output = tmp_path / reference
+    result = subprocess.run([sys.executable, str(SCRIPT), "--sizes", "2", "--repetitions", "1",
+                             "--drivers", "sqlite3", "--baseline-ref", reference, "--out", str(output)],
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    records = json.loads((output / "results.json").read_text())["runs"]
+    assert {r["legacy"] for r in records} == {True, False}
+    assert all(r["status"] == "ok" for r in records)
+
+
 @pytest.mark.parametrize("failure", [OSError("could not start"), subprocess.TimeoutExpired("worker", 180)])
 def test_worker_failure_is_recorded_and_never_reported_as_measurement(tmp_path, monkeypatch, failure):
     spec = importlib.util.spec_from_file_location("snapshot_benchmark", SCRIPT)
