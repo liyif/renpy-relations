@@ -8,6 +8,8 @@
 
 **0.1.0 实验版**：[直接试玩／五分钟上手](QUICKSTART.md) · [更新记录](CHANGELOG.md) · [发布构建与支持范围](RELEASE.md)。代码、文档和示例剧本采用 [MIT](LICENSE)，第三方组件见 [许可说明](THIRD_PARTY_NOTICES.md)。
 
+可试玩发行包包含采用多种自由软件许可证（包括 LGPL）的 Ren’Py 组件；完整清单与源码入口见 [Ren’Py 许可说明](https://www.renpy.org/doc/html/license.html)，原始声明随游戏 `LICENSE.txt` 保留。
+
 ## 开发与编译
 
 以下命令在 `RenpyRelations` 目录运行。依赖统一使用 uv 管理，提交 `pyproject.toml` 和 `uv.lock`；`.python-version` 选择 Python 3.12。

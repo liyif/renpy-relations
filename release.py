@@ -108,7 +108,10 @@ def check_payload(archive):
                     "game/python-packages/renpy_relations.py", "lib/py3-linux-x86_64/python"}
         if not required <= names:
             raise ValueError(f"Game archive is missing: {sorted(required - names)}")
-        forbidden = [name for name in names if name.startswith(("game/saves/", "game/cache/"))
+        # Ren'Py adds these production files after applying build.classify.
+        runtime_metadata = {"game/cache/bytecode-312.rpyb", "game/cache/build_info.json"}
+        forbidden = [name for name in names if (name.startswith(("game/saves/", "game/cache/"))
+                                               and name not in runtime_metadata)
                      or Path(name).name.startswith("testcases") or name.endswith(".rpa")]
         if forbidden:
             raise ValueError(f"Development files or archives in playable release: {forbidden}")
@@ -166,6 +169,7 @@ def build(sdk, output):
                                         "cases": read_test_evidence(logs / f"{name}-{backend}-{mode}.log", engine=True,
                                                                     expected=expected_cases)})
         staged = work / "tidelight"
+        shutil.copy2(sdk / "LICENSE.txt", staged / "LICENSE.txt")
         runtime_archive = output / f"renpy-relations-{version}-linux-x86_64-runtime.zip"
         with zipfile.ZipFile(runtime_archive, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             prefix = f"renpy-relations-{version}-runtime"
@@ -196,8 +200,11 @@ def build(sdk, output):
         (staged / "PLAY.md").write_text("# 潮汐替我们保管\n\n运行 `./tidelight.sh` 开始游戏。\n"
                                           "默认 SQLite；运行 `RELATIONS_BACKEND=duckdb ./tidelight.sh` 切换后端。\n"
                                           "存档目录按后端隔离；首次切换后请开始新游戏。\n"
-                                          "这是文字演出版，包含三位成年女主角与五个结局。\n")
-        checked(["xvfb-run", "-a", sdk / "renpy.sh", "launcher", "distribute", staged,
+                                          "这是文字演出版，包含三位成年女主角与五个结局。\n\n"
+                                          "项目脚本与文字使用 MIT；字体使用 OFL。许可文件随包保留。\n"
+                                          "Ren’Py 及原生组件的完整许可证见 LICENSE.txt，源码入口见 "
+                                          "https://www.renpy.org/doc/html/license.html 。\n")
+        checked(["xvfb-run", "-a", sdk / "renpy.sh", sdk / "launcher", "distribute", staged,
                  "--package", "linux", "--no-update", "--destination", output],
                 log=logs / "build-game.log", environment=environment)
         game_archive = output / f"tidelight-{version}-linux.tar.bz2"

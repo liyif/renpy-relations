@@ -74,6 +74,10 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         if readme.is_file():
             readme.write_text(readme.read_text().replace("[QUICKSTART.md](../../QUICKSTART.md)",
                                                        "QUICKSTART.md（源码包根目录）"))
+        validation = staging / "VALIDATION.md"
+        if validation.is_file():
+            validation.write_text(validation.read_text().replace("[RELEASE.md](../../RELEASE.md)",
+                                                                "RELEASE.md（源码包根目录）"))
         packages = staging / "game/python-packages"
         requirements = staging / "runtime-requirements.txt"
         command = ["uv", "export", "--project", ROOT, "--locked", "--no-dev", "--group", "renpy-linux",

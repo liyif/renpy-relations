@@ -113,3 +113,5 @@ uv run --locked --extra duckdb python check_renpy.py --sdk /path/to/renpy-sdk \
 Python 检查覆盖两后端三模式、五结局可达、场景重排、授权条件、快照分支和随机合法游玩无死局。引擎测试从菜单实际点击五条结局路线，并验证存读档、回退、手记和观察界面。具体结果见 [验证记录](VALIDATION.md)。
 
 这是仓库内的实验样例。分发独立游戏时，还需将根目录的 `renpy_relations.py` 放入其实际 `game/python-packages`，并将规则、剧情 JSON 与原生扩展作为实际文件保留；不要将这些由 Path／原生驱动读取的文件只放进资源归档。
+
+本项目剧本与代码采用 MIT。发行包还包含 Ren’Py 及其原生组件，其中部分组件使用 LGPL；完整第三方清单与源码入口见 [Ren’Py 许可说明](https://www.renpy.org/doc/html/license.html)，完整声明随发行包 `LICENSE.txt` 保留。字体继续使用 OFL。
