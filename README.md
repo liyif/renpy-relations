@@ -42,6 +42,8 @@ if logic.has("CanEnter", character="hero", location="archive"):
 
 [Benchmark](benchmarks/README.md)分别测量千至万个派生条件、快照与历史提交、大事实集压力和依赖长链。报告记录当前源码与环境，区分普通事务和绑定历史的事务；后端测量不等同于完整游戏帧率。
 
+各项结果具体测了什么，见[结果阅读说明](benchmarks/READING_RESULTS.md)。
+
 ## 文档
 
 | 文档 | 内容 |
