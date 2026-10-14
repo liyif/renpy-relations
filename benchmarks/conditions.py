@@ -70,8 +70,8 @@ def main():
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         parser.error("Output directory must be empty")
     work = output / ".work"
-    sources = {"baseline": subprocess.run(["git", "show", f"{args.baseline_ref}:renpy_relations.py"],
-                                          cwd=ROOT, check=True, capture_output=True).stdout,
+    from baseline_sources import historical_runtime
+    sources = {"baseline": historical_runtime(args.baseline_ref),
                "native": (ROOT / "renpy_relations.py").read_bytes()}
     for variant, content in sources.items():
         folder = work / variant

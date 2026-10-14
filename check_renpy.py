@@ -19,7 +19,9 @@ import time
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--sdk", required=True, type=Path)
+    launcher = parser.add_mutually_exclusive_group(required=True)
+    launcher.add_argument("--sdk", type=Path)
+    launcher.add_argument("--launcher", type=Path, help="Test with a standalone game's own launcher")
     parser.add_argument("--mode", choices=("cached", "live", "materialized"), default="cached")
     parser.add_argument("--backend", choices=("sqlite", "duckdb"), default="sqlite")
     parser.add_argument("--game", type=Path, default=Path(__file__).resolve().parent / "examples" / "palace",
@@ -30,9 +32,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
-    executable = args.sdk.resolve() / "renpy.sh"
+    executable = args.launcher.resolve() if args.launcher else args.sdk.resolve() / "renpy.sh"
     if not executable.is_file():
-        parser.error("--sdk must point to a Linux Ren'Py SDK containing renpy.sh")
+        parser.error("Launcher must exist (--sdk/renpy.sh or --launcher)")
     game = args.game.resolve()
     if not (game / "game").is_dir():
         parser.error("--game must point to a Ren'Py project containing game/")

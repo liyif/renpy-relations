@@ -1,9 +1,9 @@
 define config.name = "潮汐替我们保管"
-define config.version = "0.1"
+define config.version = "0.1.0"
 define config.screen_width = 1280
 define config.screen_height = 800
-define config.save_directory = "renpy-relations-tidelight"
-define config.developer = True
+define config.save_directory = "renpy-relations-tidelight-" + os.environ.get("RELATIONS_BACKEND", "sqlite")
+define config.developer = not renpy.loadable("release.json")
 define gui.text_font = "fonts/tidelight.otf"
 define gui.name_text_font = "fonts/tidelight.otf"
 define gui.interface_text_font = "fonts/tidelight.otf"
@@ -18,8 +18,10 @@ init python:
     import os
     import sys
     from pathlib import Path
-    sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    sys.path.insert(0, os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
+    packages = os.path.join(config.gamedir, "python-packages")
+    sys.path.insert(0, packages)
+    if not os.path.isfile(os.path.join(packages, "renpy_relations.py")):
+        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
     from renpy_relations import LogicDB
     from night import Night
     tidelight_backend = os.environ.get("RELATIONS_BACKEND", "sqlite")

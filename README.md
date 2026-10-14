@@ -6,6 +6,8 @@
 
 运行时是一个 `renpy_relations.py`，依赖 SQLAlchemy 和所选数据库驱动；Logica 只用于开发时编译。[设计与取舍见 DESIGN.md](DESIGN.md)。
 
+**0.1.0 实验版**：[直接试玩／五分钟上手](QUICKSTART.md) · [更新记录](CHANGELOG.md) · [发布构建与支持范围](RELEASE.md)。代码、文档和示例剧本采用 [MIT](LICENSE)，第三方组件见 [许可说明](THIRD_PARTY_NOTICES.md)。
+
 ## 开发与编译
 
 以下命令在 `RenpyRelations` 目录运行。依赖统一使用 uv 管理，提交 `pyproject.toml` 和 `uv.lock`；`.python-version` 选择 Python 3.12。

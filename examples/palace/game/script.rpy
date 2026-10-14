@@ -1,9 +1,9 @@
 define config.name = "Ren'Py Relations - Palace"
-define config.version = "0.1"
+define config.version = "0.1.0"
 define config.screen_width = 960
 define config.screen_height = 640
-define config.save_directory = "renpy-relations-palace"
-define config.developer = True
+define config.save_directory = "renpy-relations-palace-" + os.environ.get("RELATIONS_BACKEND", "sqlite")
+define config.developer = not renpy.loadable("release.json")
 
 default logic_snapshot = None
 
@@ -14,10 +14,11 @@ init python:
     import os
     import sys
 
-    # Repository demo only. In a packaged game put the module in python-packages.
     # Ren'Py's virtual package importer does not discover top-level native modules.
-    sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    sys.path.insert(0, os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
+    packages = os.path.join(config.gamedir, "python-packages")
+    sys.path.insert(0, packages)
+    if not os.path.isfile(os.path.join(packages, "renpy_relations.py")):
+        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
     from renpy_relations import LogicDB, RuleSet
 
     relations_backend = os.environ.get("RELATIONS_BACKEND", "sqlite")

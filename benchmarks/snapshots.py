@@ -109,7 +109,8 @@ def main():
                    (ROOT / "renpy_relations.py", "duckdb", "duckdb", False)]
         if args.baseline_ref:
             baseline = Path(directory) / "baseline.py"
-            content = subprocess.check_output(["git", "show", f"{args.baseline_ref}:renpy_relations.py"], cwd=ROOT)
+            from baseline_sources import historical_runtime
+            content = historical_runtime(args.baseline_ref)
             baseline.write_bytes(content)
             configs.insert(0, (baseline, "sqlite", "sqlite3", True))
             configs.insert(1, (baseline, "sqlite", "pysqlite3", True))

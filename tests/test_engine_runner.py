@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -33,3 +34,19 @@ def test_runner_uses_completed_report_and_reaps_unresponsive_sdk(tmp_path, statu
     pid = int(pidfile.read_text())
     with pytest.raises(ProcessLookupError):
         os.kill(pid, 0)
+
+
+def test_runner_uses_packaged_launcher_and_selected_game(tmp_path):
+    game = tmp_path / "standalone game"
+    (game / "game").mkdir(parents=True)
+    record = tmp_path / "arguments.json"
+    launcher = game / "tidelight.sh"
+    launcher.write_text(f"#!{sys.executable}\nimport json, sys\n"
+                        f"open({str(record)!r}, 'w').write(json.dumps(sys.argv[1:]))\n"
+                        "print('[rpytest] Status: PASSED', flush=True)\n")
+    launcher.chmod(0o755)
+    result = subprocess.run([sys.executable, str(RUNNER), "--launcher", str(launcher),
+                             "--game", str(game), "--suite", "relations::ending_quiet"],
+                            capture_output=True, text=True, timeout=10)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(record.read_text()) == [str(game), "test", "relations::ending_quiet", "--report-detailed"]

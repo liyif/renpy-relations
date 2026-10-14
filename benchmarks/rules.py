@@ -234,7 +234,8 @@ def main():
     output = (args.out or ROOT / "benchmarks/results" / datetime.now(CLIENT_TIMEZONE).strftime("rules-%Y%m%d-%H%M%S")).resolve()
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         p.error("Output directory must be empty")
-    baseline = subprocess.run(["git", "show", f"{args.baseline_ref}:renpy_relations.py"], cwd=ROOT, capture_output=True, check=True).stdout
+    from baseline_sources import historical_runtime
+    baseline = historical_runtime(args.baseline_ref)
     work = output / ".work"
     sources = {"baseline": baseline, "native": (ROOT / "renpy_relations.py").read_bytes()}
     for name, source in sources.items():

@@ -1,5 +1,7 @@
 # 大数据基准
 
+源码发行包随附 `baselines/` 中两份未修改的历史运行时及其原提交／SHA-256：`8827c21` 用于全局失效对照，`45d0c21` 用于快照表示对照。默认对照无需 Git 历史即可复现；其他 `--baseline-ref` 需要包含对应历史的 Git checkout。历史文件仅作基准，不是游戏运行时。
+
 这是后端的第一份规模基线，当次运行使用 `c583618` 的实现，没有为基准增加索引、绕过公开写入接口或调整 SQLite 参数。后续按依赖失效的版本另有[多规则对照](MANY_RULES.md)，本页数字仍描述旧版。
 
 [完整报告](results/2026-10-13-sdk-baseline/REPORT.md)、[原始 JSON](results/2026-10-13-sdk-baseline/results.json)、[阶段 CSV](results/2026-10-13-sdk-baseline/phases.csv)、[测量协议](DESIGN.md)。

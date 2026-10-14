@@ -3,6 +3,9 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.rpyc
+dist/
+build/
+examples/*/game/release.json
 examples/palace/game/python-packages/
 examples/palace/game/cache/
 examples/palace/game/saves/
