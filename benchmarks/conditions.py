@@ -93,7 +93,8 @@ def main():
                              if line.startswith("model name")), "unknown"),
                 "source_sha256": {n: hashlib.sha256(c).hexdigest() for n, c in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
-                                for n in ("benchmarks/conditions.py", "benchmarks/rules.py", "benchmarks/run.py", "uv.lock")},
+                                for n in ("benchmarks/conditions.py", "benchmarks/rules.py", "benchmarks/run.py",
+                                          "uv.lock", "rule_compiler.py")},
                 "runs": [], "validations": []}
 
     def execute(count, facts, ratio, shape, backend, mode, repeat, variant, bundle, *, validation=False):
@@ -124,20 +125,28 @@ def main():
         document["validations" if validation else "runs"].append(run)
         report(output, document)
 
+    from rule_compiler import compile_document
+
     for count in args.conditions:
         for ratio in args.ratios:
             facts = (count + 64 + ratio - 1) // ratio
             for shape in args.shapes:
                 bundles = {}
                 for backend in args.backends:
-                    bundles[backend] = work / f"{count}-{ratio}-{shape}-{backend}.json"
-                    atomic_json(bundles[backend], dataset(facts, ratio, shape, conditions=count, backend=backend))
+                    # Native loads a sealed plan; the historical baseline
+                    # runtime only understands plain declarations.
+                    declarations = dataset(facts, ratio, shape, conditions=count, backend=backend)
+                    plain = work / f"{count}-{ratio}-{shape}-{backend}-plain.json"
+                    native = work / f"{count}-{ratio}-{shape}-{backend}-native.json"
+                    atomic_json(plain, declarations)
+                    atomic_json(native, compile_document(declarations))
+                    bundles[backend] = {"baseline": plain, "native": native}
                 for mode in args.modes:
                     for backend in args.backends:
                         for variant in args.variants:
                             if variant == "baseline" and backend != "sqlite":
                                 continue
-                            execute(count, facts, ratio, shape, backend, mode, 0, variant, bundles[backend], validation=True)
+                            execute(count, facts, ratio, shape, backend, mode, 0, variant, bundles[backend][variant], validation=True)
                     for repeat in range(args.repetitions):
                         variants = args.variants if repeat % 2 == 0 else list(reversed(args.variants))
                         backends = args.backends if repeat % 2 == 0 else list(reversed(args.backends))
@@ -145,7 +154,7 @@ def main():
                             for variant in variants:
                                 if variant == "baseline" and backend != "sqlite":
                                     continue
-                                execute(count, facts, ratio, shape, backend, mode, repeat, variant, bundles[backend])
+                                execute(count, facts, ratio, shape, backend, mode, repeat, variant, bundles[backend][variant])
     document["finished_at"] = datetime.now(CLIENT_TIMEZONE).isoformat()
     report(output, document)
     return 0 if all(r["status"] == "ok" for r in document["runs"] + document["validations"]) else 1

@@ -7,7 +7,7 @@
 ## 本次观察
 
 - 关系级失效的收益取决于事实布局。共享状态表会扩大重建范围；减少重建也不消除逐条件查询成本。
-- 当前 DuckDB 路径在所测大量派生规则负载上付出了明显的加载代价。结论针对当前实现和负载，不推广到 DuckDB 的一般能力。
+- 规则 SQL 分析在构建期完成；运行时加载只执行计划，不再随规则数付出解析与目录反射成本。DuckDB 的编译代价由构建期承担。
 - 普通事务与历史保存的代价需要分开判断。Ren’Py 行动仍承担完整事实镜像的发布成本。
 
 ## 环境与测量身份
@@ -16,18 +16,19 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 后端 | 实际 Python | 驱动 | 数据库版本 | SQLAlchemy |
 | --- | --- | --- | --- | --- |
-| duckdb | 3.12.8 | duckdb | 1.5.6 | 2.0.43 |
-| sqlite | 3.12.8 | pysqlite3 | 3.51.1 | 2.0.43 |
+| duckdb | 3.12.13 | duckdb | 1.5.6 | 2.0.43 |
+| sqlite | 3.12.13 | pysqlite3 | 3.51.1 | 2.0.43 |
+| sqlite | 3.12.13 | sqlite3 | 3.50.4 | 2.0.43 |
 
 解释器完整版本、安装目录、精确命令和驱动选项保存在 [原始清单](results.json) 及各子结果中。任务串行执行，保留自动 GC；没有清空操作系统页缓存。
 
-测量记录关联的基础提交（工作树工具变更以记录的 SHA-256 为准）：`e04cd2921febe1bff05810b4ba6d02b44157cc8e`。
+测量记录关联的基础提交（工作树工具变更以记录的 SHA-256 为准）：`7c20f80a76ac9f895a247e5eaf2ff3bb9e60f482`。
 
 | 测量输入 | SHA-256 |
 | --- | --- |
-| `renpy_relations.py` | `11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32` |
+| `renpy_relations.py` | `5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43` |
 | `uv.lock` | `270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d` |
-| `benchmarks/report.py`（报告呈现，未参与计时） | `a01bcc84359b9c5a71f3be8d62776849c9c92eaf19f49f82abe4a765df4de056` |
+| `benchmarks/report.py`（报告呈现，未参与计时） | `1508bdf444cdf5a1eda2b2a0881c0aaa5ef3779032d23549a9b7091b3c0213fd` |
 
 完整工具哈希及每个任务的 `measured_source` 见原始清单；`report_generation_source` 只描述生成报告时的文件，不替换已测源码身份。
 
@@ -37,16 +38,16 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 任务 | 状态 | 成功／预期测量记录 | 成功／预期集合校验 | 墙钟秒 | 数据 |
 | --- | --- | ---: | ---: | ---: | --- |
-| conditions-sqlite | `completed` | 108/108 | 36/36 | 1,811.081 | [报告](conditions-sqlite/REPORT.md) · [JSON](conditions-sqlite/results.json) |
-| conditions-duckdb | `completed` | 9/9 | 3/3 | 1,081.958 | [报告](conditions-duckdb/REPORT.md) · [JSON](conditions-duckdb/results.json) |
-| facts-sqlite | `completed` | 30/30 | 0/0 | 294.768 | [报告](facts-sqlite/REPORT.md) · [JSON](facts-sqlite/results.json) |
-| facts-duckdb | `completed` | 10/10 | 0/0 | 22.043 | [报告](facts-duckdb/REPORT.md) · [JSON](facts-duckdb/results.json) |
-| snapshots | `completed` | 18/18 | 0/0 | 19.757 | [报告](snapshots/REPORT.md) · [JSON](snapshots/results.json) |
-| graph | `completed` | 6/6 | 0/0 | 101.278 | [JSON](graph/results.json) |
-| duckdb-load-3000 | `budget_limited` | 0/1 | 0/0 | 120.009 | [JSON](duckdb-load-3000/results.json) |
-| duckdb-load-10000 | `budget_limited` | 0/1 | 0/0 | 120.015 | [JSON](duckdb-load-10000/results.json) |
+| conditions-sqlite | `completed` | 108/108 | 36/36 | 1,548.028 | [报告](conditions-sqlite/REPORT.md) · [JSON](conditions-sqlite/results.json) |
+| conditions-duckdb | `completed` | 9/9 | 3/3 | 90.784 | [报告](conditions-duckdb/REPORT.md) · [JSON](conditions-duckdb/results.json) |
+| facts-sqlite | `completed` | 30/30 | 0/0 | 269.161 | [报告](facts-sqlite/REPORT.md) · [JSON](facts-sqlite/results.json) |
+| facts-duckdb | `completed` | 10/10 | 0/0 | 21.257 | [报告](facts-duckdb/REPORT.md) · [JSON](facts-duckdb/results.json) |
+| snapshots | `completed` | 18/18 | 0/0 | 20.022 | [报告](snapshots/REPORT.md) · [JSON](snapshots/results.json) |
+| graph | `completed` | 6/6 | 0/0 | 8.139 | [JSON](graph/results.json) |
+| duckdb-load-3000 | `completed` | 1/1 | 0/0 | 7.625 | [JSON](duckdb-load-3000/results.json) |
+| duckdb-load-10000 | `completed` | 1/1 | 0/0 | 25.651 | [JSON](duckdb-load-10000/results.json) |
 
-`conditions-sqlite`：每轮读取 1,000／3,000／10,000 个不同条件；事实:总派生关系配比 1:1／约 1:10；布局 领域分表／通用状态表；模式 cached／live／materialized；各配置 3 次独立重复。
+`conditions-sqlite`：每轮读取 1,000／3,000／10,000 个不同条件；事实:总派生关系配比 1:1／约 1:10；布局 领域分表／通用状态表；模式 cached／materialized／live；各配置 3 次独立重复。
 
 `conditions-duckdb`：每轮读取 1,000 个不同条件；事实:总派生关系配比 约 1:10；布局 领域分表；模式 cached／materialized／live；各配置 3 次独立重复。
 
@@ -56,15 +57,15 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 后端 | 条件／事实 | 布局 | 模式 | 重复 | 加载 | 首轮 | warm 轮 | 局部动作 | 全局动作 | 无关动作 |
 | --- | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| sqlite | 1,000/107 | partitioned | cached | 3/3 完成 | 156.226 | 471.865 | 237.373 | 257.388 | 433.026 | 206.150 |
-| sqlite | 1,000/107 | shared_table | cached | 3/3 完成 | 149.772 | 464.606 | 241.342 | 442.414 | 425.751 | 241.614 |
-| sqlite | 3,000/307 | partitioned | cached | 3/3 完成 | 553.077 | 1,521.349 | 770.820 | 804.771 | 1,417.611 | 784.986 |
-| sqlite | 3,000/307 | shared_table | cached | 3/3 完成 | 558.548 | 1,540.770 | 777.945 | 1,432.451 | 1,417.905 | 801.190 |
-| sqlite | 10,000/1,007 | partitioned | cached | 3/3 完成 | 3,311.728 | 6,368.240 | 3,449.958 | 3,284.146 | 5,855.079 | 3,398.562 |
-| sqlite | 10,000/1,007 | shared_table | cached | 3/3 完成 | 3,343.227 | 6,462.005 | 3,217.788 | 6,026.658 | 5,939.098 | 3,446.306 |
-| duckdb | 1,000/107 | partitioned | cached | 3/3 完成 | 83,770.036 | 2,944.114 | 689.758 | 780.480 | 2,809.890 | 718.001 |
-| duckdb | 1,000/107 | partitioned | materialized | 3/3 完成 | 83,550.040 | 726.583 | 703.340 | 737.097 | 1,485.682 | 699.851 |
-| duckdb | 1,000/107 | partitioned | live | 3/3 完成 | 83,081.120 | 1,294.674 | 1,273.204 | 1,255.982 | 1,202.514 | 1,192.904 |
+| sqlite | 1,000/107 | partitioned | cached | 3/3 完成 | 44.405 | 456.834 | 225.348 | 179.404 | 381.482 | 224.577 |
+| sqlite | 1,000/107 | shared_table | cached | 3/3 完成 | 42.315 | 448.675 | 172.189 | 427.587 | 372.175 | 168.465 |
+| sqlite | 3,000/307 | partitioned | cached | 3/3 完成 | 127.860 | 1,645.648 | 717.492 | 742.609 | 1,306.096 | 738.399 |
+| sqlite | 3,000/307 | shared_table | cached | 3/3 完成 | 132.232 | 1,657.973 | 742.817 | 1,354.688 | 1,304.563 | 728.792 |
+| sqlite | 10,000/1,007 | partitioned | cached | 3/3 完成 | 467.691 | 7,834.500 | 3,262.846 | 3,060.587 | 5,690.637 | 2,973.948 |
+| sqlite | 10,000/1,007 | shared_table | cached | 3/3 完成 | 462.453 | 7,655.527 | 3,310.539 | 5,567.296 | 5,774.696 | 3,476.427 |
+| duckdb | 1,000/107 | partitioned | cached | 3/3 完成 | 547.355 | 2,894.914 | 621.153 | 689.759 | 2,693.091 | 638.808 |
+| duckdb | 1,000/107 | partitioned | materialized | 3/3 完成 | 1,318.814 | 669.177 | 645.843 | 668.382 | 1,406.707 | 634.514 |
+| duckdb | 1,000/107 | partitioned | live | 3/3 完成 | 802.899 | 1,319.193 | 1,286.340 | 1,288.788 | 1,214.154 | 1,219.051 |
 
 条件主矩阵没有绑定历史接收者，普通提交不生成镜像。每次计时读取核对真假；另用独立进程核对初始、局部修改、全局修改、无关修改与阻断五种状态的完整行集合。全部模式和配比详见子报告。
 
@@ -76,10 +77,10 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 后端 | 角色 | 重复 | warm has | warm query | 单条普通提交 | 复用镜像 | 修改后恢复 | 峰值 RSS MiB |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| sqlite | 10,000 | 3/3 完成 | 0.193 | 0.929 | 0.407 | 0.001 | 3.783 | 56.1 |
-| sqlite | 100,000 | 3/3 完成 | 0.745 | 8.389 | 0.543 | 0.001 | 14.494 | 114.8 |
-| sqlite | 1,000,000 | 3/3 完成 | 6.221 | 85.955 | 0.633 | 0.002 | 132.454 | 715.2 |
-| duckdb | 10,000 | 3/3 完成 | 0.833 | 0.913 | 2.686 | 0.001 | 77.714 | 174.9 |
+| sqlite | 10,000 | 3/3 完成 | 0.164 | 1.031 | 0.421 | 0.001 | 2.013 | 52.7 |
+| sqlite | 100,000 | 3/3 完成 | 0.801 | 11.292 | 0.579 | 0.001 | 12.323 | 82.2 |
+| sqlite | 1,000,000 | 3/3 完成 | 8.708 | 111.936 | 0.601 | 0.001 | 112.723 | 355.1 |
+| duckdb | 10,000 | 3/3 完成 | 0.767 | 0.879 | 2.923 | 0.001 | 47.652 | 142.9 |
 
 此负载未绑定历史接收者，提交时间不含历史镜像发布。恢复后的 `snapshot` 复用已缓存输入，**不是完整镜像生成时间**；首次生成见 seed 原始阶段及下节。RSS 为整个进程高水位，包含读取、验证和候选世界，不能当作单次查询内存。角色数、事实数及派生行数分别列在子报告；百万角色属于压力测试。
 
@@ -89,12 +90,12 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 驱动 | 初始事实 | 独立重复 | 普通提交 | 历史提交 | 首次镜像 | 复用镜像 | 恢复 | 镜像 MiB |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| duckdb | 10,000 | 3/3 完成 | 2.569 | 15.005 | 12.267 | 0.001 | 45.858 | 1.262 |
-| duckdb | 100,000 | 3/3 完成 | 3.239 | 92.026 | 88.815 | 0.001 | 99.697 | 5.262 |
-| duckdb | 1,000,000 | 3/3 完成 | 3.577 | 935.640 | 916.208 | 0.001 | 687.852 | 46.012 |
-| pysqlite3 | 10,000 | 3/3 完成 | 0.324 | 0.794 | 0.711 | 0.001 | 2.321 | 0.418 |
-| pysqlite3 | 100,000 | 3/3 完成 | 0.337 | 3.112 | 3.668 | 0.001 | 9.681 | 4.148 |
-| pysqlite3 | 1,000,000 | 3/3 完成 | 0.617 | 31.096 | 32.000 | 0.001 | 91.511 | 41.492 |
+| duckdb | 10,000 | 3/3 完成 | 2.784 | 16.839 | 12.560 | 0.001 | 38.353 | 1.262 |
+| duckdb | 100,000 | 3/3 完成 | 3.147 | 99.564 | 93.418 | 0.001 | 93.568 | 5.262 |
+| duckdb | 1,000,000 | 3/3 完成 | 3.579 | 984.449 | 950.547 | 0.001 | 660.904 | 46.012 |
+| pysqlite3 | 10,000 | 3/3 完成 | 0.272 | 0.767 | 0.704 | 0.000 | 1.741 | 0.418 |
+| pysqlite3 | 100,000 | 3/3 完成 | 0.414 | 4.124 | 4.251 | 0.001 | 10.184 | 4.148 |
+| pysqlite3 | 1,000,000 | 3/3 完成 | 0.566 | 31.161 | 33.176 | 0.001 | 96.292 | 41.492 |
 
 初始化使用原生 SQL 且不计时；实际修改使用公开接口。普通与历史提交在不同数据库实例上测量，历史回调接收完整镜像。该回调不保留长期回退历史，也不包含 Ren’Py 存档归档或 UI 成本。驱动路径见方法说明，不能把不同后端的结果视为只更换同一种序列化器。
 
@@ -104,16 +105,16 @@ CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1
 
 | 探针 | 后端 | 规模 | 状态 | 时限秒 | 加载毫秒 | 首次读取毫秒 | 中止阶段／错误 |
 | --- | --- | ---: | --- | ---: | ---: | ---: | --- |
-| graph | sqlite | 128 | `ok` / `completed` | 120 | 23.092 | 9.279 | 完成 |
-| graph | duckdb | 128 | `ok` / `completed` | 120 | 2,065.348 | 56.290 | 完成 |
-| graph | sqlite | 512 | `ok` / `completed` | 120 | 199.339 | 40.846 | 完成 |
-| graph | duckdb | 512 | `ok` / `completed` | 120 | 20,172.221 | 222.955 | 完成 |
-| graph | sqlite | 1050 | `ok` / `completed` | 120 | 808.552 | 61.963 | 完成 |
-| graph | duckdb | 1050 | `ok` / `completed` | 120 | 75,014.178 | 467.161 | 完成 |
-| duckdb-load-3000 | duckdb | 3000 | `running` / `budget_limited` | 120 | — | — | load；达到进程时间预算；详细命令与异常见 JSON |
-| duckdb-load-10000 | duckdb | 10000 | `running` / `budget_limited` | 120 | — | — | load；达到进程时间预算；详细命令与异常见 JSON |
+| graph | sqlite | 128 | `ok` / `completed` | 120 | 27.036 | 7.192 | 完成 |
+| graph | duckdb | 128 | `ok` / `completed` | 120 | 261.347 | 58.287 | 完成 |
+| graph | sqlite | 512 | `ok` / `completed` | 120 | 242.981 | 28.864 | 完成 |
+| graph | duckdb | 512 | `ok` / `completed` | 120 | 833.950 | 223.160 | 完成 |
+| graph | sqlite | 1050 | `ok` / `completed` | 120 | 2,074.586 | 68.998 | 完成 |
+| graph | duckdb | 1050 | `ok` / `completed` | 120 | 1,659.800 | 490.985 | 完成 |
+| duckdb-load-3000 | duckdb | 3000 | `ok` / `completed` | 120 | 7,158.500 | 4.701 | 完成 |
+| duckdb-load-10000 | duckdb | 10000 | `ok` / `completed` | 120 | 24,455.476 | 5.419 | 完成 |
 
-长链同时检查修改后的失效结果。达到时限的进程已由启动器停止；原始阶段状态 running 是最后检查点，不表示仍在运行。DuckDB 的较大条件探针仅覆盖加载、导入与一次指定读取，不能代替全部条件的读取矩阵。
+长链同时检查修改后的失效结果。达到时限的进程已由启动器停止；原始阶段状态 running 是最后检查点，不表示仍在运行。探针的“加载”包含构建期编译与运行时加载，且仅覆盖导入与一次指定读取，不能代替全部条件的读取矩阵。
 
 ## 结论的范围
 

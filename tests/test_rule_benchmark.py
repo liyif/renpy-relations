@@ -5,7 +5,8 @@ import sys
 
 import pytest
 
-from renpy_relations import LogicDB, RuleSet
+from renpy_relations import LogicDB
+from _helpers import compiled
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +19,7 @@ from rules import dataset, populate
 def test_generated_workload_cardinality_and_condition_meaning(shape, ratio):
     document = dataset(128, ratio, shape)
     assert len(document["derived"]) == 128 * ratio
-    db = LogicDB(RuleSet(document))
+    db = LogicDB(compiled(document))
     try:
         populate(db, 128, shape)
         assert sum(len(db.query(n)) for n in document["facts"]) == 128
@@ -65,7 +66,7 @@ def test_generated_conditions_are_exactly_sized_distinct_and_cover_all_domains(c
 def test_generated_condition_full_rows_and_negative_results(shape):
     count, facts = 1000, 107
     document = dataset(facts, 10, shape, conditions=count)
-    db = LogicDB(RuleSet(document))
+    db = LogicDB(compiled(document))
     try:
         populate(db, facts, shape)
 
@@ -106,7 +107,7 @@ def test_generated_condition_full_rows_and_negative_results(shape):
 
 
 def test_generated_predicates_have_distinct_meanings():
-    db = LogicDB(RuleSet(dataset(384, 1, "partitioned", conditions=320)))
+    db = LogicDB(compiled(dataset(384, 1, "partitioned", conditions=320)))
     try:
         populate(db, 384, "partitioned")
         witnesses = {frozenset(r["flag"] for r in db.query(f"D0Rule{i+2}")) for i in range(10)}

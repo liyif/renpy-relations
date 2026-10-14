@@ -224,7 +224,7 @@ def report(output, document):
         rebuilt = str(statistics.median(r["local_rebuilt"] for r in good)) if good and key[3] == "cached" else "—"
         lines.append("| " + " | ".join(map(str, key)) + f" | {len(good)}/{len(runs)} | " + " | ".join(values) + f" | {rebuilt} |")
     lines += ["", "原始阶段 CPU、RSS、逐查询样本、cached 失效／重建数、驱动编译选项、源码摘要在 results.json。", "",
-              "生成受控 SQL，未测全量 Logica 编译。关系级失效无法识别共享事实表中互不相关的行。load 包含完整规则验证和拓扑分析。", "",
+              "生成受控 SQL，未测全量 Logica 编译。关系级失效无法识别共享事实表中互不相关的行。load 为加载规则包：native 使用构建期编译的计划，baseline 在加载时收集依赖。", "",
               "失败／超时不填零，不加入成功汇总；没有清空 OS 页缓存。history_all 与运行内存记录见原始数据。"]
     for r in document["runs"]:
         if r["status"] != "ok":
@@ -282,13 +282,26 @@ def main():
                              if line.startswith("model name")), "unknown"),
                 "source_sha256": {n: hashlib.sha256(s).hexdigest() for n, s in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
-                                for n in ("benchmarks/rules.py", "benchmarks/graph.py", "benchmarks/run.py", "uv.lock", "compile_rules.py")},
+                                for n in ("benchmarks/rules.py", "benchmarks/graph.py", "benchmarks/run.py", "uv.lock",
+                                          "compile_rules.py", "rule_compiler.py")},
                 "runs": []}
+    # Imported here, not at module scope: the worker subprocess must resolve
+    # `renpy_relations` from --runtime, and importing the build compiler would
+    # otherwise preload the current runtime first.
+    from rule_compiler import compile_document
+
     for facts in args.facts:
         for ratio in args.ratios:
             for shape in args.shapes:
-                bundle = work / f"{facts}-{ratio}-{shape}.json"
-                atomic_json(bundle, dataset(facts, ratio, shape))
+                # The native runtime loads a sealed plan; the historical
+                # baseline runtime cannot read plan fields, so it keeps the
+                # plain declarations. Compilation happens in this host process.
+                plain = work / f"{facts}-{ratio}-{shape}-plain.json"
+                native = work / f"{facts}-{ratio}-{shape}-native.json"
+                declarations = dataset(facts, ratio, shape)
+                atomic_json(plain, declarations)
+                atomic_json(native, compile_document(declarations))
+                bundles = {"baseline": plain, "native": native}
                 for mode in args.modes:
                     for repeat in range(args.repetitions):
                         for variant in (["baseline", "native"] if repeat % 2 == 0 else ["native", "baseline"]):
@@ -296,7 +309,7 @@ def main():
                             destination = work / (stem + ".json")
                             cmd = [str(args.python), str(Path(__file__).resolve()), "--worker", "--facts", str(facts),
                                    "--ratio", str(ratio), "--shape", shape, "--mode", mode, "--repeat", str(repeat),
-                                   "--variant", variant, "--runtime", str(work / variant), "--bundle", str(bundle), "--result", str(destination)]
+                                   "--variant", variant, "--runtime", str(work / variant), "--bundle", str(bundles[variant]), "--result", str(destination)]
                             if args.packages:
                                 cmd += ["--packages", str(args.packages.resolve())]
                             print(stem, flush=True)

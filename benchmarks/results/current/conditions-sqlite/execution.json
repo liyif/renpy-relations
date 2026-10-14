@@ -1,67 +1,77 @@
 {
   "name": "conditions-sqlite",
   "command": [
-    "uv",
-    "run",
-    "--locked",
-    "--extra",
-    "duckdb",
-    "--group",
-    "renpy-linux",
-    "python",
-    "benchmarks/conditions.py",
-    "--backends",
-    "sqlite",
+    "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+    "/home/liyif/项目/SomeConcepts/RenpyRelations/benchmarks/conditions.py",
     "--conditions",
     "1000",
     "3000",
     "10000",
-    "--ratios",
-    "1",
-    "10",
-    "--shapes",
-    "partitioned",
-    "shared_table",
-    "--modes",
-    "cached",
-    "live",
-    "materialized",
     "--repetitions",
     "3",
     "--timeout",
     "300",
+    "--backends",
+    "sqlite",
     "--python",
-    "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-    "--packages",
-    "/tmp/relations-current-benchmark-runtime/renpy-relations-0.1.0-runtime/game/python-packages",
+    "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
     "--out",
-    "/tmp/relations-current-benchmark/conditions-sqlite"
+    "/tmp/rb-controlled/conditions-sqlite"
   ],
-  "directory": "/tmp/relations-current-benchmark/conditions-sqlite",
+  "directory": "/tmp/rb-controlled/conditions-sqlite",
   "expected": {
     "runs": 108,
     "validations": 36
   },
-  "result": "/tmp/relations-current-benchmark/conditions-sqlite/results.json",
+  "result": "/tmp/rb-controlled/conditions-sqlite/results.json",
   "probe": false,
   "timeout": null,
-  "working_directory": "/home/liyif/项目/SomeConcepts/RenpyRelations",
+  "started_at": "2026-10-14T20:45:39.208898+08:00",
   "measured_source": {
-    "origin": "child_result_hashes",
+    "origin": "captured_before_execution",
+    "captured_at": "2026-10-14T20:45:39.212423+08:00",
+    "git_commit": "7c20f80a76ac9f895a247e5eaf2ff3bb9e60f482",
+    "git_dirty": true,
     "sha256": {
-      "benchmarks/conditions.py": "4876a1f33d05636c28ea3ce6b771c70540ee49ba8955667a02d93bc22e2765bf",
-      "benchmarks/rules.py": "66c029d49fb017b376cb48e608820d95e405f88499cb2c4d2b8d636f93224a0e",
-      "benchmarks/run.py": "bc4df5e672e02b84f9566b07ff40bca6562720e6cf00de5fc53763709f8a922a",
+      "renpy_relations.py": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43",
+      "compile_rules.py": "f6128f5cf68334bb04424a8e366ac9a304132c68588f2e5cfe4505a7d10b2e13",
+      "rule_compiler.py": "ff5b024f04d91d534754fdb9695b1b08cd8d0193ab4b8d3a405372c34e3f1b73",
       "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d",
-      "renpy_relations.py": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32"
-    },
-    "conflicts": []
+      "benchmarks/baseline_sources.py": "a550891a7486af49c64e80d446e2151bfbecf5134c95336a139ebbce02e52873",
+      "benchmarks/conditions.py": "82cf1ae1a9e3245624b6ebb2118e1239eac68a4dd930d236c5079b5ccff377e0",
+      "benchmarks/gc_probe.py": "e60fae1b95e038b034bdd2923ec3ef92acac53c3fb2e4fcbfd03489a0e368df2",
+      "benchmarks/graph.py": "2bef471da89496ba698e63c69fb121c302a94d58195d1057c8ed6e4d45ab912b",
+      "benchmarks/report.py": "a01bcc84359b9c5a71f3be8d62776849c9c92eaf19f49f82abe4a765df4de056",
+      "benchmarks/rules.py": "cd49cfef1be0ce36e3c5ea30dcf8e348ee9e2db64a5c66898f5dcdbf96452474",
+      "benchmarks/run.py": "77ad16eb0edcccb36d9b2545ad04cea6990fdb8d036335d9cad471900ac6d064",
+      "benchmarks/snapshots.py": "503284f5690b7b3df71d1b1d07a8f026afa4a28ad74efd7f15bca9b4853808fa",
+      "benchmarks/suite.py": "1f09ccb2e164c0f4e22455b9bca0ff4feb7d7d142d499022cffc661aba62856d"
+    }
   },
-  "status": "completed",
   "returncode": 0,
-  "started_at": "2026-10-14T17:14:44.291677+08:00",
-  "finished_at": "2026-10-14T17:44:55.372321+08:00",
-  "seconds": 1811.080644,
-  "timing_scope": "CLI document start to finish",
-  "log": "/tmp/relations-current-conditions-sqlite.log"
+  "status": "completed",
+  "seconds": 1548.0276601291262,
+  "finished_at": "2026-10-14T21:11:27.240777+08:00",
+  "log": "/tmp/rb-controlled/conditions-sqlite.log",
+  "result_validation": {
+    "previous_status": "completed",
+    "status": "completed",
+    "source_verification": {
+      "observed": {
+        "origin": "child_result_hashes",
+        "sha256": {
+          "benchmarks/conditions.py": "82cf1ae1a9e3245624b6ebb2118e1239eac68a4dd930d236c5079b5ccff377e0",
+          "benchmarks/rules.py": "cd49cfef1be0ce36e3c5ea30dcf8e348ee9e2db64a5c66898f5dcdbf96452474",
+          "benchmarks/run.py": "77ad16eb0edcccb36d9b2545ad04cea6990fdb8d036335d9cad471900ac6d064",
+          "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d",
+          "rule_compiler.py": "ff5b024f04d91d534754fdb9695b1b08cd8d0193ab4b8d3a405372c34e3f1b73",
+          "renpy_relations.py": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43"
+        },
+        "conflicts": []
+      },
+      "mismatches": [],
+      "identity_available": true,
+      "unverified_child_files": []
+    }
+  }
 }

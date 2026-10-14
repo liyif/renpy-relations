@@ -36,6 +36,8 @@ def worker(args):
         "derived": {"Visible": {"columns": {"value": "text"}, "sql": "SELECT value FROM Seed"}}}
     if not args.legacy:
         document["backend"] = args.backend
+        from rule_compiler import compile_document
+        document = compile_document(document)
     rules = runtime.RuleSet(document)
     db = runtime.LogicDB(rules)
     bound = runtime.LogicDB(rules, on_snapshot=lambda image: None)
@@ -154,7 +156,7 @@ def main():
                                    "process_repetitions": args.process_repetitions, "drivers": args.drivers,
                                    "timeout": args.timeout},
                         "file_sha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                                        for name in ("benchmarks/snapshots.py", "uv.lock")},
+                                        for name in ("benchmarks/snapshots.py", "uv.lock", "rule_compiler.py")},
                         "created_at": datetime.now(timezone(timedelta(hours=8))).isoformat(),
                         "runs": records}, ensure_ascii=False, indent=2) + "\n")
                     print(size, backend, driver, "legacy" if legacy else "native", record["status"], flush=True)

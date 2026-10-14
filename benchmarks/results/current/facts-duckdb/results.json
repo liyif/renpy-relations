@@ -1,7 +1,7 @@
 {
   "format": "renpy-relations-benchmark",
   "version": 1,
-  "started_at": "2026-10-14T18:14:17.151642+08:00",
+  "started_at": "2026-10-14T21:17:27.356114+08:00",
   "parameters": {
     "sizes": [
       10000
@@ -26,18 +26,19 @@
     "logical_cpus": 24
   },
   "source": {
-    "git_commit": "e04cd2921febe1bff05810b4ba6d02b44157cc8e",
+    "git_commit": "7c20f80a76ac9f895a247e5eaf2ff3bb9e60f482",
     "git_dirty": true,
     "sha256": {
-      "renpy_relations.py": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
-      "compile_rules.py": "d844636480e4e8fa7205151b6ac9f3752741b7de05c09a7502c2b7446308fa4e",
-      "benchmarks/run.py": "bc4df5e672e02b84f9566b07ff40bca6562720e6cf00de5fc53763709f8a922a",
+      "renpy_relations.py": "5b9cd1dd41bb2ad9119ea63d5879ff7a105bdb1b21173bfe0b213230b7900b43",
+      "compile_rules.py": "f6128f5cf68334bb04424a8e366ac9a304132c68588f2e5cfe4505a7d10b2e13",
+      "rule_compiler.py": "ff5b024f04d91d534754fdb9695b1b08cd8d0193ab4b8d3a405372c34e3f1b73",
+      "benchmarks/run.py": "77ad16eb0edcccb36d9b2545ad04cea6990fdb8d036335d9cad471900ac6d064",
       "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d"
     }
   },
   "compiler": {
     "logica": "1.3.1415926535897",
-    "seconds": 0.5377386659383774
+    "seconds": 0.5731504149734974
   },
   "runs": [
     {
@@ -50,25 +51,25 @@
       "status": "ok",
       "phases": {
         "init_empty": {
-          "seconds": 0.0839030179195106,
-          "cpu_seconds": 0.09211029599999998,
-          "rss_before_bytes": 89063424,
-          "rss_bytes": 133079040,
-          "peak_rss_bytes": 133079040
+          "seconds": 0.04244862007908523,
+          "cpu_seconds": 0.047515500000000016,
+          "rss_before_bytes": 82952192,
+          "rss_bytes": 110088192,
+          "peak_rss_bytes": 110088192
         },
         "public_ingest": {
-          "seconds": 14.619130233069882,
-          "cpu_seconds": 14.545022694,
-          "rss_before_bytes": 133087232,
-          "rss_bytes": 215371776,
-          "peak_rss_bytes": 215371776
+          "seconds": 15.071130394004285,
+          "cpu_seconds": 14.94836917,
+          "rss_before_bytes": 110096384,
+          "rss_bytes": 208007168,
+          "peak_rss_bytes": 208007168
         },
         "snapshot": {
-          "seconds": 0.02419811300933361,
-          "cpu_seconds": 0.024089964999999935,
-          "rss_before_bytes": 215375872,
-          "rss_bytes": 222703616,
-          "peak_rss_bytes": 222703616
+          "seconds": 0.033026379998773336,
+          "cpu_seconds": 0.025959092000000794,
+          "rss_before_bytes": 208015360,
+          "rss_bytes": 215162880,
+          "peak_rss_bytes": 215162880
         }
       },
       "cardinalities": {
@@ -87,16 +88,16 @@
         }
       },
       "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
         "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
         "sqlalchemy": "2.0.43",
         "temp_store_default": 0,
         "sqlite_compile_options": [
           "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "COMPILER=clang-22.1.3",
           "DEFAULT_AUTOVACUUM",
           "DEFAULT_CACHE_SIZE=-2000",
           "DEFAULT_FILE_FORMAT=4",
@@ -111,15 +112,14 @@
           "DEFAULT_WAL_SYNCHRONOUS=2",
           "DEFAULT_WORKER_THREADS=0",
           "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
           "ENABLE_FTS3",
           "ENABLE_FTS3_PARENTHESIS",
           "ENABLE_FTS4",
           "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_GEOPOLY",
           "ENABLE_MATH_FUNCTIONS",
           "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
           "MALLOC_SOFT_LIMIT=1024",
           "MAX_ATTACHED=10",
           "MAX_COLUMN=2000",
@@ -129,27 +129,25 @@
           "MAX_FUNCTION_ARG=1000",
           "MAX_LENGTH=1000000000",
           "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_MMAP_SIZE=0x7fff0000",
           "MAX_PAGE_COUNT=0xfffffffe",
           "MAX_PAGE_SIZE=65536",
           "MAX_SQL_LENGTH=1000000000",
           "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VARIABLE_NUMBER=32766",
           "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
+          "MAX_WORKER_THREADS=8",
           "MUTEX_PTHREADS",
-          "SOUNDEX",
           "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
         ],
         "duckdb": "1.5.6"
       },
       "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "rss_bytes": 223178752,
-      "peak_rss_bytes": 223178752
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "rss_bytes": 215986176,
+      "peak_rss_bytes": 215986176
     },
     {
       "kind": "measure",
@@ -161,132 +159,132 @@
       "status": "ok",
       "phases": {
         "init_empty": {
-          "seconds": 0.08486305898986757,
-          "cpu_seconds": 0.08975351000000001,
-          "rss_before_bytes": 89063424,
-          "rss_bytes": 136982528,
-          "peak_rss_bytes": 136982528
+          "seconds": 0.042679365957155824,
+          "cpu_seconds": 0.046646096,
+          "rss_before_bytes": 82931712,
+          "rss_bytes": 109686784,
+          "peak_rss_bytes": 109686784
         },
         "restore_initial": {
-          "seconds": 0.07653007586486638,
-          "cpu_seconds": 0.07627343199999997,
-          "rss_before_bytes": 140414976,
-          "rss_bytes": 127143936,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.05721479211933911,
+          "cpu_seconds": 0.050227543999999985,
+          "rss_before_bytes": 113119232,
+          "rss_bytes": 118042624,
+          "peak_rss_bytes": 123916288
         },
         "first_has": {
-          "seconds": 0.012298456160351634,
-          "cpu_seconds": 0.012243098000000008,
-          "rss_before_bytes": 127156224,
-          "rss_bytes": 141254656,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.012769077904522419,
+          "cpu_seconds": 0.012086355999999993,
+          "rss_before_bytes": 118054912,
+          "rss_bytes": 133021696,
+          "peak_rss_bytes": 133021696
         },
         "warm_has": {
-          "seconds": 0.01009904290549457,
-          "cpu_seconds": 0.01004174699999999,
-          "rss_before_bytes": 141254656,
-          "rss_bytes": 141262848,
-          "peak_rss_bytes": 155181056,
+          "seconds": 0.009225276997312903,
+          "cpu_seconds": 0.009103430000000023,
+          "rss_before_bytes": 133042176,
+          "rss_bytes": 133054464,
+          "peak_rss_bytes": 133054464,
           "requests": 12,
           "samples_seconds": [
-            0.0009357081726193428,
-            0.0008604580070823431,
-            0.0008445980492979288,
-            0.0008367039263248444,
-            0.0008405509870499372,
-            0.0007861489430069923,
-            0.0008326158858835697,
-            0.000840269960463047,
-            0.0008345600217580795,
-            0.0008252819534391165,
-            0.0008282079361379147,
-            0.0008303618524223566
+            0.0008826691191643476,
+            0.0007662309799343348,
+            0.0007509710267186165,
+            0.0007479351479560137,
+            0.0007457609754055738,
+            0.0007174850907176733,
+            0.0007645569276064634,
+            0.0007819721940904856,
+            0.0007536159828305244,
+            0.0007524541579186916,
+            0.0007548790890723467,
+            0.0008043348789215088
           ]
         },
         "warm_query": {
-          "seconds": 0.010561712086200714,
-          "cpu_seconds": 0.010499445999999968,
-          "rss_before_bytes": 141275136,
-          "rss_bytes": 141307904,
-          "peak_rss_bytes": 155181056,
+          "seconds": 0.01122675696387887,
+          "cpu_seconds": 0.010966684000000004,
+          "rss_before_bytes": 133079040,
+          "rss_bytes": 133140480,
+          "peak_rss_bytes": 133140480,
           "requests": 12,
           "samples_seconds": [
-            0.0010024309158325195,
-            0.0009522589389234781,
-            0.0009293558541685343,
-            0.0008215561974793673,
-            0.0009339340031147003,
-            0.0006089608650654554,
-            0.0009467180352658033,
-            0.000906853936612606,
-            0.0009168421383947134,
-            0.0008295897860080004,
-            0.000903919106349349,
-            0.0008060568943619728
+            0.0012178050819784403,
+            0.0009440190624445677,
+            0.0008797131013125181,
+            0.0007797169964760542,
+            0.0008742229547351599,
+            0.0005632529500871897,
+            0.0009296908974647522,
+            0.0008659460581839085,
+            0.0009209439158439636,
+            0.0010292560327798128,
+            0.001190301962196827,
+            0.0010289649944752455
           ]
         },
         "snapshot": {
-          "seconds": 1.2421514838933945e-06,
-          "cpu_seconds": 2.644999999967812e-06,
-          "rss_before_bytes": 141324288,
-          "rss_bytes": 141324288,
-          "peak_rss_bytes": 155181056
+          "seconds": 1.0819640010595322e-06,
+          "cpu_seconds": 2.4849999999965178e-06,
+          "rss_before_bytes": 133160960,
+          "rss_bytes": 133160960,
+          "peak_rss_bytes": 133160960
         },
         "single_commit": {
-          "seconds": 0.002686257939785719,
-          "cpu_seconds": 0.002672123999999998,
-          "rss_before_bytes": 141332480,
-          "rss_bytes": 141488128,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.0029978519305586815,
+          "cpu_seconds": 0.0029834559999999954,
+          "rss_before_bytes": 133169152,
+          "rss_bytes": 133435392,
+          "peak_rss_bytes": 133435392
         },
         "first_has_after_single": {
-          "seconds": 0.00548635795712471,
-          "cpu_seconds": 0.005453309999999989,
-          "rss_before_bytes": 141488128,
-          "rss_bytes": 143790080,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.005935773951932788,
+          "cpu_seconds": 0.005854010999999992,
+          "rss_before_bytes": 133459968,
+          "rss_bytes": 135831552,
+          "peak_rss_bytes": 135831552
         },
         "batch_commit": {
-          "seconds": 0.08185971388593316,
-          "cpu_seconds": 0.08144139299999997,
-          "rss_before_bytes": 143790080,
-          "rss_bytes": 144097280,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.08231475995853543,
+          "cpu_seconds": 0.08027963599999999,
+          "rss_before_bytes": 135847936,
+          "rss_bytes": 133922816,
+          "peak_rss_bytes": 134459392
         },
         "first_has_after_batch": {
-          "seconds": 0.005717537133023143,
-          "cpu_seconds": 0.0056899940000000315,
-          "rss_before_bytes": 144109568,
-          "rss_bytes": 144195584,
-          "peak_rss_bytes": 155181056
+          "seconds": 0.006978377001360059,
+          "cpu_seconds": 0.006917170000000028,
+          "rss_before_bytes": 133939200,
+          "rss_bytes": 133996544,
+          "peak_rss_bytes": 134459392
         },
         "reload_same_rules": {
-          "seconds": 0.10675443080253899,
-          "cpu_seconds": 0.10629589199999995,
-          "rss_before_bytes": 144195584,
-          "rss_bytes": 133820416,
-          "peak_rss_bytes": 168714240
+          "seconds": 0.08239949587732553,
+          "cpu_seconds": 0.08170433400000005,
+          "rss_before_bytes": 134008832,
+          "rss_bytes": 123437056,
+          "peak_rss_bytes": 149819392
         },
         "first_has_after_reload": {
-          "seconds": 0.011723469011485577,
-          "cpu_seconds": 0.011668930999999994,
-          "rss_before_bytes": 133832704,
-          "rss_bytes": 145510400,
-          "peak_rss_bytes": 168714240
+          "seconds": 0.012520130956545472,
+          "cpu_seconds": 0.012426570999999997,
+          "rss_before_bytes": 123473920,
+          "rss_bytes": 133914624,
+          "peak_rss_bytes": 149819392
         },
         "restore_after_edits": {
-          "seconds": 0.07754813903011382,
-          "cpu_seconds": 0.07814479299999999,
-          "rss_before_bytes": 145518592,
-          "rss_bytes": 142864384,
-          "peak_rss_bytes": 173441024
+          "seconds": 0.048522688914090395,
+          "cpu_seconds": 0.04823506599999999,
+          "rss_before_bytes": 133947392,
+          "rss_bytes": 122413056,
+          "peak_rss_bytes": 149819392
         },
         "first_has_after_restore": {
-          "seconds": 0.012334945145994425,
-          "cpu_seconds": 0.012242496999999908,
-          "rss_before_bytes": 142868480,
-          "rss_bytes": 155381760,
-          "peak_rss_bytes": 173441024
+          "seconds": 0.01320727588608861,
+          "cpu_seconds": 0.013137593000000058,
+          "rss_before_bytes": 122441728,
+          "rss_bytes": 132845568,
+          "peak_rss_bytes": 149819392
         }
       },
       "cardinalities": {
@@ -305,16 +303,16 @@
         }
       },
       "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
         "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
         "sqlalchemy": "2.0.43",
         "temp_store_default": 0,
         "sqlite_compile_options": [
           "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "COMPILER=clang-22.1.3",
           "DEFAULT_AUTOVACUUM",
           "DEFAULT_CACHE_SIZE=-2000",
           "DEFAULT_FILE_FORMAT=4",
@@ -329,15 +327,14 @@
           "DEFAULT_WAL_SYNCHRONOUS=2",
           "DEFAULT_WORKER_THREADS=0",
           "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
           "ENABLE_FTS3",
           "ENABLE_FTS3_PARENTHESIS",
           "ENABLE_FTS4",
           "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_GEOPOLY",
           "ENABLE_MATH_FUNCTIONS",
           "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
           "MALLOC_SOFT_LIMIT=1024",
           "MAX_ATTACHED=10",
           "MAX_COLUMN=2000",
@@ -347,25 +344,23 @@
           "MAX_FUNCTION_ARG=1000",
           "MAX_LENGTH=1000000000",
           "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_MMAP_SIZE=0x7fff0000",
           "MAX_PAGE_COUNT=0xfffffffe",
           "MAX_PAGE_SIZE=65536",
           "MAX_SQL_LENGTH=1000000000",
           "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VARIABLE_NUMBER=32766",
           "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
+          "MAX_WORKER_THREADS=8",
           "MUTEX_PTHREADS",
-          "SOUNDEX",
           "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
         ],
         "duckdb": "1.5.6"
       },
       "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
       "batch_changes": 100,
       "cache_stats": {
         "mode": "cached",
@@ -376,1158 +371,1143 @@
           "CanInvestigate"
         ],
         "materializations": {
+          "CanClaimReward": 5,
           "CanInvestigate": 5,
+          "CanEnter": 3
+        },
+        "materialization_seconds": 0.03769894386641681,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 132853760,
+      "peak_rss_bytes": 149819392
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "live",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.04184690001420677,
+          "cpu_seconds": 0.046725195,
+          "rss_before_bytes": 82919424,
+          "rss_bytes": 111661056,
+          "peak_rss_bytes": 111661056
+        },
+        "restore_initial": {
+          "seconds": 0.04950529686175287,
+          "cpu_seconds": 0.04908303,
+          "rss_before_bytes": 115101696,
+          "rss_bytes": 119902208,
+          "peak_rss_bytes": 126169088
+        },
+        "first_has": {
+          "seconds": 0.0046896240673959255,
+          "cpu_seconds": 0.0046227410000000135,
+          "rss_before_bytes": 119914496,
+          "rss_bytes": 124416000,
+          "peak_rss_bytes": 126169088
+        },
+        "warm_has": {
+          "seconds": 0.02854271582327783,
+          "cpu_seconds": 0.02782650200000003,
+          "rss_before_bytes": 124440576,
+          "rss_bytes": 125521920,
+          "peak_rss_bytes": 126169088,
+          "requests": 12,
+          "samples_seconds": [
+            0.0027421298436820507,
+            0.0025050959084182978,
+            0.003629097016528249,
+            0.002644779160618782,
+            0.002460277872160077,
+            0.0025003659538924694,
+            0.0022395250853151083,
+            0.001913147047162056,
+            0.0020103268325328827,
+            0.0019158809445798397,
+            0.0018785279244184494,
+            0.002099831821396947
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.012713426956906915,
+          "cpu_seconds": 0.012599316999999999,
+          "rss_before_bytes": 125546496,
+          "rss_bytes": 125595648,
+          "peak_rss_bytes": 126169088,
+          "requests": 12,
+          "samples_seconds": [
+            0.0012047491036355495,
+            0.001181543106213212,
+            0.001073181163519621,
+            0.001054704887792468,
+            0.001101006055250764,
+            0.0008403661195188761,
+            0.0011701409239321947,
+            0.0010247770696878433,
+            0.0010337240528315306,
+            0.0010080139618366957,
+            0.0010151579044759274,
+            0.001003915909677744
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.1718366295099258e-06,
+          "cpu_seconds": 2.7559999999926532e-06,
+          "rss_before_bytes": 125632512,
+          "rss_bytes": 125632512,
+          "peak_rss_bytes": 126169088
+        },
+        "single_commit": {
+          "seconds": 0.0013919358607381582,
+          "cpu_seconds": 0.001389075999999989,
+          "rss_before_bytes": 125648896,
+          "rss_bytes": 125984768,
+          "peak_rss_bytes": 126169088
+        },
+        "first_has_after_single": {
+          "seconds": 0.00219726306386292,
+          "cpu_seconds": 0.0021893880000000143,
+          "rss_before_bytes": 125997056,
+          "rss_bytes": 126025728,
+          "peak_rss_bytes": 126169088
+        },
+        "batch_commit": {
+          "seconds": 0.08677932200953364,
+          "cpu_seconds": 0.08533548600000002,
+          "rss_before_bytes": 126038016,
+          "rss_bytes": 128348160,
+          "peak_rss_bytes": 128348160
+        },
+        "first_has_after_batch": {
+          "seconds": 0.002640831982716918,
+          "cpu_seconds": 0.002620316999999983,
+          "rss_before_bytes": 128360448,
+          "rss_bytes": 128733184,
+          "peak_rss_bytes": 128733184
+        },
+        "reload_same_rules": {
+          "seconds": 0.08720176899805665,
+          "cpu_seconds": 0.08616301399999998,
+          "rss_before_bytes": 128741376,
+          "rss_bytes": 128262144,
+          "peak_rss_bytes": 154333184
+        },
+        "first_has_after_reload": {
+          "seconds": 0.0031525329686701298,
+          "cpu_seconds": 0.0031385990000000197,
+          "rss_before_bytes": 128294912,
+          "rss_bytes": 131248128,
+          "peak_rss_bytes": 154333184
+        },
+        "restore_after_edits": {
+          "seconds": 0.04837124701589346,
+          "cpu_seconds": 0.04802146499999993,
+          "rss_before_bytes": 132124672,
+          "rss_bytes": 126304256,
+          "peak_rss_bytes": 154333184
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0028312550857663155,
+          "cpu_seconds": 0.002788400999999996,
+          "rss_before_bytes": 126320640,
+          "rss_bytes": 129970176,
+          "peak_rss_bytes": 154333184
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+        "backend": "duckdb",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=clang-22.1.3",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_GEOPOLY",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=0x7fff0000",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=32766",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=8",
+          "MUTEX_PTHREADS",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "live",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 129982464,
+      "peak_rss_bytes": 154333184
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "materialized",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.04412371898069978,
+          "cpu_seconds": 0.049750528,
+          "rss_before_bytes": 82882560,
+          "rss_bytes": 110452736,
+          "peak_rss_bytes": 110452736
+        },
+        "restore_initial": {
+          "seconds": 0.05903705395758152,
+          "cpu_seconds": 0.058583497999999984,
+          "rss_before_bytes": 113881088,
+          "rss_bytes": 124960768,
+          "peak_rss_bytes": 138592256
+        },
+        "first_has": {
+          "seconds": 0.0014694978017359972,
+          "cpu_seconds": 0.0014658810000000022,
+          "rss_before_bytes": 124981248,
+          "rss_bytes": 125100032,
+          "peak_rss_bytes": 138592256
+        },
+        "warm_has": {
+          "seconds": 0.009281656006351113,
+          "cpu_seconds": 0.00921233099999999,
+          "rss_before_bytes": 125116416,
+          "rss_bytes": 125145088,
+          "peak_rss_bytes": 138592256,
+          "requests": 12,
+          "samples_seconds": [
+            0.0008463279809802771,
+            0.0007795460987836123,
+            0.0007871109992265701,
+            0.0007645878940820694,
+            0.0007911790162324905,
+            0.0007254499942064285,
+            0.00075904605910182,
+            0.0007567419670522213,
+            0.0007560309022665024,
+            0.0007554600015282631,
+            0.0007935138419270515,
+            0.0007641070988029242
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010120950872078538,
+          "cpu_seconds": 0.010035647000000009,
+          "rss_before_bytes": 125177856,
+          "rss_bytes": 125415424,
+          "peak_rss_bytes": 138592256,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009767028968781233,
+            0.0009281779639422894,
+            0.0009459019638597965,
+            0.0008261669427156448,
+            0.0008734501898288727,
+            0.0005451580509543419,
+            0.0008803140372037888,
+            0.0008605450857430696,
+            0.0008723880164325237,
+            0.0007735150866210461,
+            0.0008802840020507574,
+            0.0007563310209661722
+          ]
+        },
+        "snapshot": {
+          "seconds": 8.209608495235443e-07,
+          "cpu_seconds": 2.1139999999975068e-06,
+          "rss_before_bytes": 125444096,
+          "rss_bytes": 125444096,
+          "peak_rss_bytes": 138592256
+        },
+        "single_commit": {
+          "seconds": 0.008109370013698936,
+          "cpu_seconds": 0.008058267000000008,
+          "rss_before_bytes": 125452288,
+          "rss_bytes": 137764864,
+          "peak_rss_bytes": 138592256
+        },
+        "first_has_after_single": {
+          "seconds": 0.0009649901185184717,
+          "cpu_seconds": 0.0009617140000000024,
+          "rss_before_bytes": 137768960,
+          "rss_bytes": 137773056,
+          "peak_rss_bytes": 138592256
+        },
+        "batch_commit": {
+          "seconds": 0.0845279530622065,
+          "cpu_seconds": 0.083784409,
+          "rss_before_bytes": 137793536,
+          "rss_bytes": 136851456,
+          "peak_rss_bytes": 138592256
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0009338990785181522,
+          "cpu_seconds": 0.0009313959999999732,
+          "rss_before_bytes": 136863744,
+          "rss_bytes": 136863744,
+          "peak_rss_bytes": 138592256
+        },
+        "reload_same_rules": {
+          "seconds": 0.08048735000193119,
+          "cpu_seconds": 0.07989527599999996,
+          "rss_before_bytes": 136876032,
+          "rss_bytes": 128397312,
+          "peak_rss_bytes": 154202112
+        },
+        "first_has_after_reload": {
+          "seconds": 0.001188176916912198,
+          "cpu_seconds": 0.0011840109999999848,
+          "rss_before_bytes": 128430080,
+          "rss_bytes": 128528384,
+          "peak_rss_bytes": 154202112
+        },
+        "restore_after_edits": {
+          "seconds": 0.05979314399883151,
+          "cpu_seconds": 0.05940298700000002,
+          "rss_before_bytes": 128573440,
+          "rss_bytes": 127143936,
+          "peak_rss_bytes": 154202112
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0015099160373210907,
+          "cpu_seconds": 0.0015038520000000277,
+          "rss_before_bytes": 127160320,
+          "rss_bytes": 127221760,
+          "peak_rss_bytes": 154202112
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+        "backend": "duckdb",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=clang-22.1.3",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_GEOPOLY",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=0x7fff0000",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=32766",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=8",
+          "MUTEX_PTHREADS",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "materialized",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 127225856,
+      "peak_rss_bytes": 154202112
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "live",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.043083735974505544,
+          "cpu_seconds": 0.04830727700000001,
+          "rss_before_bytes": 82939904,
+          "rss_bytes": 107958272,
+          "peak_rss_bytes": 107958272
+        },
+        "restore_initial": {
+          "seconds": 0.050392177887260914,
+          "cpu_seconds": 0.05001006699999999,
+          "rss_before_bytes": 111398912,
+          "rss_bytes": 117493760,
+          "peak_rss_bytes": 122556416
+        },
+        "first_has": {
+          "seconds": 0.00349420215934515,
+          "cpu_seconds": 0.0034774540000000187,
+          "rss_before_bytes": 117518336,
+          "rss_bytes": 121991168,
+          "peak_rss_bytes": 122556416
+        },
+        "warm_has": {
+          "seconds": 0.023405170999467373,
+          "cpu_seconds": 0.023269539000000006,
+          "rss_before_bytes": 122011648,
+          "rss_bytes": 122966016,
+          "peak_rss_bytes": 122966016,
+          "requests": 12,
+          "samples_seconds": [
+            0.0021960511803627014,
+            0.002180438954383135,
+            0.0018441209103912115,
+            0.002135000890120864,
+            0.0018371779005974531,
+            0.0016457631718367338,
+            0.002066986868157983,
+            0.0018471470102667809,
+            0.0019696871750056744,
+            0.0018256849143654108,
+            0.0018245119135826826,
+            0.0020300550386309624
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.012896313099190593,
+          "cpu_seconds": 0.012828744000000003,
+          "rss_before_bytes": 122994688,
+          "rss_bytes": 123215872,
+          "peak_rss_bytes": 123215872,
+          "requests": 12,
+          "samples_seconds": [
+            0.0012586850207298994,
+            0.001137667102739215,
+            0.001028193160891533,
+            0.00102013791911304,
+            0.0010968279093503952,
+            0.0008122110739350319,
+            0.0010634821373969316,
+            0.0010397161822766066,
+            0.0010906860698014498,
+            0.001050847815349698,
+            0.0010323419701308012,
+            0.0012631940189749002
+          ]
+        },
+        "snapshot": {
+          "seconds": 2.6549678295850754e-06,
+          "cpu_seconds": 6.693000000002058e-06,
+          "rss_before_bytes": 123240448,
+          "rss_bytes": 123240448,
+          "peak_rss_bytes": 123240448
+        },
+        "single_commit": {
+          "seconds": 0.0029992128256708384,
+          "cpu_seconds": 0.0029851300000000025,
+          "rss_before_bytes": 123256832,
+          "rss_bytes": 123617280,
+          "peak_rss_bytes": 123617280
+        },
+        "first_has_after_single": {
+          "seconds": 0.0025324190501123667,
+          "cpu_seconds": 0.0025248649999999873,
+          "rss_before_bytes": 123621376,
+          "rss_bytes": 123711488,
+          "peak_rss_bytes": 123711488
+        },
+        "batch_commit": {
+          "seconds": 0.07955324999056756,
+          "cpu_seconds": 0.079137662,
+          "rss_before_bytes": 123715584,
+          "rss_bytes": 126279680,
+          "peak_rss_bytes": 126279680
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0023385791573673487,
+          "cpu_seconds": 0.0023302809999999896,
+          "rss_before_bytes": 126283776,
+          "rss_bytes": 126345216,
+          "peak_rss_bytes": 126345216
+        },
+        "reload_same_rules": {
+          "seconds": 0.08249570312909782,
+          "cpu_seconds": 0.082110295,
+          "rss_before_bytes": 126357504,
+          "rss_bytes": 126664704,
+          "peak_rss_bytes": 151703552
+        },
+        "first_has_after_reload": {
+          "seconds": 0.003524281084537506,
+          "cpu_seconds": 0.0035065280000000087,
+          "rss_before_bytes": 126697472,
+          "rss_bytes": 131596288,
+          "peak_rss_bytes": 151703552
+        },
+        "restore_after_edits": {
+          "seconds": 0.048036163905635476,
+          "cpu_seconds": 0.04786704500000005,
+          "rss_before_bytes": 135487488,
+          "rss_bytes": 126550016,
+          "peak_rss_bytes": 151703552
+        },
+        "first_has_after_restore": {
+          "seconds": 0.002939034951850772,
+          "cpu_seconds": 0.002925819999999968,
+          "rss_before_bytes": 126574592,
+          "rss_bytes": 129183744,
+          "peak_rss_bytes": 151703552
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+        "backend": "duckdb",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=clang-22.1.3",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_GEOPOLY",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=0x7fff0000",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=32766",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=8",
+          "MUTEX_PTHREADS",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "live",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 129191936,
+      "peak_rss_bytes": 151703552
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "materialized",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.042480704840272665,
+          "cpu_seconds": 0.04680769700000001,
+          "rss_before_bytes": 82935808,
+          "rss_bytes": 110358528,
+          "peak_rss_bytes": 110358528
+        },
+        "restore_initial": {
+          "seconds": 0.05919362208805978,
+          "cpu_seconds": 0.05894074100000002,
+          "rss_before_bytes": 113782784,
+          "rss_bytes": 124977152,
+          "peak_rss_bytes": 138575872
+        },
+        "first_has": {
+          "seconds": 0.0013265081215649843,
+          "cpu_seconds": 0.0013232829999999807,
+          "rss_before_bytes": 124997632,
+          "rss_bytes": 125112320,
+          "peak_rss_bytes": 138575872
+        },
+        "warm_has": {
+          "seconds": 0.009149916935712099,
+          "cpu_seconds": 0.009098363000000026,
+          "rss_before_bytes": 125120512,
+          "rss_bytes": 125140992,
+          "peak_rss_bytes": 138575872,
+          "requests": 12,
+          "samples_seconds": [
+            0.0008699130266904831,
+            0.0007795069832354784,
+            0.0007663308642804623,
+            0.0007536460179835558,
+            0.0007698580157011747,
+            0.0007222441490739584,
+            0.0007480948697775602,
+            0.0007522029336541891,
+            0.0007525130640715361,
+            0.0007394880522042513,
+            0.0007470929995179176,
+            0.0007462818175554276
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.009978950954973698,
+          "cpu_seconds": 0.009918598,
+          "rss_before_bytes": 125173760,
+          "rss_bytes": 125448192,
+          "peak_rss_bytes": 138575872,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009682758245617151,
+            0.000913828844204545,
+            0.0009033388923853636,
+            0.0007916400209069252,
+            0.0008611059747636318,
+            0.0005478928796947002,
+            0.0008901329711079597,
+            0.0008530209306627512,
+            0.0008626289200037718,
+            0.0007729241624474525,
+            0.000854492885991931,
+            0.0007575629279017448
+          ]
+        },
+        "snapshot": {
+          "seconds": 7.618218660354614e-07,
+          "cpu_seconds": 2.2140000000003823e-06,
+          "rss_before_bytes": 125468672,
+          "rss_bytes": 125468672,
+          "peak_rss_bytes": 138575872
+        },
+        "single_commit": {
+          "seconds": 0.009574939031153917,
+          "cpu_seconds": 0.00952573999999995,
+          "rss_before_bytes": 125476864,
+          "rss_bytes": 136142848,
+          "peak_rss_bytes": 138575872
+        },
+        "first_has_after_single": {
+          "seconds": 0.0013559649232774973,
+          "cpu_seconds": 0.001353800000000016,
+          "rss_before_bytes": 136155136,
+          "rss_bytes": 136159232,
+          "peak_rss_bytes": 138575872
+        },
+        "batch_commit": {
+          "seconds": 0.08655179385095835,
+          "cpu_seconds": 0.08605674699999999,
+          "rss_before_bytes": 136183808,
+          "rss_bytes": 138469376,
+          "peak_rss_bytes": 138575872
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0009800901170819998,
+          "cpu_seconds": 0.000977214000000004,
+          "rss_before_bytes": 138489856,
+          "rss_bytes": 138489856,
+          "peak_rss_bytes": 138575872
+        },
+        "reload_same_rules": {
+          "seconds": 0.0833654550369829,
+          "cpu_seconds": 0.08297891600000001,
+          "rss_before_bytes": 138502144,
+          "rss_bytes": 129449984,
+          "peak_rss_bytes": 154755072
+        },
+        "first_has_after_reload": {
+          "seconds": 0.002321224892511964,
+          "cpu_seconds": 0.0023138709999999674,
+          "rss_before_bytes": 129482752,
+          "rss_bytes": 129585152,
+          "peak_rss_bytes": 154755072
+        },
+        "restore_after_edits": {
+          "seconds": 0.059616391779854894,
+          "cpu_seconds": 0.05934436300000001,
+          "rss_before_bytes": 129646592,
+          "rss_bytes": 127369216,
+          "peak_rss_bytes": 154755072
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0012008510529994965,
+          "cpu_seconds": 0.0011963029999999542,
+          "rss_before_bytes": 127393792,
+          "rss_bytes": 127459328,
+          "peak_rss_bytes": 154755072
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+        "backend": "duckdb",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=clang-22.1.3",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_GEOPOLY",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=0x7fff0000",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=32766",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=8",
+          "MUTEX_PTHREADS",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "materialized",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 127459328,
+      "peak_rss_bytes": 154755072
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "cached",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.0409667850472033,
+          "cpu_seconds": 0.045772656999999994,
+          "rss_before_bytes": 82952192,
+          "rss_bytes": 105746432,
+          "peak_rss_bytes": 105746432
+        },
+        "restore_initial": {
+          "seconds": 0.04822383518330753,
+          "cpu_seconds": 0.04804086299999999,
+          "rss_before_bytes": 109182976,
+          "rss_bytes": 118685696,
+          "peak_rss_bytes": 121618432
+        },
+        "first_has": {
+          "seconds": 0.012840932933613658,
+          "cpu_seconds": 0.012768221999999996,
+          "rss_before_bytes": 118697984,
+          "rss_bytes": 133685248,
+          "peak_rss_bytes": 133685248
+        },
+        "warm_has": {
+          "seconds": 0.009359946940094233,
+          "cpu_seconds": 0.009302357000000011,
+          "rss_before_bytes": 133689344,
+          "rss_bytes": 133701632,
+          "peak_rss_bytes": 133701632,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009144211653620005,
+            0.0008108979091048241,
+            0.0007892351131886244,
+            0.0007685050368309021,
+            0.0007554090116173029,
+            0.0007374240085482597,
+            0.0007715709507465363,
+            0.0007633748464286327,
+            0.0007439469918608665,
+            0.0007775821723043919,
+            0.0007704480085521936,
+            0.0007548278663307428
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010161496931686997,
+          "cpu_seconds": 0.010111097999999985,
+          "rss_before_bytes": 133713920,
+          "rss_bytes": 133758976,
+          "peak_rss_bytes": 133758976,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009754200000315905,
+            0.000906866043806076,
+            0.0009170060511678457,
+            0.0008073011413216591,
+            0.0009250510483980179,
+            0.0005719291511923075,
+            0.0008922871202230453,
+            0.0008701740298420191,
+            0.0008779189083725214,
+            0.0007913601584732533,
+            0.0008593529928475618,
+            0.0007647480815649033
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.2021046131849289e-06,
+          "cpu_seconds": 2.665000000012796e-06,
+          "rss_before_bytes": 133775360,
+          "rss_bytes": 133775360,
+          "peak_rss_bytes": 133775360
+        },
+        "single_commit": {
+          "seconds": 0.0029232739470899105,
+          "cpu_seconds": 0.002908475999999993,
+          "rss_before_bytes": 133775360,
+          "rss_bytes": 134119424,
+          "peak_rss_bytes": 134119424
+        },
+        "first_has_after_single": {
+          "seconds": 0.005714399041607976,
+          "cpu_seconds": 0.005679733999999992,
+          "rss_before_bytes": 134119424,
+          "rss_bytes": 136413184,
+          "peak_rss_bytes": 136413184
+        },
+        "batch_commit": {
+          "seconds": 0.07899898500181735,
+          "cpu_seconds": 0.07853399700000002,
+          "rss_before_bytes": 136413184,
+          "rss_bytes": 136552448,
+          "peak_rss_bytes": 136552448
+        },
+        "first_has_after_batch": {
+          "seconds": 0.00600445712916553,
+          "cpu_seconds": 0.005970377999999998,
+          "rss_before_bytes": 136564736,
+          "rss_bytes": 136564736,
+          "peak_rss_bytes": 136564736
+        },
+        "reload_same_rules": {
+          "seconds": 0.07963622198440135,
+          "cpu_seconds": 0.079163802,
+          "rss_before_bytes": 136564736,
+          "rss_bytes": 121245696,
+          "peak_rss_bytes": 149352448
+        },
+        "first_has_after_reload": {
+          "seconds": 0.012544312048703432,
+          "cpu_seconds": 0.01248295599999999,
+          "rss_before_bytes": 121286656,
+          "rss_bytes": 131387392,
+          "peak_rss_bytes": 149352448
+        },
+        "restore_after_edits": {
+          "seconds": 0.047529354924336076,
+          "cpu_seconds": 0.047338988000000026,
+          "rss_before_bytes": 131420160,
+          "rss_bytes": 119865344,
+          "peak_rss_bytes": 149352448
+        },
+        "first_has_after_restore": {
+          "seconds": 0.012896301923319697,
+          "cpu_seconds": 0.012833011999999977,
+          "rss_before_bytes": 119894016,
+          "rss_bytes": 133115904,
+          "peak_rss_bytes": 149352448
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
+        "backend": "duckdb",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=clang-22.1.3",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_GEOPOLY",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=0x7fff0000",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=32766",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=8",
+          "MUTEX_PTHREADS",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "cached",
+        "backend": "duckdb",
+        "cached_relations": [
+          "CanClaimReward",
+          "CanEnter",
+          "CanInvestigate"
+        ],
+        "materializations": {
           "CanEnter": 3,
+          "CanInvestigate": 5,
           "CanClaimReward": 5
         },
-        "materialization_seconds": 0.035269921412691474,
+        "materialization_seconds": 0.03650346351787448,
         "snapshot_bytes": 3420160
       },
-      "rss_bytes": 155381760,
-      "peak_rss_bytes": 173441024
-    },
-    {
-      "kind": "measure",
-      "size": 10000,
-      "mode": "live",
-      "backend": "duckdb",
-      "history_bound": false,
-      "repeat": 0,
-      "status": "ok",
-      "phases": {
-        "init_empty": {
-          "seconds": 0.08657337795011699,
-          "cpu_seconds": 0.089605151,
-          "rss_before_bytes": 89047040,
-          "rss_bytes": 134627328,
-          "peak_rss_bytes": 134627328
-        },
-        "restore_initial": {
-          "seconds": 0.07759290095418692,
-          "cpu_seconds": 0.07727450899999996,
-          "rss_before_bytes": 138063872,
-          "rss_bytes": 125067264,
-          "peak_rss_bytes": 152375296
-        },
-        "first_has": {
-          "seconds": 0.0032726870849728584,
-          "cpu_seconds": 0.0032579420000000137,
-          "rss_before_bytes": 125075456,
-          "rss_bytes": 131067904,
-          "peak_rss_bytes": 152375296
-        },
-        "warm_has": {
-          "seconds": 0.024023439036682248,
-          "cpu_seconds": 0.02389396199999999,
-          "rss_before_bytes": 131076096,
-          "rss_bytes": 131907584,
-          "peak_rss_bytes": 152375296,
-          "requests": 12,
-          "samples_seconds": [
-            0.002301765140146017,
-            0.002219540998339653,
-            0.0019584668334573507,
-            0.002149352105334401,
-            0.0019100168719887733,
-            0.0017002869863063097,
-            0.0021287829149514437,
-            0.0018873449880629778,
-            0.0018749521113932133,
-            0.0019394010305404663,
-            0.0018812131602317095,
-            0.0020683498587459326
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.013035374926403165,
-          "cpu_seconds": 0.012962807999999992,
-          "rss_before_bytes": 131919872,
-          "rss_bytes": 132104192,
-          "peak_rss_bytes": 152375296,
-          "requests": 12,
-          "samples_seconds": [
-            0.0012197750620543957,
-            0.001163500128313899,
-            0.001073803985491395,
-            0.0011011450551450253,
-            0.001133123878389597,
-            0.0008632431272417307,
-            0.0011226451024413109,
-            0.0011069858446717262,
-            0.0010603801347315311,
-            0.0010697059333324432,
-            0.0010545479599386454,
-            0.0010633249767124653
-          ]
-        },
-        "snapshot": {
-          "seconds": 8.910428732633591e-07,
-          "cpu_seconds": 2.2840000000190486e-06,
-          "rss_before_bytes": 132120576,
-          "rss_bytes": 132120576,
-          "peak_rss_bytes": 152375296
-        },
-        "single_commit": {
-          "seconds": 0.0014468571171164513,
-          "cpu_seconds": 0.001443216000000025,
-          "rss_before_bytes": 132132864,
-          "rss_bytes": 132403200,
-          "peak_rss_bytes": 152375296
-        },
-        "first_has_after_single": {
-          "seconds": 0.0021575959399342537,
-          "cpu_seconds": 0.0021442009999999567,
-          "rss_before_bytes": 132407296,
-          "rss_bytes": 132513792,
-          "peak_rss_bytes": 152375296
-        },
-        "batch_commit": {
-          "seconds": 0.08131627505645156,
-          "cpu_seconds": 0.08081903099999999,
-          "rss_before_bytes": 132521984,
-          "rss_bytes": 132636672,
-          "peak_rss_bytes": 152375296
-        },
-        "first_has_after_batch": {
-          "seconds": 0.002608422888442874,
-          "cpu_seconds": 0.002590830000000044,
-          "rss_before_bytes": 132644864,
-          "rss_bytes": 132648960,
-          "peak_rss_bytes": 152375296
-        },
-        "reload_same_rules": {
-          "seconds": 0.12079353001900017,
-          "cpu_seconds": 0.12028056800000003,
-          "rss_before_bytes": 132653056,
-          "rss_bytes": 129359872,
-          "peak_rss_bytes": 156221440
-        },
-        "first_has_after_reload": {
-          "seconds": 0.003042760072275996,
-          "cpu_seconds": 0.0030265959999999925,
-          "rss_before_bytes": 129384448,
-          "rss_bytes": 133365760,
-          "peak_rss_bytes": 156221440
-        },
-        "restore_after_edits": {
-          "seconds": 0.08091146405786276,
-          "cpu_seconds": 0.08233082199999997,
-          "rss_before_bytes": 134402048,
-          "rss_bytes": 150863872,
-          "peak_rss_bytes": 175022080
-        },
-        "first_has_after_restore": {
-          "seconds": 0.0028185341507196426,
-          "cpu_seconds": 0.002813537999999949,
-          "rss_before_bytes": 150863872,
-          "rss_bytes": 154509312,
-          "peak_rss_bytes": 175022080
-        }
-      },
-      "cardinalities": {
-        "facts_by_relation": {
-          "Member": 10000,
-          "FactionAccess": 128,
-          "Sponsor": 1000,
-          "Knows": 3334,
-          "RewardClaimed": 910
-        },
-        "facts": 15372,
-        "expected_derived_rows": {
-          "CanEnter": 41000,
-          "CanInvestigate": 3334,
-          "CanClaimReward": 3030
-        }
-      },
-      "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-        "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
-        "sqlalchemy": "2.0.43",
-        "temp_store_default": 0,
-        "sqlite_compile_options": [
-          "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
-          "DEFAULT_AUTOVACUUM",
-          "DEFAULT_CACHE_SIZE=-2000",
-          "DEFAULT_FILE_FORMAT=4",
-          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
-          "DEFAULT_MMAP_SIZE=0",
-          "DEFAULT_PAGE_SIZE=4096",
-          "DEFAULT_PCACHE_INITSZ=20",
-          "DEFAULT_RECURSIVE_TRIGGERS",
-          "DEFAULT_SECTOR_SIZE=4096",
-          "DEFAULT_SYNCHRONOUS=2",
-          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
-          "DEFAULT_WAL_SYNCHRONOUS=2",
-          "DEFAULT_WORKER_THREADS=0",
-          "DIRECT_OVERFLOW_READ",
-          "ENABLE_FTS3",
-          "ENABLE_FTS3_PARENTHESIS",
-          "ENABLE_FTS4",
-          "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
-          "ENABLE_MATH_FUNCTIONS",
-          "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
-          "MALLOC_SOFT_LIMIT=1024",
-          "MAX_ATTACHED=10",
-          "MAX_COLUMN=2000",
-          "MAX_COMPOUND_SELECT=500",
-          "MAX_DEFAULT_PAGE_SIZE=8192",
-          "MAX_EXPR_DEPTH=1000",
-          "MAX_FUNCTION_ARG=1000",
-          "MAX_LENGTH=1000000000",
-          "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
-          "MAX_PAGE_COUNT=0xfffffffe",
-          "MAX_PAGE_SIZE=65536",
-          "MAX_SQL_LENGTH=1000000000",
-          "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
-          "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
-          "MUTEX_PTHREADS",
-          "SOUNDEX",
-          "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
-        ],
-        "duckdb": "1.5.6"
-      },
-      "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "batch_changes": 100,
-      "cache_stats": {
-        "mode": "live",
-        "backend": "duckdb",
-        "cached_relations": [],
-        "materializations": {},
-        "materialization_seconds": 0.0,
-        "snapshot_bytes": 3420160
-      },
-      "rss_bytes": 154509312,
-      "peak_rss_bytes": 175022080
-    },
-    {
-      "kind": "measure",
-      "size": 10000,
-      "mode": "materialized",
-      "backend": "duckdb",
-      "history_bound": false,
-      "repeat": 0,
-      "status": "ok",
-      "phases": {
-        "init_empty": {
-          "seconds": 0.09062255802564323,
-          "cpu_seconds": 0.09409132799999997,
-          "rss_before_bytes": 88989696,
-          "rss_bytes": 138973184,
-          "peak_rss_bytes": 138973184
-        },
-        "restore_initial": {
-          "seconds": 0.09120430890470743,
-          "cpu_seconds": 0.09086255499999998,
-          "rss_before_bytes": 142405632,
-          "rss_bytes": 131895296,
-          "peak_rss_bytes": 156303360
-        },
-        "first_has": {
-          "seconds": 0.0014560238923877478,
-          "cpu_seconds": 0.0014481570000000055,
-          "rss_before_bytes": 131907584,
-          "rss_bytes": 132026368,
-          "peak_rss_bytes": 156303360
-        },
-        "warm_has": {
-          "seconds": 0.010124581167474389,
-          "cpu_seconds": 0.010061134999999999,
-          "rss_before_bytes": 132026368,
-          "rss_bytes": 132050944,
-          "peak_rss_bytes": 156303360,
-          "requests": 12,
-          "samples_seconds": [
-            0.0009121941402554512,
-            0.000850809970870614,
-            0.0008380659855902195,
-            0.0008777698967605829,
-            0.0008355509489774704,
-            0.0008015979547053576,
-            0.0008369139395654202,
-            0.000825934112071991,
-            0.0008356219623237848,
-            0.0008268060628324747,
-            0.0008442581165581942,
-            0.0008352911099791527
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.01064501702785492,
-          "cpu_seconds": 0.010595937999999971,
-          "rss_before_bytes": 132063232,
-          "rss_bytes": 132313088,
-          "peak_rss_bytes": 156303360,
-          "requests": 12,
-          "samples_seconds": [
-            0.0010371159296482801,
-            0.0009839769918471575,
-            0.0009470691438764334,
-            0.0008389782160520554,
-            0.0009251679293811321,
-            0.0006103140767663717,
-            0.0009313190821558237,
-            0.0009118530433624983,
-            0.0009181350469589233,
-            0.0008258430752903223,
-            0.0008984480518847704,
-            0.0008136711549013853
-          ]
-        },
-        "snapshot": {
-          "seconds": 1.4719553291797638e-06,
-          "cpu_seconds": 2.8260000000113195e-06,
-          "rss_before_bytes": 132325376,
-          "rss_bytes": 132325376,
-          "peak_rss_bytes": 156303360
-        },
-        "single_commit": {
-          "seconds": 0.008092828094959259,
-          "cpu_seconds": 0.008053258000000008,
-          "rss_before_bytes": 132337664,
-          "rss_bytes": 145612800,
-          "peak_rss_bytes": 156303360
-        },
-        "first_has_after_single": {
-          "seconds": 0.0009049410000443459,
-          "cpu_seconds": 0.0009025750000000166,
-          "rss_before_bytes": 145616896,
-          "rss_bytes": 145620992,
-          "peak_rss_bytes": 156303360
-        },
-        "batch_commit": {
-          "seconds": 0.08715016092173755,
-          "cpu_seconds": 0.086753998,
-          "rss_before_bytes": 145620992,
-          "rss_bytes": 147042304,
-          "peak_rss_bytes": 156303360
-        },
-        "first_has_after_batch": {
-          "seconds": 0.0010230890475213528,
-          "cpu_seconds": 0.0010205459999999555,
-          "rss_before_bytes": 147050496,
-          "rss_bytes": 147050496,
-          "peak_rss_bytes": 156303360
-        },
-        "reload_same_rules": {
-          "seconds": 0.10898553696461022,
-          "cpu_seconds": 0.10851945299999993,
-          "rss_before_bytes": 147054592,
-          "rss_bytes": 134668288,
-          "peak_rss_bytes": 161943552
-        },
-        "first_has_after_reload": {
-          "seconds": 0.0012353539932519197,
-          "cpu_seconds": 0.0012314390000000008,
-          "rss_before_bytes": 134680576,
-          "rss_bytes": 134787072,
-          "peak_rss_bytes": 161943552
-        },
-        "restore_after_edits": {
-          "seconds": 0.08967149187810719,
-          "cpu_seconds": 0.09028123300000002,
-          "rss_before_bytes": 134819840,
-          "rss_bytes": 143794176,
-          "peak_rss_bytes": 172408832
-        },
-        "first_has_after_restore": {
-          "seconds": 0.0012003991287201643,
-          "cpu_seconds": 0.001817498000000084,
-          "rss_before_bytes": 143798272,
-          "rss_bytes": 152309760,
-          "peak_rss_bytes": 172408832
-        }
-      },
-      "cardinalities": {
-        "facts_by_relation": {
-          "Member": 10000,
-          "FactionAccess": 128,
-          "Sponsor": 1000,
-          "Knows": 3334,
-          "RewardClaimed": 910
-        },
-        "facts": 15372,
-        "expected_derived_rows": {
-          "CanEnter": 41000,
-          "CanInvestigate": 3334,
-          "CanClaimReward": 3030
-        }
-      },
-      "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-        "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
-        "sqlalchemy": "2.0.43",
-        "temp_store_default": 0,
-        "sqlite_compile_options": [
-          "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
-          "DEFAULT_AUTOVACUUM",
-          "DEFAULT_CACHE_SIZE=-2000",
-          "DEFAULT_FILE_FORMAT=4",
-          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
-          "DEFAULT_MMAP_SIZE=0",
-          "DEFAULT_PAGE_SIZE=4096",
-          "DEFAULT_PCACHE_INITSZ=20",
-          "DEFAULT_RECURSIVE_TRIGGERS",
-          "DEFAULT_SECTOR_SIZE=4096",
-          "DEFAULT_SYNCHRONOUS=2",
-          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
-          "DEFAULT_WAL_SYNCHRONOUS=2",
-          "DEFAULT_WORKER_THREADS=0",
-          "DIRECT_OVERFLOW_READ",
-          "ENABLE_FTS3",
-          "ENABLE_FTS3_PARENTHESIS",
-          "ENABLE_FTS4",
-          "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
-          "ENABLE_MATH_FUNCTIONS",
-          "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
-          "MALLOC_SOFT_LIMIT=1024",
-          "MAX_ATTACHED=10",
-          "MAX_COLUMN=2000",
-          "MAX_COMPOUND_SELECT=500",
-          "MAX_DEFAULT_PAGE_SIZE=8192",
-          "MAX_EXPR_DEPTH=1000",
-          "MAX_FUNCTION_ARG=1000",
-          "MAX_LENGTH=1000000000",
-          "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
-          "MAX_PAGE_COUNT=0xfffffffe",
-          "MAX_PAGE_SIZE=65536",
-          "MAX_SQL_LENGTH=1000000000",
-          "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
-          "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
-          "MUTEX_PTHREADS",
-          "SOUNDEX",
-          "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
-        ],
-        "duckdb": "1.5.6"
-      },
-      "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "batch_changes": 100,
-      "cache_stats": {
-        "mode": "materialized",
-        "backend": "duckdb",
-        "cached_relations": [],
-        "materializations": {},
-        "materialization_seconds": 0.0,
-        "snapshot_bytes": 3420160
-      },
-      "rss_bytes": 152309760,
-      "peak_rss_bytes": 172408832
-    },
-    {
-      "kind": "measure",
-      "size": 10000,
-      "mode": "live",
-      "backend": "duckdb",
-      "history_bound": false,
-      "repeat": 1,
-      "status": "ok",
-      "phases": {
-        "init_empty": {
-          "seconds": 0.08517179707996547,
-          "cpu_seconds": 0.08936792199999999,
-          "rss_before_bytes": 89042944,
-          "rss_bytes": 139100160,
-          "peak_rss_bytes": 139100160
-        },
-        "restore_initial": {
-          "seconds": 0.07924717804417014,
-          "cpu_seconds": 0.07891805700000001,
-          "rss_before_bytes": 142532608,
-          "rss_bytes": 129609728,
-          "peak_rss_bytes": 156332032
-        },
-        "first_has": {
-          "seconds": 0.00336768408305943,
-          "cpu_seconds": 0.003355755000000016,
-          "rss_before_bytes": 129617920,
-          "rss_bytes": 133754880,
-          "peak_rss_bytes": 156332032
-        },
-        "warm_has": {
-          "seconds": 0.02410197607241571,
-          "cpu_seconds": 0.023962576000000013,
-          "rss_before_bytes": 133754880,
-          "rss_bytes": 134541312,
-          "peak_rss_bytes": 156332032,
-          "requests": 12,
-          "samples_seconds": [
-            0.0023438220378011465,
-            0.0022154441103339195,
-            0.0019028340466320515,
-            0.002126920036971569,
-            0.001950942911207676,
-            0.0017116488888859749,
-            0.0021196871530264616,
-            0.0019182818941771984,
-            0.0019008999224752188,
-            0.0018924940377473831,
-            0.0019099069759249687,
-            0.002105250023305416
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.013020158046856523,
-          "cpu_seconds": 0.012936274999999997,
-          "rss_before_bytes": 134553600,
-          "rss_bytes": 134877184,
-          "peak_rss_bytes": 156332032,
-          "requests": 12,
-          "samples_seconds": [
-            0.001205227803438902,
-            0.0011493749916553497,
-            0.001086177071556449,
-            0.0010668509639799595,
-            0.0011447961442172527,
-            0.0008575229439884424,
-            0.0011284048669040203,
-            0.0011058931704610586,
-            0.0010739939752966166,
-            0.0010777618736028671,
-            0.00106074009090662,
-            0.0010603789705783129
-          ]
-        },
-        "snapshot": {
-          "seconds": 9.818468242883682e-07,
-          "cpu_seconds": 2.3049999999802395e-06,
-          "rss_before_bytes": 134893568,
-          "rss_bytes": 134893568,
-          "peak_rss_bytes": 156332032
-        },
-        "single_commit": {
-          "seconds": 0.0014302260242402554,
-          "cpu_seconds": 0.0014268159999999974,
-          "rss_before_bytes": 134901760,
-          "rss_bytes": 135188480,
-          "peak_rss_bytes": 156332032
-        },
-        "first_has_after_single": {
-          "seconds": 0.002134823938831687,
-          "cpu_seconds": 0.0021261479999999944,
-          "rss_before_bytes": 135188480,
-          "rss_bytes": 135282688,
-          "peak_rss_bytes": 156332032
-        },
-        "batch_commit": {
-          "seconds": 0.08198458096012473,
-          "cpu_seconds": 0.081506672,
-          "rss_before_bytes": 135286784,
-          "rss_bytes": 137502720,
-          "peak_rss_bytes": 156332032
-        },
-        "first_has_after_batch": {
-          "seconds": 0.002383867045864463,
-          "cpu_seconds": 0.0023757869999999626,
-          "rss_before_bytes": 137502720,
-          "rss_bytes": 137646080,
-          "peak_rss_bytes": 156332032
-        },
-        "reload_same_rules": {
-          "seconds": 0.10835638199932873,
-          "cpu_seconds": 0.10784102100000004,
-          "rss_before_bytes": 137650176,
-          "rss_bytes": 134594560,
-          "peak_rss_bytes": 163479552
-        },
-        "first_has_after_reload": {
-          "seconds": 0.003480402985587716,
-          "cpu_seconds": 0.0034611520000000784,
-          "rss_before_bytes": 134606848,
-          "rss_bytes": 140660736,
-          "peak_rss_bytes": 163479552
-        },
-        "restore_after_edits": {
-          "seconds": 0.0800756870303303,
-          "cpu_seconds": 0.08049122599999992,
-          "rss_before_bytes": 141369344,
-          "rss_bytes": 140681216,
-          "peak_rss_bytes": 168927232
-        },
-        "first_has_after_restore": {
-          "seconds": 0.0029667990747839212,
-          "cpu_seconds": 0.0034494129999999013,
-          "rss_before_bytes": 140693504,
-          "rss_bytes": 151711744,
-          "peak_rss_bytes": 168927232
-        }
-      },
-      "cardinalities": {
-        "facts_by_relation": {
-          "Member": 10000,
-          "FactionAccess": 128,
-          "Sponsor": 1000,
-          "Knows": 3334,
-          "RewardClaimed": 910
-        },
-        "facts": 15372,
-        "expected_derived_rows": {
-          "CanEnter": 41000,
-          "CanInvestigate": 3334,
-          "CanClaimReward": 3030
-        }
-      },
-      "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-        "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
-        "sqlalchemy": "2.0.43",
-        "temp_store_default": 0,
-        "sqlite_compile_options": [
-          "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
-          "DEFAULT_AUTOVACUUM",
-          "DEFAULT_CACHE_SIZE=-2000",
-          "DEFAULT_FILE_FORMAT=4",
-          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
-          "DEFAULT_MMAP_SIZE=0",
-          "DEFAULT_PAGE_SIZE=4096",
-          "DEFAULT_PCACHE_INITSZ=20",
-          "DEFAULT_RECURSIVE_TRIGGERS",
-          "DEFAULT_SECTOR_SIZE=4096",
-          "DEFAULT_SYNCHRONOUS=2",
-          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
-          "DEFAULT_WAL_SYNCHRONOUS=2",
-          "DEFAULT_WORKER_THREADS=0",
-          "DIRECT_OVERFLOW_READ",
-          "ENABLE_FTS3",
-          "ENABLE_FTS3_PARENTHESIS",
-          "ENABLE_FTS4",
-          "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
-          "ENABLE_MATH_FUNCTIONS",
-          "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
-          "MALLOC_SOFT_LIMIT=1024",
-          "MAX_ATTACHED=10",
-          "MAX_COLUMN=2000",
-          "MAX_COMPOUND_SELECT=500",
-          "MAX_DEFAULT_PAGE_SIZE=8192",
-          "MAX_EXPR_DEPTH=1000",
-          "MAX_FUNCTION_ARG=1000",
-          "MAX_LENGTH=1000000000",
-          "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
-          "MAX_PAGE_COUNT=0xfffffffe",
-          "MAX_PAGE_SIZE=65536",
-          "MAX_SQL_LENGTH=1000000000",
-          "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
-          "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
-          "MUTEX_PTHREADS",
-          "SOUNDEX",
-          "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
-        ],
-        "duckdb": "1.5.6"
-      },
-      "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "batch_changes": 100,
-      "cache_stats": {
-        "mode": "live",
-        "backend": "duckdb",
-        "cached_relations": [],
-        "materializations": {},
-        "materialization_seconds": 0.0,
-        "snapshot_bytes": 3420160
-      },
-      "rss_bytes": 151715840,
-      "peak_rss_bytes": 168927232
-    },
-    {
-      "kind": "measure",
-      "size": 10000,
-      "mode": "materialized",
-      "backend": "duckdb",
-      "history_bound": false,
-      "repeat": 1,
-      "status": "ok",
-      "phases": {
-        "init_empty": {
-          "seconds": 0.08845785213634372,
-          "cpu_seconds": 0.09235247399999999,
-          "rss_before_bytes": 89083904,
-          "rss_bytes": 134758400,
-          "peak_rss_bytes": 134758400
-        },
-        "restore_initial": {
-          "seconds": 0.08385044592432678,
-          "cpu_seconds": 0.083512385,
-          "rss_before_bytes": 138190848,
-          "rss_bytes": 128401408,
-          "peak_rss_bytes": 152354816
-        },
-        "first_has": {
-          "seconds": 0.001315792789682746,
-          "cpu_seconds": 0.0013119719999999946,
-          "rss_before_bytes": 128413696,
-          "rss_bytes": 128532480,
-          "peak_rss_bytes": 152354816
-        },
-        "warm_has": {
-          "seconds": 0.010034193051978946,
-          "cpu_seconds": 0.009987203,
-          "rss_before_bytes": 128536576,
-          "rss_bytes": 128557056,
-          "peak_rss_bytes": 152354816,
-          "requests": 12,
-          "samples_seconds": [
-            0.0008843319956213236,
-            0.0008576731197535992,
-            0.0008450490422546864,
-            0.000843956833705306,
-            0.0008406508713960648,
-            0.0008040829561650753,
-            0.0008255729917436838,
-            0.0008255629800260067,
-            0.0008240898605436087,
-            0.0008238400332629681,
-            0.000831464072689414,
-            0.0008238800801336765
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.01059840084053576,
-          "cpu_seconds": 0.010544780000000031,
-          "rss_before_bytes": 128565248,
-          "rss_bytes": 128815104,
-          "peak_rss_bytes": 152354816,
-          "requests": 12,
-          "samples_seconds": [
-            0.0010045049712061882,
-            0.0009692299645394087,
-            0.000952848931774497,
-            0.0008386869449168444,
-            0.0009207201655954123,
-            0.0005980799905955791,
-            0.0009313588961958885,
-            0.0009092679247260094,
-            0.0009162109345197678,
-            0.0008297311142086983,
-            0.0009115429129451513,
-            0.0008130690548568964
-          ]
-        },
-        "snapshot": {
-          "seconds": 9.920913726091385e-07,
-          "cpu_seconds": 2.514000000009009e-06,
-          "rss_before_bytes": 128831488,
-          "rss_bytes": 128831488,
-          "peak_rss_bytes": 152354816
-        },
-        "single_commit": {
-          "seconds": 0.007572091184556484,
-          "cpu_seconds": 0.007525312999999978,
-          "rss_before_bytes": 128839680,
-          "rss_bytes": 143634432,
-          "peak_rss_bytes": 152354816
-        },
-        "first_has_after_single": {
-          "seconds": 0.0009257688652724028,
-          "cpu_seconds": 0.0009217810000000104,
-          "rss_before_bytes": 143634432,
-          "rss_bytes": 143638528,
-          "peak_rss_bytes": 152354816
-        },
-        "batch_commit": {
-          "seconds": 0.08581112697720528,
-          "cpu_seconds": 0.08532812699999998,
-          "rss_before_bytes": 143642624,
-          "rss_bytes": 144818176,
-          "peak_rss_bytes": 152354816
-        },
-        "first_has_after_batch": {
-          "seconds": 0.0009428099729120731,
-          "cpu_seconds": 0.0009395520000000102,
-          "rss_before_bytes": 144826368,
-          "rss_bytes": 144830464,
-          "peak_rss_bytes": 152354816
-        },
-        "reload_same_rules": {
-          "seconds": 0.10550293512642384,
-          "cpu_seconds": 0.10506785300000004,
-          "rss_before_bytes": 144830464,
-          "rss_bytes": 131645440,
-          "peak_rss_bytes": 160636928
-        },
-        "first_has_after_reload": {
-          "seconds": 0.0011846187990158796,
-          "cpu_seconds": 0.001159134000000006,
-          "rss_before_bytes": 131665920,
-          "rss_bytes": 131772416,
-          "peak_rss_bytes": 160636928
-        },
-        "restore_after_edits": {
-          "seconds": 0.08895515697076917,
-          "cpu_seconds": 0.08988998699999995,
-          "rss_before_bytes": 131805184,
-          "rss_bytes": 142127104,
-          "peak_rss_bytes": 168812544
-        },
-        "first_has_after_restore": {
-          "seconds": 0.0011289368849247694,
-          "cpu_seconds": 0.0011251910000000809,
-          "rss_before_bytes": 142131200,
-          "rss_bytes": 142196736,
-          "peak_rss_bytes": 168812544
-        }
-      },
-      "cardinalities": {
-        "facts_by_relation": {
-          "Member": 10000,
-          "FactionAccess": 128,
-          "Sponsor": 1000,
-          "Knows": 3334,
-          "RewardClaimed": 910
-        },
-        "facts": 15372,
-        "expected_derived_rows": {
-          "CanEnter": 41000,
-          "CanInvestigate": 3334,
-          "CanClaimReward": 3030
-        }
-      },
-      "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-        "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
-        "sqlalchemy": "2.0.43",
-        "temp_store_default": 0,
-        "sqlite_compile_options": [
-          "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
-          "DEFAULT_AUTOVACUUM",
-          "DEFAULT_CACHE_SIZE=-2000",
-          "DEFAULT_FILE_FORMAT=4",
-          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
-          "DEFAULT_MMAP_SIZE=0",
-          "DEFAULT_PAGE_SIZE=4096",
-          "DEFAULT_PCACHE_INITSZ=20",
-          "DEFAULT_RECURSIVE_TRIGGERS",
-          "DEFAULT_SECTOR_SIZE=4096",
-          "DEFAULT_SYNCHRONOUS=2",
-          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
-          "DEFAULT_WAL_SYNCHRONOUS=2",
-          "DEFAULT_WORKER_THREADS=0",
-          "DIRECT_OVERFLOW_READ",
-          "ENABLE_FTS3",
-          "ENABLE_FTS3_PARENTHESIS",
-          "ENABLE_FTS4",
-          "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
-          "ENABLE_MATH_FUNCTIONS",
-          "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
-          "MALLOC_SOFT_LIMIT=1024",
-          "MAX_ATTACHED=10",
-          "MAX_COLUMN=2000",
-          "MAX_COMPOUND_SELECT=500",
-          "MAX_DEFAULT_PAGE_SIZE=8192",
-          "MAX_EXPR_DEPTH=1000",
-          "MAX_FUNCTION_ARG=1000",
-          "MAX_LENGTH=1000000000",
-          "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
-          "MAX_PAGE_COUNT=0xfffffffe",
-          "MAX_PAGE_SIZE=65536",
-          "MAX_SQL_LENGTH=1000000000",
-          "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
-          "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
-          "MUTEX_PTHREADS",
-          "SOUNDEX",
-          "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
-        ],
-        "duckdb": "1.5.6"
-      },
-      "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "batch_changes": 100,
-      "cache_stats": {
-        "mode": "materialized",
-        "backend": "duckdb",
-        "cached_relations": [],
-        "materializations": {},
-        "materialization_seconds": 0.0,
-        "snapshot_bytes": 3420160
-      },
-      "rss_bytes": 142200832,
-      "peak_rss_bytes": 168812544
-    },
-    {
-      "kind": "measure",
-      "size": 10000,
-      "mode": "cached",
-      "backend": "duckdb",
-      "history_bound": false,
-      "repeat": 1,
-      "status": "ok",
-      "phases": {
-        "init_empty": {
-          "seconds": 0.08561195014044642,
-          "cpu_seconds": 0.09052901199999999,
-          "rss_before_bytes": 89120768,
-          "rss_bytes": 135245824,
-          "peak_rss_bytes": 135245824
-        },
-        "restore_initial": {
-          "seconds": 0.07641766616143286,
-          "cpu_seconds": 0.076138751,
-          "rss_before_bytes": 138678272,
-          "rss_bytes": 125726720,
-          "peak_rss_bytes": 152969216
-        },
-        "first_has": {
-          "seconds": 0.011630007065832615,
-          "cpu_seconds": 0.011575277999999967,
-          "rss_before_bytes": 125739008,
-          "rss_bytes": 140300288,
-          "peak_rss_bytes": 152969216
-        },
-        "warm_has": {
-          "seconds": 0.010048168944194913,
-          "cpu_seconds": 0.009997343999999964,
-          "rss_before_bytes": 140300288,
-          "rss_bytes": 140308480,
-          "peak_rss_bytes": 152969216,
-          "requests": 12,
-          "samples_seconds": [
-            0.0009252780582755804,
-            0.000854315934702754,
-            0.0008491671178489923,
-            0.000828038202598691,
-            0.0008391891606152058,
-            0.000795617001131177,
-            0.0008278368040919304,
-            0.000836412888020277,
-            0.0008242209441959858,
-            0.0008163859602063894,
-            0.0008278670720756054,
-            0.0008199128787964582
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.010523491073399782,
-          "cpu_seconds": 0.010467416000000007,
-          "rss_before_bytes": 140316672,
-          "rss_bytes": 140369920,
-          "peak_rss_bytes": 152969216,
-          "requests": 12,
-          "samples_seconds": [
-            0.0009946469217538834,
-            0.0009533909615129232,
-            0.0009223029483109713,
-            0.0008333469741046429,
-            0.0009105911012738943,
-            0.0006117660086601973,
-            0.0009156500454992056,
-            0.0008899031672626734,
-            0.0009126849472522736,
-            0.0008305627852678299,
-            0.0009453250095248222,
-            0.0008001059759408236
-          ]
-        },
-        "snapshot": {
-          "seconds": 8.021015673875809e-07,
-          "cpu_seconds": 2.1640000000267e-06,
-          "rss_before_bytes": 140386304,
-          "rss_bytes": 140386304,
-          "peak_rss_bytes": 152969216
-        },
-        "single_commit": {
-          "seconds": 0.0026766599621623755,
-          "cpu_seconds": 0.0026632169999999955,
-          "rss_before_bytes": 140394496,
-          "rss_bytes": 140492800,
-          "peak_rss_bytes": 152969216
-        },
-        "first_has_after_single": {
-          "seconds": 0.005494202021509409,
-          "cpu_seconds": 0.005469400000000013,
-          "rss_before_bytes": 140492800,
-          "rss_bytes": 142880768,
-          "peak_rss_bytes": 152969216
-        },
-        "batch_commit": {
-          "seconds": 0.08124205400235951,
-          "cpu_seconds": 0.080849854,
-          "rss_before_bytes": 142880768,
-          "rss_bytes": 143032320,
-          "peak_rss_bytes": 152969216
-        },
-        "first_has_after_batch": {
-          "seconds": 0.005421377951279283,
-          "cpu_seconds": 0.005392307999999957,
-          "rss_before_bytes": 143040512,
-          "rss_bytes": 143179776,
-          "peak_rss_bytes": 152969216
-        },
-        "reload_same_rules": {
-          "seconds": 0.10841774009168148,
-          "cpu_seconds": 0.10790017000000002,
-          "rss_before_bytes": 143183872,
-          "rss_bytes": 131436544,
-          "peak_rss_bytes": 166801408
-        },
-        "first_has_after_reload": {
-          "seconds": 0.011607405031099916,
-          "cpu_seconds": 0.011552333000000026,
-          "rss_before_bytes": 131452928,
-          "rss_bytes": 142663680,
-          "peak_rss_bytes": 166801408
-        },
-        "restore_after_edits": {
-          "seconds": 0.0808079200796783,
-          "cpu_seconds": 0.08144830999999997,
-          "rss_before_bytes": 142675968,
-          "rss_bytes": 140427264,
-          "peak_rss_bytes": 171167744
-        },
-        "first_has_after_restore": {
-          "seconds": 0.012039338005706668,
-          "cpu_seconds": 0.012443520000000041,
-          "rss_before_bytes": 140435456,
-          "rss_bytes": 161669120,
-          "peak_rss_bytes": 171167744
-        }
-      },
-      "cardinalities": {
-        "facts_by_relation": {
-          "Member": 10000,
-          "FactionAccess": 128,
-          "Sponsor": 1000,
-          "Knows": 3334,
-          "RewardClaimed": 910
-        },
-        "facts": 15372,
-        "expected_derived_rows": {
-          "CanEnter": 41000,
-          "CanInvestigate": 3334,
-          "CanClaimReward": 3030
-        }
-      },
-      "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
-        "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
-        "sqlalchemy": "2.0.43",
-        "temp_store_default": 0,
-        "sqlite_compile_options": [
-          "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
-          "DEFAULT_AUTOVACUUM",
-          "DEFAULT_CACHE_SIZE=-2000",
-          "DEFAULT_FILE_FORMAT=4",
-          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
-          "DEFAULT_MMAP_SIZE=0",
-          "DEFAULT_PAGE_SIZE=4096",
-          "DEFAULT_PCACHE_INITSZ=20",
-          "DEFAULT_RECURSIVE_TRIGGERS",
-          "DEFAULT_SECTOR_SIZE=4096",
-          "DEFAULT_SYNCHRONOUS=2",
-          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
-          "DEFAULT_WAL_SYNCHRONOUS=2",
-          "DEFAULT_WORKER_THREADS=0",
-          "DIRECT_OVERFLOW_READ",
-          "ENABLE_FTS3",
-          "ENABLE_FTS3_PARENTHESIS",
-          "ENABLE_FTS4",
-          "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
-          "ENABLE_MATH_FUNCTIONS",
-          "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
-          "MALLOC_SOFT_LIMIT=1024",
-          "MAX_ATTACHED=10",
-          "MAX_COLUMN=2000",
-          "MAX_COMPOUND_SELECT=500",
-          "MAX_DEFAULT_PAGE_SIZE=8192",
-          "MAX_EXPR_DEPTH=1000",
-          "MAX_FUNCTION_ARG=1000",
-          "MAX_LENGTH=1000000000",
-          "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
-          "MAX_PAGE_COUNT=0xfffffffe",
-          "MAX_PAGE_SIZE=65536",
-          "MAX_SQL_LENGTH=1000000000",
-          "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
-          "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
-          "MUTEX_PTHREADS",
-          "SOUNDEX",
-          "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
-        ],
-        "duckdb": "1.5.6"
-      },
-      "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
-      "batch_changes": 100,
-      "cache_stats": {
-        "mode": "cached",
-        "backend": "duckdb",
-        "cached_relations": [
-          "CanClaimReward",
-          "CanEnter",
-          "CanInvestigate"
-        ],
-        "materializations": {
-          "CanEnter": 3,
-          "CanClaimReward": 5,
-          "CanInvestigate": 5
-        },
-        "materialization_seconds": 0.03398551163263619,
-        "snapshot_bytes": 3420160
-      },
-      "rss_bytes": 161673216,
-      "peak_rss_bytes": 171167744
+      "rss_bytes": 133115904,
+      "peak_rss_bytes": 149352448
     },
     {
       "kind": "measure",
@@ -1539,132 +1519,132 @@
       "status": "ok",
       "phases": {
         "init_empty": {
-          "seconds": 0.08565140585415065,
-          "cpu_seconds": 0.091438625,
-          "rss_before_bytes": 89071616,
+          "seconds": 0.04676438798196614,
+          "cpu_seconds": 0.05114084699999999,
+          "rss_before_bytes": 82911232,
+          "rss_bytes": 110370816,
+          "peak_rss_bytes": 110370816
+        },
+        "restore_initial": {
+          "seconds": 0.060001485981047153,
+          "cpu_seconds": 0.05976820299999999,
+          "rss_before_bytes": 113799168,
+          "rss_bytes": 123142144,
+          "peak_rss_bytes": 136380416
+        },
+        "first_has": {
+          "seconds": 0.0013935081660747528,
+          "cpu_seconds": 0.0013911899999999866,
+          "rss_before_bytes": 123162624,
+          "rss_bytes": 123281408,
+          "peak_rss_bytes": 136380416
+        },
+        "warm_has": {
+          "seconds": 0.009484829846769571,
+          "cpu_seconds": 0.00940233900000001,
+          "rss_before_bytes": 123301888,
+          "rss_bytes": 123322368,
+          "peak_rss_bytes": 136380416,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009573239367455244,
+            0.0008690007962286472,
+            0.0007943348027765751,
+            0.0007647168822586536,
+            0.000773122999817133,
+            0.0007338658906519413,
+            0.0007658589165657759,
+            0.0007698580157011747,
+            0.000789696117863059,
+            0.0007511309813708067,
+            0.000769446836784482,
+            0.0007441369816660881
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010089955059811473,
+          "cpu_seconds": 0.010042271000000047,
+          "rss_before_bytes": 123342848,
+          "rss_bytes": 123613184,
+          "peak_rss_bytes": 136380416,
+          "requests": 12,
+          "samples_seconds": [
+            0.000972473993897438,
+            0.000927827088162303,
+            0.0008943311404436827,
+            0.0008066990412771702,
+            0.000870533986017108,
+            0.0005415810737758875,
+            0.0009169960394501686,
+            0.0008827480487525463,
+            0.0008822379168123007,
+            0.0007710489444434643,
+            0.0008628889918327332,
+            0.0007586658466607332
+          ]
+        },
+        "snapshot": {
+          "seconds": 9.520445019006729e-07,
+          "cpu_seconds": 2.7049999999917418e-06,
+          "rss_before_bytes": 123641856,
+          "rss_bytes": 123641856,
+          "peak_rss_bytes": 136380416
+        },
+        "single_commit": {
+          "seconds": 0.008585650008171797,
+          "cpu_seconds": 0.008547234999999986,
+          "rss_before_bytes": 123650048,
+          "rss_bytes": 136130560,
+          "peak_rss_bytes": 136380416
+        },
+        "first_has_after_single": {
+          "seconds": 0.0010273619554936886,
+          "cpu_seconds": 0.0010255339999999946,
+          "rss_before_bytes": 136134656,
+          "rss_bytes": 136138752,
+          "peak_rss_bytes": 136380416
+        },
+        "batch_commit": {
+          "seconds": 0.08532573189586401,
+          "cpu_seconds": 0.08491024800000002,
+          "rss_before_bytes": 136159232,
+          "rss_bytes": 137150464,
+          "peak_rss_bytes": 137150464
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0009131680708378553,
+          "cpu_seconds": 0.000910527999999966,
+          "rss_before_bytes": 137170944,
           "rss_bytes": 137170944,
           "peak_rss_bytes": 137170944
         },
-        "restore_initial": {
-          "seconds": 0.08477071998640895,
-          "cpu_seconds": 0.08444305399999999,
-          "rss_before_bytes": 140603392,
-          "rss_bytes": 130506752,
-          "peak_rss_bytes": 155209728
-        },
-        "first_has": {
-          "seconds": 0.0013272440992295742,
-          "cpu_seconds": 0.0013232320000000075,
-          "rss_before_bytes": 130514944,
-          "rss_bytes": 130633728,
-          "peak_rss_bytes": 155209728
-        },
-        "warm_has": {
-          "seconds": 0.010163794970139861,
-          "cpu_seconds": 0.01010183800000003,
-          "rss_before_bytes": 130637824,
-          "rss_bytes": 130662400,
-          "peak_rss_bytes": 155209728,
-          "requests": 12,
-          "samples_seconds": [
-            0.0008871469181030989,
-            0.0008569720666855574,
-            0.0008427950087934732,
-            0.0008304018992930651,
-            0.000850259093567729,
-            0.0008144120220094919,
-            0.0008307518437504768,
-            0.0008342289365828037,
-            0.000831865007057786,
-            0.0008307218085974455,
-            0.0009040688164532185,
-            0.0008460909593850374
-          ]
-        },
-        "warm_query": {
-          "seconds": 0.010679771890863776,
-          "cpu_seconds": 0.010613121000000003,
-          "rss_before_bytes": 130670592,
-          "rss_bytes": 130916352,
-          "peak_rss_bytes": 155209728,
-          "requests": 12,
-          "samples_seconds": [
-            0.0010231700725853443,
-            0.0009721450041979551,
-            0.000945196021348238,
-            0.0008493768982589245,
-            0.0009413380175828934,
-            0.0006216350011527538,
-            0.0009337537921965122,
-            0.0009162221103906631,
-            0.0009227839764207602,
-            0.0008267161902040243,
-            0.0009139468893408775,
-            0.0008102240972220898
-          ]
-        },
-        "snapshot": {
-          "seconds": 1.0121148079633713e-06,
-          "cpu_seconds": 2.4339999999956063e-06,
-          "rss_before_bytes": 130932736,
-          "rss_bytes": 130932736,
-          "peak_rss_bytes": 155209728
-        },
-        "single_commit": {
-          "seconds": 0.00795391108840704,
-          "cpu_seconds": 0.007914134999999989,
-          "rss_before_bytes": 130940928,
-          "rss_bytes": 146739200,
-          "peak_rss_bytes": 155209728
-        },
-        "first_has_after_single": {
-          "seconds": 0.0009051009546965361,
-          "cpu_seconds": 0.0008983639999999848,
-          "rss_before_bytes": 146739200,
-          "rss_bytes": 146743296,
-          "peak_rss_bytes": 155209728
-        },
-        "batch_commit": {
-          "seconds": 0.08528669807128608,
-          "cpu_seconds": 0.08484797599999999,
-          "rss_before_bytes": 146743296,
-          "rss_bytes": 147742720,
-          "peak_rss_bytes": 155209728
-        },
-        "first_has_after_batch": {
-          "seconds": 0.0009231939911842346,
-          "cpu_seconds": 0.0009194049999999843,
-          "rss_before_bytes": 147746816,
-          "rss_bytes": 147746816,
-          "peak_rss_bytes": 155209728
-        },
         "reload_same_rules": {
-          "seconds": 0.10541329300031066,
-          "cpu_seconds": 0.10489163099999999,
-          "rss_before_bytes": 147750912,
-          "rss_bytes": 134639616,
-          "peak_rss_bytes": 166584320
+          "seconds": 0.08099432103335857,
+          "cpu_seconds": 0.08065939600000005,
+          "rss_before_bytes": 137199616,
+          "rss_bytes": 128466944,
+          "peak_rss_bytes": 154345472
         },
         "first_has_after_reload": {
-          "seconds": 0.0011616579722613096,
-          "cpu_seconds": 0.001158793999999963,
-          "rss_before_bytes": 134651904,
-          "rss_bytes": 134758400,
-          "peak_rss_bytes": 166584320
+          "seconds": 0.001134422142058611,
+          "cpu_seconds": 0.0011309120000000394,
+          "rss_before_bytes": 128507904,
+          "rss_bytes": 128610304,
+          "peak_rss_bytes": 154345472
         },
         "restore_after_edits": {
-          "seconds": 0.08688562689349055,
-          "cpu_seconds": 0.08749954199999999,
-          "rss_before_bytes": 134791168,
-          "rss_bytes": 146911232,
-          "peak_rss_bytes": 169992192
+          "seconds": 0.058822400169447064,
+          "cpu_seconds": 0.05855324800000006,
+          "rss_before_bytes": 128671744,
+          "rss_bytes": 127078400,
+          "peak_rss_bytes": 154345472
         },
         "first_has_after_restore": {
-          "seconds": 0.0011195489205420017,
-          "cpu_seconds": 0.0011165840000000316,
-          "rss_before_bytes": 146911232,
-          "rss_bytes": 146972672,
-          "peak_rss_bytes": 169992192
+          "seconds": 0.0010871188715100288,
+          "cpu_seconds": 0.001083021999999989,
+          "rss_before_bytes": 127090688,
+          "rss_bytes": 127152128,
+          "peak_rss_bytes": 154345472
         }
       },
       "cardinalities": {
@@ -1683,16 +1663,16 @@
         }
       },
       "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
         "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
         "sqlalchemy": "2.0.43",
         "temp_store_default": 0,
         "sqlite_compile_options": [
           "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "COMPILER=clang-22.1.3",
           "DEFAULT_AUTOVACUUM",
           "DEFAULT_CACHE_SIZE=-2000",
           "DEFAULT_FILE_FORMAT=4",
@@ -1707,15 +1687,14 @@
           "DEFAULT_WAL_SYNCHRONOUS=2",
           "DEFAULT_WORKER_THREADS=0",
           "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
           "ENABLE_FTS3",
           "ENABLE_FTS3_PARENTHESIS",
           "ENABLE_FTS4",
           "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_GEOPOLY",
           "ENABLE_MATH_FUNCTIONS",
           "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
           "MALLOC_SOFT_LIMIT=1024",
           "MAX_ATTACHED=10",
           "MAX_COLUMN=2000",
@@ -1725,25 +1704,23 @@
           "MAX_FUNCTION_ARG=1000",
           "MAX_LENGTH=1000000000",
           "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_MMAP_SIZE=0x7fff0000",
           "MAX_PAGE_COUNT=0xfffffffe",
           "MAX_PAGE_SIZE=65536",
           "MAX_SQL_LENGTH=1000000000",
           "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VARIABLE_NUMBER=32766",
           "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
+          "MAX_WORKER_THREADS=8",
           "MUTEX_PTHREADS",
-          "SOUNDEX",
           "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
         ],
         "duckdb": "1.5.6"
       },
       "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
       "batch_changes": 100,
       "cache_stats": {
         "mode": "materialized",
@@ -1753,8 +1730,8 @@
         "materialization_seconds": 0.0,
         "snapshot_bytes": 3420160
       },
-      "rss_bytes": 146972672,
-      "peak_rss_bytes": 169992192
+      "rss_bytes": 127152128,
+      "peak_rss_bytes": 154345472
     },
     {
       "kind": "measure",
@@ -1766,132 +1743,132 @@
       "status": "ok",
       "phases": {
         "init_empty": {
-          "seconds": 0.08381024608388543,
-          "cpu_seconds": 0.09186534099999999,
-          "rss_before_bytes": 89128960,
-          "rss_bytes": 139378688,
-          "peak_rss_bytes": 139378688
+          "seconds": 0.042650667019188404,
+          "cpu_seconds": 0.046478924000000005,
+          "rss_before_bytes": 82866176,
+          "rss_bytes": 105422848,
+          "peak_rss_bytes": 105422848
         },
         "restore_initial": {
-          "seconds": 0.07692734501324594,
-          "cpu_seconds": 0.07664612700000001,
-          "rss_before_bytes": 142811136,
-          "rss_bytes": 131641344,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.05017202300950885,
+          "cpu_seconds": 0.049992076999999996,
+          "rss_before_bytes": 108855296,
+          "rss_bytes": 116178944,
+          "peak_rss_bytes": 121253888
         },
         "first_has": {
-          "seconds": 0.012432537041604519,
-          "cpu_seconds": 0.01233783500000002,
-          "rss_before_bytes": 131649536,
-          "rss_bytes": 145707008,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.012991477036848664,
+          "cpu_seconds": 0.012855634000000005,
+          "rss_before_bytes": 116191232,
+          "rss_bytes": 131256320,
+          "peak_rss_bytes": 131256320
         },
         "warm_has": {
-          "seconds": 0.010054972022771835,
-          "cpu_seconds": 0.009995454999999986,
-          "rss_before_bytes": 145707008,
-          "rss_bytes": 145715200,
-          "peak_rss_bytes": 159768576,
+          "seconds": 0.01004357379861176,
+          "cpu_seconds": 0.009947463000000017,
+          "rss_before_bytes": 131272704,
+          "rss_bytes": 131280896,
+          "peak_rss_bytes": 131280896,
           "requests": 12,
           "samples_seconds": [
-            0.0009235949255526066,
-            0.0008609490469098091,
-            0.0008352210279554129,
-            0.0008301020134240389,
-            0.0008435870986431837,
-            0.0007951671723276377,
-            0.0008275259751826525,
-            0.000830481993034482,
-            0.0008179389405995607,
-            0.000836151884868741,
-            0.0008329369593411684,
-            0.0008172378875315189
+            0.0009540680330246687,
+            0.0010446549858897924,
+            0.0007985429838299751,
+            0.0007588760927319527,
+            0.0011296921875327826,
+            0.0007398680318146944,
+            0.0007819710299372673,
+            0.0007659399416297674,
+            0.0007533049210906029,
+            0.0007671921048313379,
+            0.0007711800280958414,
+            0.0007753379177302122
           ]
         },
         "warm_query": {
-          "seconds": 0.01054696599021554,
-          "cpu_seconds": 0.010491130000000015,
-          "rss_before_bytes": 145723392,
-          "rss_bytes": 145780736,
-          "peak_rss_bytes": 159768576,
+          "seconds": 0.010095295961946249,
+          "cpu_seconds": 0.010002777000000018,
+          "rss_before_bytes": 131309568,
+          "rss_bytes": 131346432,
+          "peak_rss_bytes": 131346432,
           "requests": 12,
           "samples_seconds": [
-            0.0010116191115230322,
-            0.000952528091147542,
-            0.0009271118324249983,
-            0.0008398699574172497,
-            0.0009204789530485868,
-            0.0006087599322199821,
-            0.0009274820331484079,
-            0.0009014951065182686,
-            0.0009213709272444248,
-            0.0008119670674204826,
-            0.0009127049706876278,
-            0.0008082210551947355
+            0.0009789769537746906,
+            0.0009023260790854692,
+            0.0009110441897064447,
+            0.0007882630452513695,
+            0.0009214750025421381,
+            0.0005682921037077904,
+            0.0008951530326157808,
+            0.0008596631232649088,
+            0.0008674089331179857,
+            0.0007746668998152018,
+            0.000868380069732666,
+            0.0007573631592094898
           ]
         },
         "snapshot": {
-          "seconds": 1.0021030902862549e-06,
-          "cpu_seconds": 2.3439999999874672e-06,
-          "rss_before_bytes": 145793024,
-          "rss_bytes": 145793024,
-          "peak_rss_bytes": 159768576
+          "seconds": 1.1718366295099258e-06,
+          "cpu_seconds": 2.575000000004657e-06,
+          "rss_before_bytes": 131383296,
+          "rss_bytes": 131383296,
+          "peak_rss_bytes": 131383296
         },
         "single_commit": {
-          "seconds": 0.0027110339142382145,
-          "cpu_seconds": 0.002702518999999959,
-          "rss_before_bytes": 145805312,
-          "rss_bytes": 145973248,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.002797577064484358,
+          "cpu_seconds": 0.0027844030000000464,
+          "rss_before_bytes": 131395584,
+          "rss_bytes": 131534848,
+          "peak_rss_bytes": 131534848
         },
         "first_has_after_single": {
-          "seconds": 0.0054759790655225515,
-          "cpu_seconds": 0.005450043999999987,
-          "rss_before_bytes": 145977344,
-          "rss_bytes": 148246528,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.005917976843193173,
+          "cpu_seconds": 0.005839104000000039,
+          "rss_before_bytes": 131538944,
+          "rss_bytes": 131796992,
+          "peak_rss_bytes": 131796992
         },
         "batch_commit": {
-          "seconds": 0.081798902945593,
-          "cpu_seconds": 0.08139176599999998,
-          "rss_before_bytes": 148246528,
-          "rss_bytes": 148545536,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.0837396860588342,
+          "cpu_seconds": 0.08298325499999998,
+          "rss_before_bytes": 131809280,
+          "rss_bytes": 132022272,
+          "peak_rss_bytes": 132022272
         },
         "first_has_after_batch": {
-          "seconds": 0.005732275079935789,
-          "cpu_seconds": 0.00570443100000001,
-          "rss_before_bytes": 148553728,
-          "rss_bytes": 148676608,
-          "peak_rss_bytes": 159768576
+          "seconds": 0.006070536095649004,
+          "cpu_seconds": 0.006045722000000031,
+          "rss_before_bytes": 132042752,
+          "rss_bytes": 134234112,
+          "peak_rss_bytes": 134234112
         },
         "reload_same_rules": {
-          "seconds": 0.10752122988924384,
-          "cpu_seconds": 0.10724331699999995,
-          "rss_before_bytes": 148680704,
-          "rss_bytes": 136130560,
-          "peak_rss_bytes": 173367296
+          "seconds": 0.08168635610491037,
+          "cpu_seconds": 0.08134120100000003,
+          "rss_before_bytes": 134238208,
+          "rss_bytes": 122163200,
+          "peak_rss_bytes": 148623360
         },
         "first_has_after_reload": {
-          "seconds": 0.011423413874581456,
-          "cpu_seconds": 0.011369128000000006,
-          "rss_before_bytes": 136146944,
-          "rss_bytes": 148455424,
-          "peak_rss_bytes": 173367296
+          "seconds": 0.01274045486934483,
+          "cpu_seconds": 0.012681429000000022,
+          "rss_before_bytes": 122195968,
+          "rss_bytes": 132640768,
+          "peak_rss_bytes": 148623360
         },
         "restore_after_edits": {
-          "seconds": 0.07771433796733618,
-          "cpu_seconds": 0.07939555899999995,
-          "rss_before_bytes": 148475904,
-          "rss_bytes": 151474176,
-          "peak_rss_bytes": 183369728
+          "seconds": 0.04765220987610519,
+          "cpu_seconds": 0.047494888999999985,
+          "rss_before_bytes": 132689920,
+          "rss_bytes": 120868864,
+          "peak_rss_bytes": 148623360
         },
         "first_has_after_restore": {
-          "seconds": 0.01196908694691956,
-          "cpu_seconds": 0.011914594000000056,
-          "rss_before_bytes": 151482368,
-          "rss_bytes": 164630528,
-          "peak_rss_bytes": 183369728
+          "seconds": 0.01372624491341412,
+          "cpu_seconds": 0.013669175000000089,
+          "rss_before_bytes": 120889344,
+          "rss_bytes": 131883008,
+          "peak_rss_bytes": 148623360
         }
       },
       "cardinalities": {
@@ -1910,16 +1887,16 @@
         }
       },
       "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
         "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
         "sqlalchemy": "2.0.43",
         "temp_store_default": 0,
         "sqlite_compile_options": [
           "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "COMPILER=clang-22.1.3",
           "DEFAULT_AUTOVACUUM",
           "DEFAULT_CACHE_SIZE=-2000",
           "DEFAULT_FILE_FORMAT=4",
@@ -1934,15 +1911,14 @@
           "DEFAULT_WAL_SYNCHRONOUS=2",
           "DEFAULT_WORKER_THREADS=0",
           "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
           "ENABLE_FTS3",
           "ENABLE_FTS3_PARENTHESIS",
           "ENABLE_FTS4",
           "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_GEOPOLY",
           "ENABLE_MATH_FUNCTIONS",
           "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
           "MALLOC_SOFT_LIMIT=1024",
           "MAX_ATTACHED=10",
           "MAX_COLUMN=2000",
@@ -1952,25 +1928,23 @@
           "MAX_FUNCTION_ARG=1000",
           "MAX_LENGTH=1000000000",
           "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_MMAP_SIZE=0x7fff0000",
           "MAX_PAGE_COUNT=0xfffffffe",
           "MAX_PAGE_SIZE=65536",
           "MAX_SQL_LENGTH=1000000000",
           "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VARIABLE_NUMBER=32766",
           "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
+          "MAX_WORKER_THREADS=8",
           "MUTEX_PTHREADS",
-          "SOUNDEX",
           "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
         ],
         "duckdb": "1.5.6"
       },
       "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
       "batch_changes": 100,
       "cache_stats": {
         "mode": "cached",
@@ -1981,15 +1955,15 @@
           "CanInvestigate"
         ],
         "materializations": {
-          "CanEnter": 3,
+          "CanClaimReward": 5,
           "CanInvestigate": 5,
-          "CanClaimReward": 5
+          "CanEnter": 3
         },
-        "materialization_seconds": 0.03479959303513169,
+        "materialization_seconds": 0.03755309619009495,
         "snapshot_bytes": 3420160
       },
-      "rss_bytes": 164634624,
-      "peak_rss_bytes": 183369728
+      "rss_bytes": 131883008,
+      "peak_rss_bytes": 148623360
     },
     {
       "kind": "measure",
@@ -2001,132 +1975,132 @@
       "status": "ok",
       "phases": {
         "init_empty": {
-          "seconds": 0.08508722111582756,
-          "cpu_seconds": 0.090793505,
-          "rss_before_bytes": 89141248,
-          "rss_bytes": 128765952,
-          "peak_rss_bytes": 128765952
+          "seconds": 0.04492999310605228,
+          "cpu_seconds": 0.04977198499999999,
+          "rss_before_bytes": 82915328,
+          "rss_bytes": 105881600,
+          "peak_rss_bytes": 105881600
         },
         "restore_initial": {
-          "seconds": 0.07723294384777546,
-          "cpu_seconds": 0.07690058800000002,
-          "rss_before_bytes": 132202496,
-          "rss_bytes": 124309504,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.049339526100084186,
+          "cpu_seconds": 0.048997404999999994,
+          "rss_before_bytes": 109314048,
+          "rss_bytes": 116461568,
+          "peak_rss_bytes": 121962496
         },
         "first_has": {
-          "seconds": 0.0031925379298627377,
-          "cpu_seconds": 0.0031805949999999528,
-          "rss_before_bytes": 124321792,
-          "rss_bytes": 128466944,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.0033551990054547787,
+          "cpu_seconds": 0.0033429819999999943,
+          "rss_before_bytes": 116473856,
+          "rss_bytes": 120975360,
+          "peak_rss_bytes": 121962496
         },
         "warm_has": {
-          "seconds": 0.023999608121812344,
-          "cpu_seconds": 0.023866726000000005,
-          "rss_before_bytes": 128471040,
-          "rss_bytes": 129191936,
-          "peak_rss_bytes": 143179776,
+          "seconds": 0.025855618994683027,
+          "cpu_seconds": 0.025572762,
+          "rss_before_bytes": 120991744,
+          "rss_bytes": 121839616,
+          "peak_rss_bytes": 121962496,
           "requests": 12,
           "samples_seconds": [
-            0.0022091828286647797,
-            0.002157326089218259,
-            0.001898495014756918,
-            0.002141395816579461,
-            0.0019219089299440384,
-            0.001735001802444458,
-            0.0021168708335608244,
-            0.001912933075800538,
-            0.001913473941385746,
-            0.001990195829421282,
-            0.0019008100498467684,
-            0.0020980059634894133
+            0.002284813905134797,
+            0.002148546976968646,
+            0.0018764438573271036,
+            0.0021002721041440964,
+            0.0018285100813955069,
+            0.001660090172663331,
+            0.0020610149949789047,
+            0.0018838078249245882,
+            0.00213075103238225,
+            0.0020972660277038813,
+            0.0032961429096758366,
+            0.0024848338216543198
           ]
         },
         "warm_query": {
-          "seconds": 0.01325708907097578,
-          "cpu_seconds": 0.01318593400000001,
-          "rss_before_bytes": 129200128,
-          "rss_bytes": 129495040,
-          "peak_rss_bytes": 143179776,
+          "seconds": 0.013839955907315016,
+          "cpu_seconds": 0.013706923999999954,
+          "rss_before_bytes": 121868288,
+          "rss_bytes": 122097664,
+          "peak_rss_bytes": 122097664,
           "requests": 12,
           "samples_seconds": [
-            0.0011982249561697245,
-            0.0011593529488891363,
-            0.0010915871243923903,
-            0.0010828599333763123,
-            0.0011366810649633408,
-            0.0008735719602555037,
-            0.001127544092014432,
-            0.0010919778142124414,
-            0.0010605801362544298,
-            0.0012585981748998165,
-            0.0010955550242215395,
-            0.0010773111134767532
+            0.001455829944461584,
+            0.00133560411632061,
+            0.00129607692360878,
+            0.0011882369872182608,
+            0.0011837969068437815,
+            0.0008771170396357775,
+            0.0012012920342385769,
+            0.0010630919132381678,
+            0.0010812070686370134,
+            0.0010768480133265257,
+            0.001048882957547903,
+            0.0010297761764377356
           ]
         },
         "snapshot": {
-          "seconds": 7.308553904294968e-07,
-          "cpu_seconds": 2.1539999999764525e-06,
-          "rss_before_bytes": 129507328,
-          "rss_bytes": 129507328,
-          "peak_rss_bytes": 143179776
+          "seconds": 1.4030374586582184e-06,
+          "cpu_seconds": 2.8959999999744745e-06,
+          "rss_before_bytes": 122142720,
+          "rss_bytes": 122142720,
+          "peak_rss_bytes": 122142720
         },
         "single_commit": {
-          "seconds": 0.0014678558800369501,
-          "cpu_seconds": 0.0014645159999999713,
-          "rss_before_bytes": 129519616,
-          "rss_bytes": 129814528,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.001426642993465066,
+          "cpu_seconds": 0.0014239419999999559,
+          "rss_before_bytes": 122150912,
+          "rss_bytes": 122548224,
+          "peak_rss_bytes": 122548224
         },
         "first_has_after_single": {
-          "seconds": 0.002181560965254903,
-          "cpu_seconds": 0.0021737399999999796,
-          "rss_before_bytes": 129818624,
-          "rss_bytes": 130015232,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.002168715000152588,
+          "cpu_seconds": 0.0021447430000000045,
+          "rss_before_bytes": 122552320,
+          "rss_bytes": 122617856,
+          "peak_rss_bytes": 122617856
         },
         "batch_commit": {
-          "seconds": 0.08120165509171784,
-          "cpu_seconds": 0.08081758099999997,
-          "rss_before_bytes": 130019328,
-          "rss_bytes": 132509696,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.07870043884031475,
+          "cpu_seconds": 0.07817424499999998,
+          "rss_before_bytes": 122626048,
+          "rss_bytes": 125050880,
+          "peak_rss_bytes": 125050880
         },
         "first_has_after_batch": {
-          "seconds": 0.002207288984209299,
-          "cpu_seconds": 0.002201840999999982,
-          "rss_before_bytes": 132521984,
-          "rss_bytes": 132653056,
-          "peak_rss_bytes": 143179776
+          "seconds": 0.002341644838452339,
+          "cpu_seconds": 0.0023288989999999954,
+          "rss_before_bytes": 125063168,
+          "rss_bytes": 125112320,
+          "peak_rss_bytes": 125112320
         },
         "reload_same_rules": {
-          "seconds": 0.10763056389987469,
-          "cpu_seconds": 0.107150109,
-          "rss_before_bytes": 132661248,
-          "rss_bytes": 127729664,
-          "peak_rss_bytes": 160559104
+          "seconds": 0.08454651408828795,
+          "cpu_seconds": 0.08419129800000003,
+          "rss_before_bytes": 125124608,
+          "rss_bytes": 120623104,
+          "peak_rss_bytes": 144310272
         },
         "first_has_after_reload": {
-          "seconds": 0.0035008310806006193,
-          "cpu_seconds": 0.003485410000000022,
-          "rss_before_bytes": 127750144,
-          "rss_bytes": 133808128,
-          "peak_rss_bytes": 160559104
+          "seconds": 0.0029362989589571953,
+          "cpu_seconds": 0.0028789790000000037,
+          "rss_before_bytes": 120659968,
+          "rss_bytes": 124084224,
+          "peak_rss_bytes": 144310272
         },
         "restore_after_edits": {
-          "seconds": 0.0785637660883367,
-          "cpu_seconds": 0.07975964299999994,
-          "rss_before_bytes": 134606848,
-          "rss_bytes": 140779520,
-          "peak_rss_bytes": 169320448
+          "seconds": 0.0467229129280895,
+          "cpu_seconds": 0.04635595899999995,
+          "rss_before_bytes": 124997632,
+          "rss_bytes": 118927360,
+          "peak_rss_bytes": 144310272
         },
         "first_has_after_restore": {
-          "seconds": 0.002713989932090044,
-          "cpu_seconds": 0.0026957690000000145,
-          "rss_before_bytes": 140787712,
-          "rss_bytes": 144437248,
-          "peak_rss_bytes": 169320448
+          "seconds": 0.002769953105598688,
+          "cpu_seconds": 0.002722298000000012,
+          "rss_before_bytes": 118947840,
+          "rss_bytes": 122601472,
+          "peak_rss_bytes": 144310272
         }
       },
       "cardinalities": {
@@ -2145,16 +2119,16 @@
         }
       },
       "runtime": {
-        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
-        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "python": "3.12.13 (main, May 10 2026, 19:30:01) [Clang 22.1.3 ]",
+        "executable": "/home/liyif/项目/SomeConcepts/RenpyRelations/.venv/bin/python3",
         "backend": "duckdb",
-        "driver": "pysqlite3",
-        "sqlite": "3.51.1",
+        "driver": "sqlite3",
+        "sqlite": "3.50.4",
         "sqlalchemy": "2.0.43",
         "temp_store_default": 0,
         "sqlite_compile_options": [
           "ATOMIC_INTRINSICS=1",
-          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "COMPILER=clang-22.1.3",
           "DEFAULT_AUTOVACUUM",
           "DEFAULT_CACHE_SIZE=-2000",
           "DEFAULT_FILE_FORMAT=4",
@@ -2169,15 +2143,14 @@
           "DEFAULT_WAL_SYNCHRONOUS=2",
           "DEFAULT_WORKER_THREADS=0",
           "DIRECT_OVERFLOW_READ",
+          "ENABLE_DBSTAT_VTAB",
           "ENABLE_FTS3",
           "ENABLE_FTS3_PARENTHESIS",
           "ENABLE_FTS4",
           "ENABLE_FTS5",
-          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_GEOPOLY",
           "ENABLE_MATH_FUNCTIONS",
           "ENABLE_RTREE",
-          "ENABLE_STAT4",
-          "ENABLE_UPDATE_DELETE_LIMIT",
           "MALLOC_SOFT_LIMIT=1024",
           "MAX_ATTACHED=10",
           "MAX_COLUMN=2000",
@@ -2187,25 +2160,23 @@
           "MAX_FUNCTION_ARG=1000",
           "MAX_LENGTH=1000000000",
           "MAX_LIKE_PATTERN_LENGTH=50000",
-          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_MMAP_SIZE=0x7fff0000",
           "MAX_PAGE_COUNT=0xfffffffe",
           "MAX_PAGE_SIZE=65536",
           "MAX_SQL_LENGTH=1000000000",
           "MAX_TRIGGER_DEPTH=1000",
-          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VARIABLE_NUMBER=32766",
           "MAX_VDBE_OP=250000000",
-          "MAX_WORKER_THREADS=0",
+          "MAX_WORKER_THREADS=8",
           "MUTEX_PTHREADS",
-          "SOUNDEX",
           "SYSTEM_MALLOC",
-          "TEMP_STORE=3",
-          "THREADSAFE=1",
-          "USE_URI"
+          "TEMP_STORE=1",
+          "THREADSAFE=1"
         ],
         "duckdb": "1.5.6"
       },
       "snapshot_bytes": 3420160,
-      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "fixture_sha256": "a6dcb4a51ffda6051a8dbb394c368e463884a3e9cef1284517afbc8bf8241857",
       "batch_changes": 100,
       "cache_stats": {
         "mode": "live",
@@ -2215,8 +2186,8 @@
         "materialization_seconds": 0.0,
         "snapshot_bytes": 3420160
       },
-      "rss_bytes": 144445440,
-      "peak_rss_bytes": 169320448
+      "rss_bytes": 122613760,
+      "peak_rss_bytes": 144310272
     }
   ],
   "summary": [
@@ -2229,77 +2200,77 @@
       "phases": {
         "init_empty": {
           "n": 3,
-          "median_seconds": 0.08486305898986757,
-          "p95_seconds": 0.08561195014044642
+          "median_seconds": 0.042650667019188404,
+          "p95_seconds": 0.042679365957155824
         },
         "restore_initial": {
           "n": 3,
-          "median_seconds": 0.07653007586486638,
-          "p95_seconds": 0.07692734501324594
+          "median_seconds": 0.05017202300950885,
+          "p95_seconds": 0.05721479211933911
         },
         "first_has": {
           "n": 3,
-          "median_seconds": 0.012298456160351634,
-          "p95_seconds": 0.012432537041604519
+          "median_seconds": 0.012840932933613658,
+          "p95_seconds": 0.012991477036848664
         },
         "warm_has": {
           "n": 36,
-          "median_seconds": 0.0008327764226123691,
-          "p95_seconds": 0.0009252780582755804
+          "median_seconds": 0.0007667115423828363,
+          "p95_seconds": 0.0010446549858897924
         },
         "warm_query": {
           "n": 36,
-          "median_seconds": 0.0009126949589699507,
-          "p95_seconds": 0.0010024309158325195
+          "median_seconds": 0.0008788160048425198,
+          "p95_seconds": 0.001190301962196827
         },
         "snapshot": {
           "n": 3,
-          "median_seconds": 1.0021030902862549e-06,
-          "p95_seconds": 1.2421514838933945e-06
+          "median_seconds": 1.1718366295099258e-06,
+          "p95_seconds": 1.2021046131849289e-06
         },
         "single_commit": {
           "n": 3,
-          "median_seconds": 0.002686257939785719,
-          "p95_seconds": 0.0027110339142382145
+          "median_seconds": 0.0029232739470899105,
+          "p95_seconds": 0.0029978519305586815
         },
         "first_has_after_single": {
           "n": 3,
-          "median_seconds": 0.00548635795712471,
-          "p95_seconds": 0.005494202021509409
+          "median_seconds": 0.005917976843193173,
+          "p95_seconds": 0.005935773951932788
         },
         "batch_commit": {
           "n": 3,
-          "median_seconds": 0.081798902945593,
-          "p95_seconds": 0.08185971388593316
+          "median_seconds": 0.08231475995853543,
+          "p95_seconds": 0.0837396860588342
         },
         "first_has_after_batch": {
           "n": 3,
-          "median_seconds": 0.005717537133023143,
-          "p95_seconds": 0.005732275079935789
+          "median_seconds": 0.006070536095649004,
+          "p95_seconds": 0.006978377001360059
         },
         "reload_same_rules": {
           "n": 3,
-          "median_seconds": 0.10752122988924384,
-          "p95_seconds": 0.10841774009168148
+          "median_seconds": 0.08168635610491037,
+          "p95_seconds": 0.08239949587732553
         },
         "first_has_after_reload": {
           "n": 3,
-          "median_seconds": 0.011607405031099916,
-          "p95_seconds": 0.011723469011485577
+          "median_seconds": 0.012544312048703432,
+          "p95_seconds": 0.01274045486934483
         },
         "restore_after_edits": {
           "n": 3,
-          "median_seconds": 0.07771433796733618,
-          "p95_seconds": 0.0808079200796783
+          "median_seconds": 0.04765220987610519,
+          "p95_seconds": 0.048522688914090395
         },
         "first_has_after_restore": {
           "n": 3,
-          "median_seconds": 0.012039338005706668,
-          "p95_seconds": 0.012334945145994425
+          "median_seconds": 0.01320727588608861,
+          "p95_seconds": 0.01372624491341412
         }
       },
       "snapshot_bytes": 3420160,
-      "peak_rss_bytes": 183369728
+      "peak_rss_bytes": 149819392
     },
     {
       "size": 10000,
@@ -2310,77 +2281,77 @@
       "phases": {
         "init_empty": {
           "n": 3,
-          "median_seconds": 0.08517179707996547,
-          "p95_seconds": 0.08657337795011699
+          "median_seconds": 0.043083735974505544,
+          "p95_seconds": 0.04492999310605228
         },
         "restore_initial": {
           "n": 3,
-          "median_seconds": 0.07759290095418692,
-          "p95_seconds": 0.07924717804417014
+          "median_seconds": 0.04950529686175287,
+          "p95_seconds": 0.050392177887260914
         },
         "first_has": {
           "n": 3,
-          "median_seconds": 0.0032726870849728584,
-          "p95_seconds": 0.00336768408305943
+          "median_seconds": 0.00349420215934515,
+          "p95_seconds": 0.0046896240673959255
         },
         "warm_has": {
           "n": 36,
-          "median_seconds": 0.0019451719708740711,
-          "p95_seconds": 0.002301765140146017
+          "median_seconds": 0.002082126447930932,
+          "p95_seconds": 0.0032961429096758366
         },
         "warm_query": {
           "n": 36,
-          "median_seconds": 0.0010917824693024158,
-          "p95_seconds": 0.0012197750620543957
+          "median_seconds": 0.0010683316504582763,
+          "p95_seconds": 0.00133560411632061
         },
         "snapshot": {
           "n": 3,
-          "median_seconds": 8.910428732633591e-07,
-          "p95_seconds": 9.818468242883682e-07
+          "median_seconds": 1.4030374586582184e-06,
+          "p95_seconds": 2.6549678295850754e-06
         },
         "single_commit": {
           "n": 3,
-          "median_seconds": 0.0014468571171164513,
-          "p95_seconds": 0.0014678558800369501
+          "median_seconds": 0.001426642993465066,
+          "p95_seconds": 0.0029992128256708384
         },
         "first_has_after_single": {
           "n": 3,
-          "median_seconds": 0.0021575959399342537,
-          "p95_seconds": 0.002181560965254903
+          "median_seconds": 0.00219726306386292,
+          "p95_seconds": 0.0025324190501123667
         },
         "batch_commit": {
           "n": 3,
-          "median_seconds": 0.08131627505645156,
-          "p95_seconds": 0.08198458096012473
+          "median_seconds": 0.07955324999056756,
+          "p95_seconds": 0.08677932200953364
         },
         "first_has_after_batch": {
           "n": 3,
-          "median_seconds": 0.002383867045864463,
-          "p95_seconds": 0.002608422888442874
+          "median_seconds": 0.002341644838452339,
+          "p95_seconds": 0.002640831982716918
         },
         "reload_same_rules": {
           "n": 3,
-          "median_seconds": 0.10835638199932873,
-          "p95_seconds": 0.12079353001900017
+          "median_seconds": 0.08454651408828795,
+          "p95_seconds": 0.08720176899805665
         },
         "first_has_after_reload": {
           "n": 3,
-          "median_seconds": 0.003480402985587716,
-          "p95_seconds": 0.0035008310806006193
+          "median_seconds": 0.0031525329686701298,
+          "p95_seconds": 0.003524281084537506
         },
         "restore_after_edits": {
           "n": 3,
-          "median_seconds": 0.0800756870303303,
-          "p95_seconds": 0.08091146405786276
+          "median_seconds": 0.048036163905635476,
+          "p95_seconds": 0.04837124701589346
         },
         "first_has_after_restore": {
           "n": 3,
-          "median_seconds": 0.0028185341507196426,
-          "p95_seconds": 0.0029667990747839212
+          "median_seconds": 0.0028312550857663155,
+          "p95_seconds": 0.002939034951850772
         }
       },
       "snapshot_bytes": 3420160,
-      "peak_rss_bytes": 175022080
+      "peak_rss_bytes": 154333184
     },
     {
       "size": 10000,
@@ -2391,78 +2362,78 @@
       "phases": {
         "init_empty": {
           "n": 3,
-          "median_seconds": 0.08845785213634372,
-          "p95_seconds": 0.09062255802564323
+          "median_seconds": 0.04412371898069978,
+          "p95_seconds": 0.04676438798196614
         },
         "restore_initial": {
           "n": 3,
-          "median_seconds": 0.08477071998640895,
-          "p95_seconds": 0.09120430890470743
+          "median_seconds": 0.05919362208805978,
+          "p95_seconds": 0.060001485981047153
         },
         "first_has": {
           "n": 3,
-          "median_seconds": 0.0013272440992295742,
-          "p95_seconds": 0.0014560238923877478
+          "median_seconds": 0.0013935081660747528,
+          "p95_seconds": 0.0014694978017359972
         },
         "warm_has": {
           "n": 36,
-          "median_seconds": 0.0008355864556506276,
-          "p95_seconds": 0.0009040688164532185
+          "median_seconds": 0.0007646523881703615,
+          "p95_seconds": 0.0008699130266904831
         },
         "warm_query": {
           "n": 36,
-          "median_seconds": 0.0009162165224552155,
-          "p95_seconds": 0.0010231700725853443
+          "median_seconds": 0.0008667114889249206,
+          "p95_seconds": 0.000972473993897438
         },
         "snapshot": {
           "n": 3,
-          "median_seconds": 1.0121148079633713e-06,
-          "p95_seconds": 1.4719553291797638e-06
+          "median_seconds": 8.209608495235443e-07,
+          "p95_seconds": 9.520445019006729e-07
         },
         "single_commit": {
           "n": 3,
-          "median_seconds": 0.00795391108840704,
-          "p95_seconds": 0.008092828094959259
+          "median_seconds": 0.008585650008171797,
+          "p95_seconds": 0.009574939031153917
         },
         "first_has_after_single": {
           "n": 3,
-          "median_seconds": 0.0009051009546965361,
-          "p95_seconds": 0.0009257688652724028
+          "median_seconds": 0.0010273619554936886,
+          "p95_seconds": 0.0013559649232774973
         },
         "batch_commit": {
           "n": 3,
-          "median_seconds": 0.08581112697720528,
-          "p95_seconds": 0.08715016092173755
+          "median_seconds": 0.08532573189586401,
+          "p95_seconds": 0.08655179385095835
         },
         "first_has_after_batch": {
           "n": 3,
-          "median_seconds": 0.0009428099729120731,
-          "p95_seconds": 0.0010230890475213528
+          "median_seconds": 0.0009338990785181522,
+          "p95_seconds": 0.0009800901170819998
         },
         "reload_same_rules": {
           "n": 3,
-          "median_seconds": 0.10550293512642384,
-          "p95_seconds": 0.10898553696461022
+          "median_seconds": 0.08099432103335857,
+          "p95_seconds": 0.0833654550369829
         },
         "first_has_after_reload": {
           "n": 3,
-          "median_seconds": 0.0011846187990158796,
-          "p95_seconds": 0.0012353539932519197
+          "median_seconds": 0.001188176916912198,
+          "p95_seconds": 0.002321224892511964
         },
         "restore_after_edits": {
           "n": 3,
-          "median_seconds": 0.08895515697076917,
-          "p95_seconds": 0.08967149187810719
+          "median_seconds": 0.059616391779854894,
+          "p95_seconds": 0.05979314399883151
         },
         "first_has_after_restore": {
           "n": 3,
-          "median_seconds": 0.0011289368849247694,
-          "p95_seconds": 0.0012003991287201643
+          "median_seconds": 0.0012008510529994965,
+          "p95_seconds": 0.0015099160373210907
         }
       },
       "snapshot_bytes": 3420160,
-      "peak_rss_bytes": 172408832
+      "peak_rss_bytes": 154755072
     }
   ],
-  "finished_at": "2026-10-14T18:14:39.077363+08:00"
+  "finished_at": "2026-10-14T21:17:48.470653+08:00"
 }

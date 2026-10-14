@@ -302,5 +302,21 @@
       "NextForced",
       "Opportunity"
     ]
+  },
+  "plan": {
+    "version": 1,
+    "order": [
+      "Trust",
+      "Here",
+      "BroadcastReady",
+      "MutualFuture",
+      "EligibleEnding",
+      "NextEnding",
+      "EligibleScene",
+      "NextForced",
+      "Opportunity",
+      "AvailableAction"
+    ],
+    "fingerprint": "0745903465b5db5c404d199234f232605dc24678627f3d878a93228e326b29b2"
   }
 }

@@ -1,10 +1,13 @@
 import sqlite3
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 import renpy_relations as runtime
-from renpy_relations import LogicDB, RuleError, RuleSet
+from renpy_relations import LogicDB, RuleError
+from _helpers import compiled
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import event
 
@@ -17,7 +20,7 @@ def backend(request):
 
 
 def rules(backend):
-    return RuleSet({"format": "renpy-relations", "version": 1, "backend": backend,
+    return compiled({"format": "renpy-relations", "version": 1, "backend": backend,
         "facts": {"Permit": {"columns": {"who": "text"}},
                   "Blocked": {"columns": {"who": "text"}}},
         "derived": {
@@ -48,7 +51,7 @@ def test_native_snapshot_branching_reload_and_failed_batch(backend, mode):
         assert db.has("Allowed", who="hero")
         changed = rules(backend).document
         changed["derived"]["Visible"]["sql"] = "SELECT who FROM Permit WHERE who='other'"
-        db.reload_rules(RuleSet(changed))
+        db.reload_rules(compiled(changed))
         assert db.query("Allowed") == [{"who": "other"}]
         db.restore(snapshot)
         assert not db.has("Allowed")
@@ -96,6 +99,29 @@ def test_sqlite_snapshot_uses_native_image_and_excludes_temp_tables(monkeypatch)
         db.close()
 
 
+def test_duckdb_snapshot_excludes_temp_derived_tables():
+    duckdb = pytest.importorskip("duckdb")
+    db = LogicDB(rules("duckdb"))
+    try:
+        db.add("Permit", who="hero")
+        db.query("Allowed")
+        image = db.snapshot()
+        assert image[8:12] == b"DUCK"
+        with tempfile.TemporaryDirectory(prefix="relations-image-") as directory:
+            path = Path(directory) / "facts.duckdb"
+            path.write_bytes(image)
+            connection = duckdb.connect(str(path))
+            try:
+                names = {row[0] for row in connection.execute(
+                    "SELECT table_name FROM information_schema.tables").fetchall()}
+            finally:
+                connection.close()
+        assert "Permit" in names
+        assert not ({"Visible", "Allowed", "Counted"} & names)
+    finally:
+        db.close()
+
+
 def test_sqlite_backup_fallback_round_trip(monkeypatch):
     driver = pytest.importorskip("pysqlite3")
     monkeypatch.setattr(runtime, "sqlite3", driver)
@@ -124,7 +150,7 @@ def test_wrong_backend_and_damaged_images_preserve_world(backend):
         changed = rules(backend).document
         changed["backend"] = other_backend
         with pytest.raises(RuleError, match="backend"):
-            db.reload_rules(RuleSet(changed))
+            db.reload_rules(compiled(changed))
     finally:
         db.close()
 
@@ -167,7 +193,7 @@ def test_noop_batch_with_sink_does_not_copy_database(backend, monkeypatch):
 
 
 def test_keys_numbers_and_output_types(backend):
-    bundle = RuleSet({"format": "renpy-relations", "version": 1, "backend": backend,
+    bundle = compiled({"format": "renpy-relations", "version": 1, "backend": backend,
         "facts": {"Item": {"columns": {"id": "integer", "amount": "real", "active": "boolean"}, "key": ["id"]}},
         "derived": {"Visible": {"columns": {"id": "integer", "amount": "real", "active": "boolean"},
                                  "sql": "SELECT * FROM Item"}}})
@@ -215,7 +241,7 @@ def test_duckdb_rejects_unsupported_rules(sql):
     document = rules("duckdb").document
     document["derived"]["Visible"]["sql"] = sql
     with pytest.raises(RuleError):
-        LogicDB(RuleSet(document))
+        LogicDB(compiled(document))
 
 
 def test_renpy_adapter_uses_backend_images_and_restores_branches(backend, monkeypatch):
@@ -243,7 +269,7 @@ def test_reordered_fact_declarations_keep_schema_and_snapshots_compatible(backen
     reordered = rules(backend).document
     reordered["facts"] = dict(reversed(original["facts"].items()))
     reordered["facts"]["Permit"] = {"columns": {"sequence": "integer", "who": "text"}}
-    first, second = RuleSet(original), RuleSet(reordered)
+    first, second = compiled(original), compiled(reordered)
     assert first.fact_schema_id == second.fact_schema_id
     db = LogicDB(first)
     other = LogicDB(second)

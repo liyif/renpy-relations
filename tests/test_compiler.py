@@ -167,3 +167,10 @@ def test_watch_builds_changed_rules_and_keeps_last_good_output_on_error(inputs, 
         finally:
             process.terminate()
             process.wait(timeout=5)
+
+
+def test_uncompiled_bundle_is_rejected():
+    from renpy_relations import RuleSet
+    document = {"format": "renpy-relations", "version": 1, "facts": {}, "derived": {}}
+    with pytest.raises(RuleError, match="Uncompiled rule bundle"):
+        LogicDB(RuleSet(document))

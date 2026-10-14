@@ -9,7 +9,8 @@ import sys
 import tempfile
 import time
 
-from renpy_relations import LogicDB, RuleError, RuleSet
+from renpy_relations import RuleError, RuleSet
+from rule_compiler import prepare_rules
 
 
 def compile_rules(source, schema, output, *, backend=None):
@@ -87,15 +88,7 @@ def compile_rules(source, schema, output, *, backend=None):
         "inputs": {str(Path(p).relative_to(source.parent)) if Path(p).is_relative_to(source.parent)
                    else str(Path(p)): digest for p, digest in inputs_before},
     }
-    bundle = RuleSet(document)
-    logic = LogicDB(bundle)
-    try:
-        for name in document["derived"]:
-            logic.query(name)
-        document["dependencies"] = {name: logic.describe(name)["reads"] for name in document["derived"]}
-    finally:
-        logic.close()
-    bundle = RuleSet(document)
+    bundle = prepare_rules(document)
     if _inputs(source, schema) != inputs_before:
         raise RuleError("Source/schema changed during compilation; rebuild to get a consistent bundle")
     content = json.dumps(bundle.document, ensure_ascii=False, indent=2) + "\n"

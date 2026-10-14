@@ -79,5 +79,14 @@
       "CanInvestigate",
       "RewardClaimed"
     ]
+  },
+  "plan": {
+    "version": 1,
+    "order": [
+      "CanEnter",
+      "CanInvestigate",
+      "CanClaimReward"
+    ],
+    "fingerprint": "4053871e6db02a8f069ae51fbbb4e70b04550f4e8d8ebe4c76ba4437e1b0f5a7"
   }
 }

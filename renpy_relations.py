@@ -7,7 +7,9 @@
 SQLite or DuckDB is selected by the compiled rule bundle. Native images save
 only facts and format/schema metadata. Derived data lives in TEMP.
 All writes go through batch/add/remove; queries are read-only and forbidden in
-a batch. Rule SQL is trusted build-time output, gameplay values are bound.
+a batch. Rule SQL is trusted build-time output: rule_compiler.py analyzes it
+into a sealed plan (dependency edges, topological order, fingerprint), and this
+runtime only executes that plan. Gameplay values are bound.
 """
 
 from contextlib import contextmanager
@@ -34,6 +36,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.schema import CreateTable
+from sqlalchemy.dialects.postgresql import insert as conflict_insert
 
 
 class RuleError(ValueError):
@@ -45,11 +49,6 @@ class RuleError(ValueError):
 _TYPES = {"text": String, "integer": BigInteger, "real": Float, "boolean": Boolean}
 _SQL_TYPES = {"text": "TEXT", "integer": "INTEGER", "real": "REAL", "boolean": "INTEGER"}
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_]*\Z")
-_VOLATILE_FUNCTIONS = frozenset({
-    "random", "randomblob", "changes", "total_changes", "last_insert_rowid",
-    "load_extension", "current_date", "current_time", "current_timestamp",
-    "date", "time", "datetime", "julianday", "unixepoch", "strftime", "timediff",
-})
 
 
 def _digest(value):
@@ -66,7 +65,7 @@ def _name(value):
 
 
 class RuleSet:
-    """Validated, copy-isolated JSON rule definitions. SQL is checked on loading."""
+    """Validated, copy-isolated JSON rule definitions. SQL analysis is performed explicitly by the build compiler."""
 
     def __init__(self, document):
         try:
@@ -78,7 +77,7 @@ class RuleSet:
             raise RuleError("Expected a renpy-relations rule bundle")
         if type(doc.get("version")) is not int or doc["version"] != 1:
             raise RuleError("Unsupported rule bundle version")
-        if set(doc) - {"format", "version", "backend", "facts", "derived", "source", "dependencies"}:
+        if set(doc) - {"format", "version", "backend", "facts", "derived", "source", "dependencies", "plan"}:
             raise RuleError("Unknown rule bundle fields")
         self.backend = doc.get("backend", "sqlite")
         if self.backend not in ("sqlite", "duckdb"):
@@ -130,6 +129,25 @@ class RuleSet:
         self.fact_schema_id = _digest(doc["facts"])
         self.content_id = _digest({"backend": self.backend,
                                    **{k: doc[k] for k in ("facts", "derived")}})
+        self.order = None
+        self.reads = None
+        self._table_definitions = None
+        if "plan" in doc:
+            plan = doc["plan"]
+            if not isinstance(plan, dict) or set(plan) != {"version", "order", "fingerprint"} or plan["version"] != 1:
+                raise RuleError("Invalid compiled plan version/fields")
+            order = plan["order"]
+            if not isinstance(order, list) or any(not isinstance(n, str) for n in order) or len(order) != len(doc["derived"]) or set(order) != set(doc["derived"]):
+                raise RuleError("Compiled plan order must contain every derived relation once")
+            if "dependencies" not in doc or plan["fingerprint"] != _digest({"rules": self.content_id, "dependencies": doc["dependencies"], "order": order}):
+                raise RuleError("Compiled plan/dependencies differ from rule content; rebuild rules")
+            positions = {name: index for index, name in enumerate(order)}
+            if any(positions[source] >= positions[target] for target, sources in doc["dependencies"].items()
+                   for source in sources if source in positions):
+                raise RuleError("Compiled plan is not topologically ordered")
+            self.order = tuple(order)
+            self.reads = {name: tuple(reads) for name, reads in doc["dependencies"].items()}
+
 
     @classmethod
     def load(cls, path):
@@ -141,6 +159,8 @@ class RuleSet:
         return json.loads(json.dumps(self._document))
 
     def _tables(self):
+        if self._table_definitions is not None:
+            return self._table_definitions
         metadata = MetaData()
         tables = {}
         for kind in ("facts", "derived"):
@@ -162,6 +182,7 @@ class RuleSet:
                     schema="main" if kind == "facts" else "temp",
                     prefixes=["TEMPORARY"] if self.backend == "duckdb" and kind == "derived" else [],
                 )
+        self._table_definitions = tables
         return tables
 
 
@@ -182,6 +203,8 @@ class _World:
     reads: dict = field(default_factory=dict)
     order: tuple = ()
     valid: set = field(default_factory=set)
+    created: set = field(default_factory=set)
+    pending_created: set = field(default_factory=set)
 
     def affected(self, conn, facts):
         """The database follows reverse edges; Python binds changed fact names."""
@@ -254,8 +277,14 @@ class _SQLiteBackend:
         finally:
             result.close()
 
-    def reads(self, conn, world, rules):
-        return _sqlite_reads(conn, world, rules)
+    def create_tables(self, conn, tables):
+        for table in tables:
+            table.create(conn)
+
+    def load_rows(self, conn, table, rows):
+        if rows:
+            placeholders = ",".join("?" for _ in rows[0])
+            conn.exec_driver_sql(f"INSERT INTO {table} VALUES ({placeholders})", rows)
 
     def schema(self, conn):
         return conn.exec_driver_sql(
@@ -300,6 +329,8 @@ class _SQLiteBackend:
 
 
 class _DuckDBBackend:
+    """Execute prepared rules and copy fact images; never analyze rule SQL."""
+
     name = "duckdb"
     sql_types = {**_SQL_TYPES, "integer": "BIGINT", "real": "DOUBLE"}
     graph_suffix = ""
@@ -307,80 +338,42 @@ class _DuckDBBackend:
     def __init__(self):
         try:
             import duckdb
-            import duckdb_engine  # Register the SQLAlchemy dialect.
+            import duckdb_engine  # Registers the SQLAlchemy dialect.
         except ImportError as exc:
             raise ImportError("DuckDB backend requires the uv extra: --extra duckdb") from exc
         self.errors = (SQLAlchemyError, duckdb.Error)
+        self._native_errors = (duckdb.Error,)
 
     def engine(self):
         return create_engine("duckdb:///:memory:", poolclass=StaticPool,
-                             connect_args={"config": {"threads": 1}})
+            connect_args={"config": {"threads": 1, "autoload_known_extensions": False,
+                                     "autoinstall_known_extensions": False}})
+
+    def create_tables(self, conn, tables):
+        statements = [str(CreateTable(table).compile(dialect=conn.dialect)) for table in tables]
+        if statements:
+            conn.exec_driver_sql(";\n".join(statements))
+
+    def load_rows(self, conn, table, rows):
+        # Bind each graph column once, instead of executing one INSERT per edge.
+        if rows:
+            columns = tuple(map(list, zip(*rows)))
+            conn.exec_driver_sql(f"INSERT INTO {table} SELECT " +
+                                 ",".join("unnest(?)" for _ in columns), columns)
 
     def insert(self, table, values):
-        from sqlalchemy.dialects.postgresql import insert
-        return insert(table).values(**values).on_conflict_do_nothing(
+        # The PostgreSQL statement builder emits DuckDB's supported conflict
+        # target syntax. Keeping the target preserves custom-key violations.
+        return conflict_insert(table).values(**values).on_conflict_do_nothing(
             index_elements=list(table.columns))
 
     def changed(self, conn, statement):
-        # DuckDB's DB-API rowcount is -1. Return a constant, not every field of
-        # every deleted row; SQLite uses rowcount and allocates no return rows.
+        # DuckDB rowcount is -1; only the existence of a changed row is needed.
         result = conn.execute(statement.returning(literal_column("1")))
         try:
             return result.first() is not None
         finally:
             result.close()
-
-    def reads(self, conn, world, rules):
-        raw = conn.connection.dbapi_connection
-        canonical = {n.casefold(): n for n in world.tables}
-        dependencies = {}
-        for name, spec in rules._document["derived"].items():
-            sql = spec["sql"]
-            try:
-                statements = raw.extract_statements(sql)
-                if len(statements) != 1 or str(statements[0].type) != "StatementType.SELECT":
-                    raise RuleError("only one SELECT is supported")
-                reads = raw.get_table_names(sql)
-                if any(n.casefold() not in canonical for n in reads):
-                    raise RuleError("undeclared relation in rule SQL")
-                # DuckDB parses the AST and inspects it in native SQL. Neither
-                # dependency extraction nor SQL parsing traverses Python objects.
-                rejected = conn.exec_driver_sql('''
-                    WITH ast AS (SELECT * FROM json_tree(json_serialize_sql(?)))
-                    SELECT DISTINCT json_extract_string(a.value,'$')
-                    FROM ast a LEFT JOIN duckdb_functions() f
-                      ON lower(f.function_name)=lower(json_extract_string(a.value,'$'))
-                    WHERE a.key='function_name' AND
-                      (f.stability IS DISTINCT FROM 'CONSISTENT')
-                      AND lower(json_extract_string(a.value,'$')) NOT IN
-                        ('unnest','range','generate_series','json_each','json_tree')
-                    UNION
-                    SELECT json_extract_string(value,'$[0]') FROM ast
-                    WHERE key='column_names' AND json_array_length(value)=1
-                      AND lower(json_extract_string(value,'$[0]')) IN
-                        ('current_date','current_time','current_timestamp','localtime','localtimestamp')
-                    UNION
-                    SELECT 'catalog view: ' || json_extract_string(a.value,'$')
-                    FROM ast a JOIN duckdb_views() v
-                      ON lower(v.view_name)=lower(json_extract_string(a.value,'$'))
-                    WHERE a.key='table_name' AND v.internal
-                      AND NOT list_contains(?, lower(v.view_name))
-                    UNION
-                    SELECT 'foreign schema/catalog: ' || json_extract_string(value,'$') FROM ast
-                    WHERE (key='schema_name' AND lower(json_extract_string(value,'$')) NOT IN ('','main','temp'))
-                       OR (key='catalog_name' AND lower(json_extract_string(value,'$')) NOT IN ('','temp',lower(current_database())))
-                ''', (sql, list(canonical))).all()
-                if rejected:
-                    raise RuleError(f"unsupported/non-deterministic functions: {rejected}")
-                result = conn.exec_driver_sql(f'SELECT * FROM ({sql}) AS __rr_source LIMIT 0')
-                columns = list(result.keys())
-                result.close()
-                if len(columns) != len(spec["columns"]) or set(columns) != set(spec["columns"]):
-                    raise RuleError(f"expected columns {list(spec['columns'])}, got {columns}")
-                dependencies[name] = tuple(sorted(canonical[n.casefold()] for n in reads))
-            except (RuleError, *self.errors) as exc:
-                raise RuleError(f"{name}: unsupported or invalid rule SQL: {exc}") from exc
-        return dependencies
 
     def schema(self, conn):
         return conn.exec_driver_sql('''
@@ -404,38 +397,39 @@ class _DuckDBBackend:
     def check(self, conn):
         pass  # DuckDB validates its storage format while opening/copying the image.
 
-    def _copy_file(self, engine, path, *, restore=False, facts=()):
-        # ATTACH does not support bound paths. Quote a private temporary path.
+    @contextmanager
+    def _attached_image(self, engine, path, *, read_only):
+        # COPY/ATTACH use one native connection with an explicit transaction;
+        # SQLAlchemy must not start a competing implicit transaction here.
+        connection = engine.raw_connection()
+        raw = connection.dbapi_connection
+        attached = False
         literal = "'" + str(path).replace("'", "''") + "'"
-        with engine.connect() as conn:
-            raw = conn.connection.dbapi_connection
-            attached = False
-            try:
-                raw.execute(f"ATTACH {literal} AS __rr_image" + (" (READ_ONLY)" if restore else ""))
-                attached = True
-                quote = engine.dialect.identifier_preparer.quote
-                raw.execute("SELECT current_database()")
-                current = quote(raw.fetchone()[0])
-                if restore:
-                    raw.execute("BEGIN")
-                    try:
-                        for name in (*facts, "__rr_metadata"):
-                            raw.execute(f"DROP TABLE main.{quote(name)}")
-                        raw.execute(f"COPY FROM DATABASE __rr_image TO {current}")
-                        raw.execute("COMMIT")
-                    except Exception:
-                        raw.execute("ROLLBACK")
-                        raise
-                else:
-                    raw.execute(f"COPY FROM DATABASE {current} TO __rr_image")
-            finally:
-                if attached:
+        options = "TYPE DUCKDB, READ_ONLY" if read_only else "TYPE DUCKDB"
+        try:
+            raw.execute(f"ATTACH {literal} AS __rr_image ({options})")
+            attached = True
+            yield raw
+        except BaseException:
+            if attached:
+                try:
                     raw.execute("DETACH __rr_image")
+                except self._native_errors:
+                    pass  # Preserve the original copy/validation failure.
+            raise
+        else:
+            raw.execute("DETACH __rr_image")
+        finally:
+            connection.close()
 
     def snapshot(self, engine):
         with tempfile.TemporaryDirectory(prefix="relations-snapshot-") as directory:
             path = Path(directory) / "facts.duckdb"
-            self._copy_file(engine, path)
+            with self._attached_image(engine, path, read_only=False) as raw:
+                current = raw.execute("SELECT current_database()").fetchone()[0]
+                quoted = engine.dialect.identifier_preparer.quote(current)
+                raw.execute(f"COPY FROM DATABASE {quoted} TO __rr_image")
+            # DETACH completes the standalone image before Python reads it.
             return path.read_bytes()
 
     def restore(self, engine, image, facts):
@@ -444,95 +438,40 @@ class _DuckDBBackend:
         with tempfile.TemporaryDirectory(prefix="relations-restore-") as directory:
             path = Path(directory) / "facts.duckdb"
             path.write_bytes(image)
-            self._copy_file(engine, path, restore=True, facts=facts)
+            with self._attached_image(engine, path, read_only=True) as raw:
+                quote = engine.dialect.identifier_preparer.quote
+                current = quote(raw.execute("SELECT current_database()").fetchone()[0])
+                raw.execute("BEGIN")
+                try:
+                    for name in (*facts, "__rr_metadata"):
+                        raw.execute(f"DROP TABLE main.{quote(name)}")
+                    raw.execute(f"COPY FROM DATABASE __rr_image TO {current}")
+                    raw.execute("COMMIT")
+                except BaseException:
+                    try:
+                        raw.execute("ROLLBACK")
+                    except self._native_errors:
+                        pass
+                    raise
 
 
-def _sqlite_reads(conn, world, rules):
-    """Let SQLite resolve names/columns and report actual relation dependencies."""
-    raw = conn.connection.dbapi_connection
-    canonical = {name.casefold(): name for name in world.tables}
-    derived = rules._document["derived"]
-    dependencies = {}
-    for name, spec in derived.items():
-        reads = set()
-        rejected = []
-
-        def authorize(action, arg1, arg2, database, source):
-            if action == sqlite3.SQLITE_READ:
-                relation = canonical.get(arg1.casefold())
-                if relation is None:
-                    if arg1.casefold() in ("json_each", "json_tree"):
-                        return sqlite3.SQLITE_OK
-                    rejected.append(f"undeclared relation {arg1}")
-                    return sqlite3.SQLITE_DENY
-                reads.add(relation)
-            elif action == sqlite3.SQLITE_FUNCTION:
-                if (arg2 or arg1 or "").casefold() in _VOLATILE_FUNCTIONS:
-                    rejected.append(f"non-deterministic function {arg2 or arg1}")
-                    return sqlite3.SQLITE_DENY
-            elif action not in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_RECURSIVE):
-                rejected.append("only a SELECT is supported")
-                return sqlite3.SQLITE_DENY
-            return sqlite3.SQLITE_OK
-
-        raw.set_authorizer(authorize)
-        try:
-            result = conn.exec_driver_sql(
-                f'SELECT * FROM ({spec["sql"]}) AS __rr_source LIMIT 0'
-            )
-            columns = list(result.keys())
-            result.close()
-            expected = spec["columns"]
-            if len(columns) != len(expected) or set(columns) != set(expected):
-                raise RuleError(f"{name}: expected columns {list(expected)}, got {columns}")
-        except SQLAlchemyError as exc:
-            detail = "; ".join(rejected) or str(exc.orig)
-            raise RuleError(f"{name}: unsupported or invalid rule SQL: {detail}") from exc
-        finally:
-            raw.set_authorizer(None)
-        dependencies[name] = tuple(sorted(reads))
-
-    return dependencies
-
-
-def _validate_sql(conn, world, rules):
-    dependencies = world.backend.reads(conn, world, rules)
-    derived = rules._document["derived"]
-    # SQL resolution above reports edges, including negative/subquery reads.
-    # Graph algorithms execute in SQLite, without Python DFS or SQL text parsing.
+def _install_plan(conn, world, rules):
+    if rules.order is None:
+        raise RuleError("Uncompiled rule bundle; use compile_rules.py or rule_compiler.prepare_rules()")
+    world.reads = rules.reads
+    world.dependencies = {name: tuple(n for n in reads if n in rules._document["derived"])
+                          for name, reads in rules.reads.items()}
+    world.order = rules.order
     suffix = world.backend.graph_suffix
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_edges (source TEXT, target TEXT, PRIMARY KEY(source,target)){suffix}')
     conn.exec_driver_sql('CREATE INDEX __rr_reverse ON __rr_edges(target,source)')
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_nodes (name TEXT PRIMARY KEY, derived INTEGER, rank INTEGER){suffix}')
     conn.exec_driver_sql(f'CREATE TEMP TABLE __rr_changed (name TEXT PRIMARY KEY){suffix}')
-    if world.tables:
-        conn.exec_driver_sql('INSERT INTO temp.__rr_nodes VALUES (?,?,0)',
-                             [(name, int(name in derived)) for name in world.tables])
-    edges = [(source, target) for target, sources in dependencies.items() for source in sources]
-    if edges:
-        conn.exec_driver_sql('INSERT INTO temp.__rr_edges VALUES (?,?)', edges)
-    # Distinct ancestor counts strictly increase along each edge in a DAG.
-    # UNION deduplicates diamonds and terminates even when a cycle is present.
-    ranks = conn.exec_driver_sql('''
-        WITH RECURSIVE ancestors(node, ancestor) AS (
-            SELECT target, source FROM temp.__rr_edges
-            UNION
-            SELECT a.node, e.source FROM ancestors a JOIN temp.__rr_edges e ON e.target=a.ancestor
-        )
-        SELECT node, count(*), max(CASE WHEN node=ancestor THEN 1 ELSE 0 END) FROM ancestors GROUP BY node
-    ''').all()
-    if any(row[2] for row in ranks):
-        raise RuleError("Cyclic derived relation dependency")
-    if ranks:
-        conn.exec_driver_sql('UPDATE temp.__rr_nodes SET rank=? WHERE name=?', [(r[1], r[0]) for r in ranks])
-    declared = rules._document.get("dependencies")
-    if declared is not None and any(set(declared[n]) != set(reads) for n, reads in dependencies.items()):
-        raise RuleError("Compiled dependencies differ from actual SQL reads; rebuild rules")
-    world.reads = dependencies
-    world.dependencies = {name: tuple(n for n in names if n in derived)
-                          for name, names in dependencies.items()}
-    world.order = tuple(r[0] for r in conn.exec_driver_sql(
-        'SELECT name FROM temp.__rr_nodes WHERE derived=1 ORDER BY rank,name'))
+    positions = {name: rank for rank, name in enumerate(rules.order)}
+    world.backend.load_rows(conn, 'temp.__rr_nodes', [(name, int(name in positions), positions.get(name, -1))
+                                                  for name in world.tables])
+    world.backend.load_rows(conn, 'temp.__rr_edges', [(source, target) for target, reads in rules.reads.items()
+                                                  for source in reads])
 
 
 def _projection(world, rules, name):
@@ -554,7 +493,11 @@ def _fill(conn, world, rules, name):
     table = world.tables[name]
     quote = world.engine.dialect.identifier_preparer.quote
     columns = ", ".join(quote(c.name) for c in table.columns)
-    conn.execute(delete(table))
+    if name not in world.created and name not in world.pending_created:
+        world.backend.create_tables(conn, [table])
+        world.pending_created.add(name)
+    else:
+        conn.execute(delete(table))
     conn.exec_driver_sql(
         f'INSERT INTO temp.{quote(name)} ({columns}) '
         + _projection(world, rules, name)
@@ -562,13 +505,14 @@ def _fill(conn, world, rules, name):
 
 
 def _build_world(rules, mode, snapshot, *, preflight=False):
+    if rules.order is None:
+        raise RuleError("Uncompiled rule bundle; use compile_rules.py or rule_compiler.prepare_rules()")
     backend = {"sqlite": _SQLiteBackend, "duckdb": _DuckDBBackend}[rules.backend]()
     world = _World(backend.engine(), rules._tables(), backend)
     metadata = ("renpy-relations-snapshot", 2, rules.backend, rules.fact_schema_id)
     try:
         with world.engine.begin() as conn:
-            for name in rules._document["facts"]:
-                world.tables[name].create(conn)
+            backend.create_tables(conn, [world.tables[name] for name in rules._document["facts"]])
             conn.exec_driver_sql('CREATE TABLE __rr_metadata (format TEXT NOT NULL, version INTEGER NOT NULL, backend TEXT NOT NULL, fact_schema_id TEXT NOT NULL)')
             conn.exec_driver_sql('INSERT INTO __rr_metadata VALUES (?,?,?,?)', metadata)
             expected_schema = backend.schema(conn)
@@ -581,23 +525,23 @@ def _build_world(rules, mode, snapshot, *, preflight=False):
                 if conn.exec_driver_sql('SELECT * FROM __rr_metadata').all() != [metadata]:
                     raise RuleError("Snapshot backend/version/fact schema differs")
         with world.engine.begin() as conn:
-            # Placeholder tables let SQLite resolve even forward references.
-            for name in rules._document["derived"]:
-                world.tables[name].create(conn)
-            _validate_sql(conn, world, rules)
+            _install_plan(conn, world, rules)
             if mode == "materialized" or preflight:
+                backend.create_tables(conn, [world.tables[name] for name in world.order])
+                world.created.update(world.order)
                 for name in world.order:
                     _fill(conn, world, rules, name)
             if mode == "live":
-                for name in reversed(world.order):
-                    world.tables[name].drop(conn)
+                if preflight:
+                    for name in reversed(world.order):
+                        world.tables[name].drop(conn)
                 quote = world.engine.dialect.identifier_preparer.quote
                 for name in world.order:
-                    sql = _projection(world, rules, name)
-                    conn.exec_driver_sql(f"CREATE TEMP VIEW {quote(name)} AS {sql}")
+                    conn.exec_driver_sql(f"CREATE TEMP VIEW {quote(name)} AS {_projection(world, rules, name)}")
             elif mode == "cached" and preflight:
-                for name in world.order:
-                    conn.execute(delete(world.tables[name]))
+                for name in reversed(world.order):
+                    world.tables[name].drop(conn)
+                world.created.clear()
         return world
     except Exception as exc:
         world.engine.dispose()
@@ -736,12 +680,18 @@ class LogicDB:
         if exists:
             statement = statement.limit(1)
         staged = set()
-        with self._world.engine.begin() as conn:
-            if self.mode == "cached":
-                self._ensure_cached(conn, name, staged)
-            result = conn.execute(statement)
-            value = result.first() is not None if exists else [dict(r) for r in result.mappings()]
-            result.close()
+        try:
+            with self._world.engine.begin() as conn:
+                if self.mode == "cached":
+                    self._ensure_cached(conn, name, staged)
+                result = conn.execute(statement)
+                try:
+                    value = result.first() is not None if exists else [dict(r) for r in result.mappings()]
+                finally:
+                    result.close()
+            self._world.created.update(self._world.pending_created)
+        finally:
+            self._world.pending_created.clear()
         # Validity is published only when every materialization/read committed.
         self._world.valid.update(staged)
         for relation in staged:

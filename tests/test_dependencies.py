@@ -1,10 +1,11 @@
 import pytest
 
 from renpy_relations import LogicDB, RuleError, RuleSet
+from _helpers import compiled
 
 
 def branched_rules():
-    return RuleSet({"format": "renpy-relations", "version": 1,
+    return compiled({"format": "renpy-relations", "version": 1,
         "facts": {n: {"columns": {"value": "text"}} for n in ("Left", "Right", "Blocked", "Unused")},
         "derived": {
             "A": {"columns": {"value": "text"}, "sql": "SELECT value FROM Left"},
@@ -56,12 +57,14 @@ def test_selective_changes_preserve_unrelated_outputs_and_handle_negation(mode, 
 
 def test_compiled_dependency_metadata_must_match_sql():
     document = branched_rules().document
-    db = LogicDB(RuleSet(document))
+    db = LogicDB(compiled(document))
     try:
-        document["dependencies"] = {n: db.describe(n)["reads"] for n in document["derived"]}
-        document["dependencies"]["Allowed"].remove("Blocked")
-        with pytest.raises(RuleError, match="dependencies differ"):
-            db.reload_rules(RuleSet(document))
+        # Tampering the recorded edges breaks the plan fingerprint binding the
+        # order and dependencies to the rule content.
+        tampered = branched_rules().document
+        tampered["dependencies"]["Allowed"].remove("Blocked")
+        with pytest.raises(RuleError, match="Compiled plan/dependencies differ"):
+            RuleSet(tampered)
         assert db.has("Constant", value="constant")
     finally:
         db.close()
@@ -74,7 +77,7 @@ def test_native_graph_handles_chain_beyond_python_recursion_limit():
     for i in range(count):
         source = "Seed" if i == 0 else f"Rule{i-1}"
         document["derived"][f"Rule{i}"] = {"columns": {"value": "text"}, "sql": f"SELECT value FROM {source}"}
-    db = LogicDB(RuleSet(document))
+    db = LogicDB(compiled(document))
     try:
         db.add("Seed", value="yes")
         assert db.has(f"Rule{count-1}", value="yes")

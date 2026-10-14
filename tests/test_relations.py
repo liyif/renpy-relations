@@ -5,12 +5,13 @@ import sqlite3
 import pytest
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-from renpy_relations import LogicDB, RuleError, RuleSet
+from renpy_relations import LogicDB, RuleError
+from _helpers import compiled, compiled_document
 
 
 @pytest.fixture
 def rules():
-    return RuleSet({
+    return compiled({
         "format": "renpy-relations", "version": 1,
         "facts": {"Permit": {"columns": {"character": "text", "location": "text"}}},
         # Deliberately use reverse dependency order and different SELECT column order.
@@ -75,7 +76,7 @@ def test_cached_relations_are_shared_across_queries_and_only_needed_dependencies
 
 
 def test_filter_comparisons_use_sql_semantics_not_python_cache_key_equality(mode):
-    rules = RuleSet({
+    rules = compiled({
         "format": "renpy-relations", "version": 1,
         "facts": {"Token": {"columns": {"value": "text"}}},
         "derived": {"Visible": {"columns": {"value": "text"}, "sql": "SELECT value FROM Token"}},
@@ -90,7 +91,7 @@ def test_filter_comparisons_use_sql_semantics_not_python_cache_key_equality(mode
 
 
 def test_declared_output_types_and_nulls_are_consistent_across_modes(mode):
-    rules = RuleSet({
+    rules = compiled({
         "format": "renpy-relations", "version": 1, "facts": {},
         "derived": {"Typed": {
             "columns": {"text_value": "text", "number": "integer", "truth": "boolean", "missing": "real"},
@@ -158,7 +159,7 @@ def test_rejected_snapshot_recovers_last_accepted_facts(rules, mode):
 
 
 def test_primary_key_conflicts_fail_instead_of_silently_ignoring_changes():
-    rules = RuleSet({"format": "renpy-relations", "version": 1,
+    rules = compiled({"format": "renpy-relations", "version": 1,
                      "facts": {"Member": {"columns": {"character": "text", "faction": "text"},
                                           "key": ["character"]}}, "derived": {}})
     db = LogicDB(rules)
@@ -186,7 +187,7 @@ def test_reload_keeps_facts_and_old_snapshots_use_new_rules(rules, mode):
         changed["derived"].pop("Unrelated")
         changed["derived"]["NewOutput"] = {"columns": {"character": "text"},
                                             "sql": "SELECT character FROM Permit"}
-        db.reload_rules(RuleSet(changed))
+        db.reload_rules(compiled(changed))
         assert db.query("Permit") == [{"character": "hero", "location": "archive"}]
         assert not db.has("Eligible")
         assert db.has("NewOutput", character="hero")
@@ -209,7 +210,7 @@ def test_failed_reload_preserves_the_current_world(rules, mode, bad_sql):
         changed = rules.document
         changed["derived"]["Eligible"]["sql"] = bad_sql
         with pytest.raises(RuleError):
-            db.reload_rules(RuleSet(changed))
+            db.reload_rules(compiled(changed))
         assert db.query("Eligible") == [{"character": "hero"}]
     finally:
         db.close()
@@ -219,7 +220,7 @@ def test_schema_mismatch_and_corrupt_snapshot_do_not_destroy_the_world(rules):
     db = LogicDB(rules)
     changed = rules.document
     changed["facts"]["Permit"]["columns"]["extra"] = "integer"
-    other = LogicDB(RuleSet(changed))
+    other = LogicDB(compiled(changed))
     try:
         db.add("Permit", character="hero", location="archive")
         for invalid in (b"not sqlite", other.snapshot()):
@@ -227,7 +228,7 @@ def test_schema_mismatch_and_corrupt_snapshot_do_not_destroy_the_world(rules):
                 db.restore(invalid)
             assert db.has("Eligible", character="hero")
         with pytest.raises(RuleError, match="fact schema"):
-            db.reload_rules(RuleSet(changed))
+            db.reload_rules(compiled(changed))
         assert db.has("Eligible", character="hero")
     finally:
         db.close()
@@ -236,7 +237,7 @@ def test_schema_mismatch_and_corrupt_snapshot_do_not_destroy_the_world(rules):
 
 @pytest.mark.parametrize("damage", ["metadata", "schema"])
 def test_snapshot_validation_failure_keeps_original_world_and_cache(damage, mode):
-    rules = RuleSet({"format": "renpy-relations", "version": 1,
+    rules = compiled({"format": "renpy-relations", "version": 1,
                      "facts": {"Resource": {"columns": {"amount": "real"}}},
                      "derived": {"Available": {"columns": {"amount": "real"},
                                                 "sql": "SELECT amount FROM Resource"}}})
@@ -275,7 +276,7 @@ def test_file_reload_can_recover_after_invalid_json(rules, tmp_path):
         assert db.has("Eligible")
         changed = rules.document
         changed["derived"]["Eligible"]["sql"] = "SELECT character FROM Access WHERE 0"
-        path.write_text(json.dumps(changed))
+        path.write_text(json.dumps(compiled_document(changed)))
         assert db.reload_if_changed()
         assert not db.has("Eligible")
         assert not db.reload_if_changed()
@@ -286,7 +287,7 @@ def test_file_reload_can_recover_after_invalid_json(rules, tmp_path):
 def test_failed_lazy_materialization_does_not_mark_dependencies_valid(rules):
     changed = rules.document
     changed["derived"]["Eligible"]["sql"] = "SELECT json(location) AS character FROM Access"
-    db = LogicDB(RuleSet(changed))
+    db = LogicDB(compiled(changed))
     try:
         db.add("Permit", character="hero", location="not_json")
         with pytest.raises(OperationalError):
@@ -303,7 +304,7 @@ def test_failed_lazy_materialization_does_not_mark_dependencies_valid(rules):
 def test_eager_rebuild_failure_rolls_back_fact_changes(rules):
     changed = rules.document
     changed["derived"]["Eligible"]["sql"] = "SELECT json(location) AS character FROM Access"
-    db = LogicDB(RuleSet(changed), mode="materialized")
+    db = LogicDB(compiled(changed), mode="materialized")
     try:
         with pytest.raises(OperationalError):
             db.add("Permit", character="hero", location="not_json")
@@ -320,20 +321,20 @@ def test_unsupported_sql_is_rejected(rules, sql):
     changed = rules.document
     changed["derived"]["Eligible"]["sql"] = sql
     with pytest.raises(RuleError):
-        LogicDB(RuleSet(changed))
+        LogicDB(compiled(changed))
 
 
 def test_cycles_are_rejected_but_recursive_ctes_are_supported(rules):
     changed = rules.document
     changed["derived"]["Access"]["sql"] = "SELECT character, 'archive' AS location FROM Eligible"
     with pytest.raises(RuleError, match="Cyclic"):
-        LogicDB(RuleSet(changed))
+        LogicDB(compiled(changed))
     changed = rules.document
     changed["derived"]["Eligible"]["sql"] = (
         "WITH RECURSIVE n(v) AS (SELECT 1 UNION ALL SELECT v+1 FROM n WHERE v<3) "
         "SELECT CAST(v AS TEXT) AS character FROM n"
     )
-    db = LogicDB(RuleSet(changed))
+    db = LogicDB(compiled(changed))
     try:
         assert sorted(r["character"] for r in db.query("Eligible")) == ["1", "2", "3"]
     finally:
@@ -390,7 +391,7 @@ def test_renpy_watch_preserves_world_on_error_reports_once_and_honors_developer_
         assert len(logs) == len(notifications) == 1
         changed = rules.document
         changed["derived"]["Eligible"]["sql"] = "SELECT character FROM Access WHERE 0"
-        path.write_text(json.dumps(changed))
+        path.write_text(json.dumps(compiled_document(changed)))
         config.interact_callbacks[0]()
         assert not db.has("Eligible")
         config.developer = False
