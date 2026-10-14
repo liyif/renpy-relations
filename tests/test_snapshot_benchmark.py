@@ -29,6 +29,20 @@ def test_snapshot_benchmark_checks_real_state_and_keeps_raw_samples(tmp_path):
     assert "不代表剧情条件查询速度" in (output / "REPORT.md").read_text()
 
 
+def test_snapshot_benchmark_runs_independent_workers_with_selected_driver(tmp_path):
+    output = tmp_path / "independent"
+    result = subprocess.run([
+        sys.executable, str(SCRIPT), "--sizes", "40", "--repetitions", "1",
+        "--process-repetitions", "2", "--drivers", "sqlite3", "--python", sys.executable,
+        "--out", str(output)], capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    document = json.loads((output / "results.json").read_text())
+    assert document["parameters"]["process_repetitions"] == 2
+    assert len(document["runs"]) == 2
+    assert {r["process_repeat"] for r in document["runs"]} == {0, 1}
+    assert all(r["driver"] == "sqlite3" and len(r["samples"]) == 1 for r in document["runs"])
+
+
 @pytest.mark.parametrize("failure", [OSError("could not start"), subprocess.TimeoutExpired("worker", 180)])
 def test_worker_failure_is_recorded_and_never_reported_as_measurement(tmp_path, monkeypatch, failure):
     spec = importlib.util.spec_from_file_location("snapshot_benchmark", SCRIPT)

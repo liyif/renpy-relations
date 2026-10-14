@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import importlib.util
 import json
+import math
 from pathlib import Path
 import platform
 import statistics
@@ -18,6 +19,8 @@ sys.path.insert(0, str(ROOT))
 
 
 def worker(args):
+    if args.packages:
+        sys.path.insert(0, str(args.packages.resolve()))
     spec = importlib.util.spec_from_file_location("snapshot_runtime", args.runtime)
     runtime = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = runtime
@@ -25,6 +28,9 @@ def worker(args):
     if args.driver == "pysqlite3":
         import pysqlite3
         runtime.sqlite3 = pysqlite3
+    elif args.driver == "sqlite3":
+        import sqlite3
+        runtime.sqlite3 = sqlite3
     document = {"format": "renpy-relations", "version": 1,
         "facts": {"Seed": {"columns": {"value": "text", "group_id": "integer"}}},
         "derived": {"Visible": {"columns": {"value": "text"}, "sql": "SELECT value FROM Seed"}}}
@@ -70,6 +76,7 @@ def worker(args):
         import sqlalchemy
         driver_version = runtime.sqlite3.sqlite_version if args.backend == "sqlite" else __import__("duckdb").__version__
         return {"status": "ok", "backend": args.backend, "driver": args.driver,
+            "process_repeat": args.process_repeat, "executable": sys.executable,
             "legacy": args.legacy, "size": args.size, "python": sys.version,
             "runtime_sha256": hashlib.sha256(args.runtime.read_bytes()).hexdigest(),
             "platform": platform.platform(),
@@ -83,6 +90,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sizes", nargs="+", type=int, default=[10000, 100000])
     parser.add_argument("--repetitions", type=int, default=3)
+    parser.add_argument("--process-repetitions", type=int, default=1, help="Independent fresh workers per configuration")
+    parser.add_argument("--python", type=Path, default=Path(sys.executable))
+    parser.add_argument("--packages", type=Path)
+    parser.add_argument("--timeout", type=float, default=180)
+    parser.add_argument("--drivers", nargs="+", choices=["sqlite3", "pysqlite3", "duckdb"], default=["sqlite3", "pysqlite3", "duckdb"])
     parser.add_argument("--baseline-ref", help="Optional historical SQLite runtime for comparison")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
@@ -91,8 +103,9 @@ def main():
     parser.add_argument("--backend", default="sqlite")
     parser.add_argument("--driver", default="sqlite3")
     parser.add_argument("--legacy", action="store_true")
+    parser.add_argument("--process-repeat", type=int, default=0, help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.repetitions < 1 or any(n < 1 for n in args.sizes):
+    if min(args.repetitions, args.process_repetitions) < 1 or any(n < 1 for n in args.sizes) or not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("sizes and repetitions must be positive")
     if args.worker:
         print(json.dumps(worker(args)))
@@ -114,40 +127,50 @@ def main():
             baseline.write_bytes(content)
             configs.insert(0, (baseline, "sqlite", "sqlite3", True))
             configs.insert(1, (baseline, "sqlite", "pysqlite3", True))
+        configs = [configuration for configuration in configs if configuration[2] in args.drivers]
         for size in args.sizes:
-            for runtime, backend, driver, legacy in configs:
-                command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--runtime", str(runtime),
-                    "--size", str(size), "--backend", backend, "--driver", driver,
-                    "--repetitions", str(args.repetitions)] + (["--legacy"] if legacy else [])
-                try:
-                    result = subprocess.run(command, capture_output=True, text=True, timeout=180)
-                except (OSError, subprocess.TimeoutExpired) as exc:
-                    record = {"status": "error", "size": size, "backend": backend, "driver": driver,
-                              "legacy": legacy, "error": str(exc)}
-                else:
-                    if result.returncode:
+            for process_repeat in range(args.process_repetitions):
+                ordered = configs if process_repeat % 2 == 0 else list(reversed(configs))
+                for runtime, backend, driver, legacy in ordered:
+                    command = [str(args.python), str(Path(__file__).resolve()), "--worker", "--runtime", str(runtime),
+                        "--size", str(size), "--backend", backend, "--driver", driver,
+                        "--process-repeat", str(process_repeat), "--repetitions", str(args.repetitions)] + (["--legacy"] if legacy else [])
+                    if args.packages:
+                        command += ["--packages", str(args.packages.resolve())]
+                    try:
+                        result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout)
+                    except (OSError, subprocess.TimeoutExpired) as exc:
                         record = {"status": "error", "size": size, "backend": backend, "driver": driver,
-                                  "legacy": legacy, "error": result.stdout + result.stderr}
+                                  "legacy": legacy, "process_repeat": process_repeat, "error": str(exc)}
                     else:
-                        record = json.loads(result.stdout)
-                records.append(record)
-                (args.out / "results.json").write_text(json.dumps({"baseline_ref": args.baseline_ref,
-                    "created_at": datetime.now(timezone(timedelta(hours=8))).isoformat(),
-                    "runs": records}, ensure_ascii=False, indent=2) + "\n")
-                print(size, backend, driver, "legacy" if legacy else "native", record["status"], flush=True)
-    lines = ["# 提交与原生快照对照", "", "单位：毫秒，各列为独立进程中重复测量的中位数。", "",
-        "| 事实数 | 实现／驱动 | 普通提交 | 历史提交 | 完整快照 | 重复快照 | 恢复 | 镜像 MiB |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
+                        if result.returncode:
+                            record = {"status": "error", "size": size, "backend": backend, "driver": driver,
+                                      "legacy": legacy, "process_repeat": process_repeat, "error": result.stdout + result.stderr}
+                        else:
+                            record = json.loads(result.stdout)
+                    records.append(record)
+                    (args.out / "results.json").write_text(json.dumps({"baseline_ref": args.baseline_ref,
+                    "parameters": {"sizes": args.sizes, "repetitions": args.repetitions,
+                                   "process_repetitions": args.process_repetitions, "drivers": args.drivers,
+                                   "timeout": args.timeout},
+                        "file_sha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+                                        for name in ("benchmarks/snapshots.py", "uv.lock")},
+                        "created_at": datetime.now(timezone(timedelta(hours=8))).isoformat(),
+                        "runs": records}, ensure_ascii=False, indent=2) + "\n")
+                    print(size, backend, driver, "legacy" if legacy else "native", record["status"], flush=True)
+    lines = ["# 提交与原生快照对照", "", f"每配置 {args.process_repetitions} 个独立进程，进程内 {args.repetitions} 次顺序测量。单位：毫秒，各行是一个进程的样本中位数。", "",
+        "| 事实数 | 实现／驱动 | 独立重复 | 普通提交 | 历史提交 | 完整快照 | 重复快照 | 恢复 | 镜像 MiB |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for record in records:
         label = ("旧 JSON" if record["legacy"] else record["backend"]) + "/" + record["driver"]
         if record["status"] != "ok":
-            lines.append(f"| {record['size']} | {label} | FAILED | | | | | |")
+            lines.append(f"| {record['size']} | {label} | {record['process_repeat'] + 1} | FAILED | | | | | |")
             continue
         values = [statistics.median(s[p] for s in record["samples"]) * 1000
                   for p in ("plain_commit", "history_commit", "snapshot", "snapshot_reused", "restore")]
         size = statistics.median(s["snapshot_bytes"] for s in record["samples"]) / 1024**2
-        lines.append(f"| {record['size']} | {label} | " + " | ".join(f"{v:.3f}" for v in values) + f" | {size:.3f} |")
-    lines += ["", "仅测快照路径，不代表剧情条件查询速度。每组一个独立进程，组内顺序固定；无跨进程统计置信区间。",
+        lines.append(f"| {record['size']} | {label} | {record['process_repeat'] + 1} | " + " | ".join(f"{v:.3f}" for v in values) + f" | {size:.3f} |")
+    lines += ["", "仅测快照路径，不代表剧情条件查询速度。配置顺序在独立重复间反转，进程内顺序固定；无跨进程统计置信区间。",
         "事实为 value/text 与 group_id/integer；初始化使用原生 SQL，排除计时。实际提交使用公开 add 接口。",
         "历史提交绑定一个只接收最新镜像的回调；不模拟长期保留完整 Ren’Py 回滚历史。",
         "恢复后核验事实数与修改是否撤销。SQLite 驱动版本、Python 版本和每次原始样本见 results.json。",

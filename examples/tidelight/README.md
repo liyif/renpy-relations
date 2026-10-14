@@ -1,6 +1,6 @@
 # 潮汐替我们保管
 
-一个可直接试玩的中文 Galgame 短篇。约一万字、653 段对白／叙述（各分支总量），19 个事件、3 位成年女主角、5 个结局。单次游玩只会经历其中一部分事件，约 15–25 分钟。文字演出版，已有中文字体、场景配色、选择、手记、存读档与回退，未配立绘、音乐或配音。
+一个可直接试玩的中文 Galgame 短篇。约一万字、653 段对白／叙述（各分支总量），19 个事件、3 位成年女主角、5 个结局。单次游玩只会经历其中一部分事件。文字演出版，已有中文字体、场景配色、选择、手记、存读档与回退，未配立绘、音乐或配音。
 
 岬湾旧电台将在午夜关停。沈川回来交还钥匙，却遇见一段被剪断的录音、三个各自准备告别的人，以及一场让渡船停航的雨。房子确实要交还；这一夜可以决定声音如何被带走，也可以重新约定人与人的下一次见面。
 
@@ -17,27 +17,9 @@
 
 已构建的 Linux 发行包可解压后直接运行 `./tidelight.sh`，无需 SDK 或依赖安装。从源码创建独立试玩目录的最短流程见仓库 [QUICKSTART.md](../../QUICKSTART.md)。
 
-在仓库根目录安装锁定运行依赖，再启动项目：
+从源码试玩时，`prepare_game.py` 会将运行时和匹配 SDK 的锁定依赖安装到独立游戏目录。默认 SQLite；包含两后端的目录可通过 `RELATIONS_BACKEND=duckdb` 切换。样例按后端隔离存档。
 
-```sh
-uv export --locked --no-dev --group renpy-linux \
-  --format requirements-txt --output-file /tmp/tidelight-runtime.txt
-uv pip install --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
-  --only-binary :all: --require-hashes \
-  --target examples/tidelight/game/python-packages \
-  --requirements /tmp/tidelight-runtime.txt
-/path/to/renpy-sdk/renpy.sh examples/tidelight
-```
-
-上述二进制安装参数用于本次验证的 Linux x86_64／Ren’Py 8.5.3／Python 3.12 SDK。也可使用根目录的 `prepare_game.py`，自动把运行时与锁定依赖放进独立游戏目录。
-
-默认 SQLite。若要试玩 DuckDB，在导出依赖时增加 `--extra duckdb`，安装后运行：
-
-```sh
-RELATIONS_BACKEND=duckdb /path/to/renpy-sdk/renpy.sh examples/tidelight
-```
-
-地图呈现此刻可以发生的相遇，人物会随时间移动。每次外出或长谈约二十分钟；停航、断电、传言等即时反应不额外消耗行动时间。到截止时进入最后一分钟，做完最终决定。随时可以查看手记、存档、读档和回退。F8 为开发用编排观察。
+地图呈现此刻可以发生的相遇，人物会随时间移动。每次外出或长谈约二十分钟；停航、断电、传言等即时反应不额外消耗行动时间。到截止时进入最后一分钟，做完最终决定。随时可以查看手记、存档、读档和回退。开发模式下 F8 可查看编排关系；发行包关闭该界面。
 
 ## 剧情怎样编排
 
@@ -85,6 +67,8 @@ flowchart LR
 
 ## 修改与验证
 
+以下命令从源码仓库根目录执行。编译或修改正文后，重新生成独立试玩目录再进行引擎检查。
+
 重新编译两个后端：
 
 ```sh
@@ -102,15 +86,15 @@ uv run --locked --group assets python examples/tidelight/build_font.py \
   --source-font /usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc
 ```
 
-验证关系编排与实际引擎：
+验证关系编排；引擎检查使用按上手说明生成的独立目录 `/tmp/my-tidelight`：
 
 ```sh
 uv run --locked --extra duckdb --group renpy-linux --group assets pytest tests/test_tidelight.py
 uv run --locked --extra duckdb python check_renpy.py --sdk /path/to/renpy-sdk \
-  --game examples/tidelight --headless --backend sqlite --timeout 120
+  --game /tmp/my-tidelight --headless --backend sqlite --timeout 180
 ```
 
-Python 检查覆盖两后端三模式、五结局可达、场景重排、授权条件、快照分支和随机合法游玩无死局。引擎测试从菜单实际点击五条结局路线，并验证存读档、回退、手记和观察界面。具体结果见 [验证记录](VALIDATION.md)。
+Python 检查覆盖两后端三模式、五结局路线、场景重排、授权条件、快照分支和随机合法游玩样本。引擎测试实际点击结局路线，并检查存读档、回退、手记和开发观察界面。测试用例是行为检查，不保证所有可能的探索顺序。
 
 这是仓库内的实验样例。分发独立游戏时，还需将根目录的 `renpy_relations.py` 放入其实际 `game/python-packages`，并将规则、剧情 JSON 与原生扩展作为实际文件保留；不要将这些由 Path／原生驱动读取的文件只放进资源归档。
 

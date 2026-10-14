@@ -44,7 +44,7 @@ def cardinalities(size):
 
 
 def populate(db, size):
-    """Exercise the production mutation interface, including its snapshot."""
+    """Exercise the production mutation interface without a history receiver."""
     with db.batch():
         for faction in range(32):
             for location in LOCATIONS:
@@ -102,7 +102,7 @@ def atomic_json(path, document):
     temporary.replace(path)
 
 
-def runtime_info():
+def runtime_info(backend="sqlite"):
     import renpy_relations
     import sqlalchemy
 
@@ -113,10 +113,14 @@ def runtime_info():
         options = [r[0] for r in connection.execute("PRAGMA compile_options")]
     finally:
         connection.close()
-    return {"python": sys.version, "executable": sys.executable,
+    info = {"python": sys.version, "executable": sys.executable, "backend": backend,
             "driver": driver.__name__, "sqlite": driver.sqlite_version,
             "sqlalchemy": sqlalchemy.__version__, "temp_store_default": temporary_store,
             "sqlite_compile_options": options}
+    if backend == "duckdb":
+        import duckdb
+        info["duckdb"] = duckdb.__version__
+    return info
 
 
 def assert_samples(db, size, numbers, added=()):
@@ -129,11 +133,13 @@ def assert_samples(db, size, numbers, added=()):
 def worker(args):
     if args.packages is not None:
         sys.path.insert(0, str(args.packages.resolve()))
+    sys.path.insert(0, str(ROOT))
     from renpy_relations import LogicDB
 
-    result = {"kind": args.worker, "size": args.size, "mode": args.mode,
+    result = {"kind": args.worker, "size": args.size, "mode": args.mode, "backend": args.backend,
+              "history_bound": False,
               "repeat": args.repeat, "status": "running", "phases": {},
-              "cardinalities": cardinalities(args.size), "runtime": runtime_info()}
+              "cardinalities": cardinalities(args.size), "runtime": runtime_info(args.backend)}
     db = None
 
     def measure(name, operation):
@@ -169,8 +175,8 @@ def worker(args):
         db = measure("init_empty", lambda: LogicDB(args.bundle, mode=args.mode))
         if args.worker == "seed":
             measure("public_ingest", lambda: populate(db, args.size))
-            # This second explicit snapshot is kept outside public_ingest, whose
-            # batch already generated and accepted a complete snapshot.
+            # No on_snapshot receiver is bound, so public_ingest only commits;
+            # explicit native serialization is measured separately.
             snapshot = measure("snapshot", db.snapshot)
             args.fixture.write_bytes(snapshot)
             result.update(snapshot_bytes=len(snapshot), fixture_sha256=hashlib.sha256(snapshot).hexdigest())
@@ -240,18 +246,18 @@ def worker(args):
     return 0 if result["status"] == "ok" else 1
 
 
-def launch(args, work, bundle, size, kind, *, mode="cached", repeat=0):
-    stem = f"{kind}-{size}-{mode}-{repeat}"
+def launch(args, work, bundle, size, kind, *, backend="sqlite", mode="cached", repeat=0):
+    stem = f"{kind}-{size}-{backend}-{mode}-{repeat}"
     destination = work / (stem + ".json")
     destination.unlink(missing_ok=True)
     command = [str(args.python), str(Path(__file__).resolve()), "--worker", kind,
-               "--bundle", str(bundle), "--fixture", str(work / f"world-{size}.snapshot"),
+               "--bundle", str(bundle), "--fixture", str(work / f"world-{size}-{backend}.snapshot"),
                "--result", str(destination), "--size", str(size), "--mode", mode,
-               "--repeat", str(repeat), "--queries", str(args.queries),
+               "--repeat", str(repeat), "--backend", backend, "--queries", str(args.queries),
                "--batch-size", str(args.batch_size)]
     if args.packages is not None:
         command += ["--packages", str(args.packages.resolve())]
-    print(f"{kind}: characters={size:,}, mode={mode}, repeat={repeat + 1}", flush=True)
+    print(f"{kind}: characters={size:,}, backend={backend}, mode={mode}, repeat={repeat + 1}", flush=True)
     failure = None
     with (work / (stem + ".log")).open("w", encoding="utf-8") as log:
         try:
@@ -265,7 +271,7 @@ def launch(args, work, bundle, size, kind, *, mode="cached", repeat=0):
     if destination.exists():
         result = json.loads(destination.read_text(encoding="utf-8"))
     else:
-        result = {"kind": kind, "size": size, "mode": mode, "repeat": repeat, "phases": {},
+        result = {"kind": kind, "size": size, "mode": mode, "backend": backend, "repeat": repeat, "phases": {},
                   "status": "error", "error": "Worker produced no result"}
     if failure:
         result.update(status=failure[0], error=failure[1])
@@ -284,9 +290,9 @@ def summarize(results):
     for result in results:
         if result["kind"] != "measure":
             continue
-        key = (result["size"], result["mode"])
+        key = (result["size"], result["mode"], result.get("backend", "sqlite"))
         group = groups.setdefault(key, {"size": key[0], "mode": key[1], "attempted": 0,
-                                        "successful": 0, "phases": {}})
+                                        "backend": key[2], "successful": 0, "phases": {}})
         group["attempted"] += 1
         if result["status"] != "ok":
             continue
@@ -308,7 +314,7 @@ def summarize(results):
 
 def write_report(output, document):
     atomic_json(output / "results.json", document)
-    fields = ["kind", "size", "mode", "repeat", "status", "phase", "seconds", "cpu_seconds",
+    fields = ["kind", "size", "backend", "mode", "repeat", "status", "phase", "seconds", "cpu_seconds",
               "rss_before_bytes", "rss_bytes", "peak_rss_bytes", "requests", "snapshot_bytes"]
     with (output / "phases.csv").open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields, extrasaction="ignore")
@@ -321,24 +327,26 @@ def write_report(output, document):
              f"CPU：{document['host']['cpu']}；逻辑 CPU：{document['host']['logical_cpus']}。", "",
              f"重复：{document['parameters']['repetitions']}；每轮 warm 请求各 {document['parameters']['queries']} 次；"
              f"batch 上限 {document['parameters']['batch_size']} 条。", ""]
-    runtime = next((run["runtime"] for run in document["runs"] if "runtime" in run), None)
-    if runtime is not None:
-        lines += [f"子进程：Python {runtime['python'].split()[0]}，{runtime['driver']}／SQLite {runtime['sqlite']}，"
-                  f"SQLAlchemy {runtime['sqlalchemy']}；驱动默认 temp_store={runtime['temp_store_default']}。", ""]
+    environments = {f"Python {run['runtime']['python'].split()[0]}，SQLAlchemy {run['runtime']['sqlalchemy']}，" +
+                    (f"DuckDB {run['runtime']['duckdb']}" if run['backend'] == 'duckdb' else
+                     f"{run['runtime']['driver']}／SQLite {run['runtime']['sqlite']}；temp_store={run['runtime']['temp_store_default']}")
+                    for run in document["runs"] if "runtime" in run}
+    if environments:
+        lines += ["子进程：" + "；".join(sorted(environments)) + "。", ""]
     lines += [
              "## 数据与导入", "",
-             "每档导入通过公开 add，在一个 batch 中完成；包含数据生成、绑定、提交和完整快照。每档只测一次，不能当作重复样本中位数。", "",
-             "| 角色 | 事实 | 预期 CanEnter 行数 | 公开导入（秒） |", "| ---: | ---: | ---: | ---: |"]
+             "每档导入通过公开 add，在一个 batch 中完成；包含数据生成、绑定和提交；没有历史接收者，提交不生成快照。每档只测一次，不能当作重复样本中位数。", "",
+             "| 角色 | 后端 | 事实 | 预期 CanEnter 行数 | 公开导入（秒） |", "| ---: | --- | ---: | ---: | ---: |"]
     for run in document["runs"]:
         if run["kind"] == "seed":
             counts = cardinalities(run["size"])
             seconds = run["phases"].get("public_ingest", {}).get("seconds")
-            lines.append(f"| {run['size']:,} | {counts['facts']:,} | {counts['expected_derived_rows']['CanEnter']:,} | "
+            lines.append(f"| {run['size']:,} | {run['backend']} | {counts['facts']:,} | {counts['expected_derived_rows']['CanEnter']:,} | "
                          + (f"{seconds:.3f}" if seconds is not None else run["status"]) + " |")
     lines += ["", "派生行数按固定数据生成公式计算；大规模使用分散样本校验，完整集合核对在小规模测试中进行。", "",
               "## 读取延迟", "", "单位：毫秒。first 为恢复后首次读取；warm 为同一实例内分散角色的逐请求样本。", "",
-              "| 角色 | 模式 | 完整成功/尝试 | 首次 has 中位数 | warm has 中位数 / p95 | warm query 中位数 / p95 |",
-              "| ---: | --- | ---: | ---: | ---: | ---: |"]
+              "| 角色 | 后端 | 模式 | 完整成功/尝试 | 首次 has 中位数 | warm has 中位数 / p95 | warm query 中位数 / p95 |",
+              "| ---: | --- | --- | ---: | ---: | ---: | ---: |"]
 
     def value(group, phase, *, p95=False):
         item = group["phases"].get(phase)
@@ -348,31 +356,31 @@ def write_report(output, document):
         return text + f" / {item['p95_seconds'] * 1000:.3f}" if p95 else text
 
     for group in document["summary"]:
-        lines.append(f"| {group['size']:,} | {group['mode']} | {group['successful']}/{group['attempted']} | "
+        lines.append(f"| {group['size']:,} | {group['backend']} | {group['mode']} | {group['successful']}/{group['attempted']} | "
                      f"{value(group, 'first_has')} | {value(group, 'warm_has', p95=True)} | {value(group, 'warm_query', p95=True)} |")
-    lines += ["", "## 修改与生命周期", "", "单位：毫秒，中位数；提交包含完整快照。batch 实际变更数量见 JSON。", "",
-              "| 角色 | 模式 | 单条提交 | 其后首次读 | batch 提交 | 其后首次读 | 快照 | 初始恢复 | 修改后恢复 | 规则重载 | 重载后首次读 |",
-              "| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+    lines += ["", "## 修改与生命周期", "", "单位：毫秒，中位数；提交未绑定历史接收者，不生成快照；快照单独计时。历史绑定开销由 snapshots.py 单独测量。batch 实际变更数量见 JSON。", "",
+              "| 角色 | 后端 | 模式 | 单条提交 | 其后首次读 | batch 提交 | 其后首次读 | 快照 | 初始恢复 | 修改后恢复 | 规则重载 | 重载后首次读 |",
+              "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     phases = ("single_commit", "first_has_after_single", "batch_commit", "first_has_after_batch",
               "snapshot", "restore_initial", "restore_after_edits", "reload_same_rules", "first_has_after_reload")
     for group in document["summary"]:
-        lines.append(f"| {group['size']:,} | {group['mode']} | " + " | ".join(value(group, p) for p in phases) + " |")
+        lines.append(f"| {group['size']:,} | {group['backend']} | {group['mode']} | " + " | ".join(value(group, p) for p in phases) + " |")
     lines += ["", "## 大小与内存", "", "进程峰值 RSS 为完整成功试验的最大值，包括数据读取、快照、候选世界与验证，不是某一查询的独立增量。", "",
-              "| 角色 | 模式 | 压缩快照 MiB | 进程峰值 RSS MiB |", "| ---: | --- | ---: | ---: |"]
+              "| 角色 | 后端 | 模式 | 原生快照 MiB | 进程峰值 RSS MiB |", "| ---: | --- | --- | ---: | ---: |"]
     for group in document["summary"]:
         snapshot = f"{group['snapshot_bytes'] / 2**20:.3f}" if "snapshot_bytes" in group else "—"
         peak = f"{group['peak_rss_bytes'] / 2**20:.1f}" if "peak_rss_bytes" in group else "—"
-        lines.append(f"| {group['size']:,} | {group['mode']} | {snapshot} | {peak} |")
+        lines.append(f"| {group['size']:,} | {group['backend']} | {group['mode']} | {snapshot} | {peak} |")
     lines += ["", "## 限制与原始数据", "",
-              "- 新进程隔离 Python／SQLite 状态；没有清空操作系统页缓存，不能称为物理冷启动。",
+              "- 新进程隔离 Python／数据库状态；没有清空操作系统页缓存，不能称为物理冷启动。",
               "- p95 只描述本次有限样本；串行运行，顺序轮换；没有应用帧率保证或跨硬件结论。",
-              "- main 是内存库，TEMP 数据可能落盘，RSS 不是 SQLite 全部存储大小。",
+              "- 数据库采用内存模式，派生结果及临时数据可能落盘，RSS 不是全部存储大小。",
               "- 缺失／失败值不填零；汇总仅使用完整通过结果，超时前已完成的阶段保留在原始 JSON／CSV。",
               "- 环境、源码摘要、Git 状态、fixture SHA256、逐请求样本和阶段 CPU／RSS 在 results.json；阶段表见 phases.csv。"]
     failed = [run for run in document["runs"] if run["status"] != "ok"]
     if failed:
         lines += ["", "## 未完成／失败", ""]
-        lines += [f"- {run['kind']} {run['size']:,} {run['mode']}: {run['status']}, "
+        lines += [f"- {run['kind']} {run['size']:,} {run['backend']} {run['mode']}: {run['status']}, "
                   f"{run.get('current_phase', 'unknown phase')}: {run.get('error', '')}" for run in failed]
     (output / "REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -381,6 +389,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sizes", nargs="+", type=int, default=[10_000, 100_000, 1_000_000], help="Number of characters")
     parser.add_argument("--modes", nargs="+", choices=MODES, default=list(MODES))
+    parser.add_argument("--backends", nargs="+", choices=["sqlite", "duckdb"], default=["sqlite"])
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--queries", type=int, default=12)
     parser.add_argument("--batch-size", type=int, default=100)
@@ -391,6 +400,7 @@ def main(argv=None):
     parser.add_argument("--worker", choices=("seed", "measure"), help=argparse.SUPPRESS)
     parser.add_argument("--size", type=int, help=argparse.SUPPRESS)
     parser.add_argument("--mode", choices=MODES, default="cached", help=argparse.SUPPRESS)
+    parser.add_argument("--backend", choices=["sqlite", "duckdb"], default="sqlite", help=argparse.SUPPRESS)
     parser.add_argument("--repeat", type=int, default=0, help=argparse.SUPPRESS)
     for field in ("bundle", "fixture", "result"):
         parser.add_argument(f"--{field}", type=Path, help=argparse.SUPPRESS)
@@ -408,16 +418,19 @@ def main(argv=None):
         parser.error("Output directory must be empty; choose a new --out directory")
     work = output / ".work"
     work.mkdir(parents=True, exist_ok=True)
-    bundle = work / "relations.rules.json"
     begin = perf_counter()
-    compile_rules(ROOT / "examples/palace/world.l", ROOT / "examples/palace/schema.json", bundle)
+    bundles = {}
+    for backend in args.backends:
+        bundles[backend] = work / f"relations-{backend}.rules.json"
+        compile_rules(ROOT / "examples/palace/world.l", ROOT / "examples/palace/schema.json", bundles[backend], backend=backend)
     compile_seconds = perf_counter() - begin
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
     cpu = next((line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
                 if line.startswith("model name")), "unknown")
     document = {"format": "renpy-relations-benchmark", "version": 1, "started_at": started,
-                "parameters": {"sizes": args.sizes, "modes": args.modes, "repetitions": args.repetitions,
+                "parameters": {"sizes": args.sizes, "modes": args.modes, "backends": args.backends,
+                               "history_bound": False, "repetitions": args.repetitions,
                                "queries": args.queries, "batch_size": args.batch_size, "timeout": args.timeout},
                 "host": {"platform": platform.platform(), "cpu": cpu, "logical_cpus": os.cpu_count()},
                 "source": {"git_commit": git.stdout.strip(), "git_dirty": bool(dirty.stdout),
@@ -425,15 +438,20 @@ def main(argv=None):
                                       for name in ("renpy_relations.py", "compile_rules.py", "benchmarks/run.py", "uv.lock")}},
                 "compiler": {"logica": version("logica"), "seconds": compile_seconds}, "runs": [], "summary": []}
     for size in args.sizes:
-        seed = launch(args, work, bundle, size, "seed")
-        document["runs"].append(seed)
-        if seed["status"] == "ok":
+        seeds = {}
+        for backend in args.backends:
+            seeds[backend] = launch(args, work, bundles[backend], size, "seed", backend=backend)
+            document["runs"].append(seeds[backend])
+        if any(seed["status"] == "ok" for seed in seeds.values()):
             for repeat in range(args.repetitions):
                 offset = repeat % len(args.modes)
                 for mode in args.modes[offset:] + args.modes[:offset]:
-                    document["runs"].append(launch(args, work, bundle, size, "measure", mode=mode, repeat=repeat))
-                    document["summary"] = summarize(document["runs"])
-                    write_report(output, document)
+                    backends = args.backends if repeat % 2 == 0 else list(reversed(args.backends))
+                    for backend in backends:
+                        if seeds[backend]["status"] == "ok":
+                            document["runs"].append(launch(args, work, bundles[backend], size, "measure", backend=backend, mode=mode, repeat=repeat))
+                            document["summary"] = summarize(document["runs"])
+                            write_report(output, document)
         document["summary"] = summarize(document["runs"])
         write_report(output, document)
     document["finished_at"] = datetime.now(CLIENT_TIMEZONE).isoformat()

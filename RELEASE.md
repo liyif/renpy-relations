@@ -1,24 +1,27 @@
-# 0.1.0 发布准备与构建
+# 构建与分发
 
-本次交付为实验性开源首版：完整源码、Linux x86_64 两后端运行时包，以及《潮汐替我们保管》可试玩发行包。代码、文档、示例与剧本文字采用 MIT；字体和第三方组件保留原许可证。
+维护者使用 `release.py` 从干净 Git 提交生成源码包、运行时包和可试玩样例。首次使用见 [QUICKSTART](QUICKSTART.md)。
 
-## 已支持范围
+## 目标环境与兼容性
 
-| 项目 | 范围 |
+| 项目 | 0.1.0 的构建目标 |
 | --- | --- |
-| 开发环境 | uv 锁定依赖；Python 3.12 |
-| 游戏环境 | Linux x86_64，Ren’Py 8.5.3.26051504，内置 Python 3.12.8 |
-| 后端 | SQLite（pysqlite3-binary 0.5.4.post2）与 DuckDB 1.5.6 |
+| 开发 | uv 锁定依赖，Python 3.12 |
+| 游戏 | Linux x86_64，Ren’Py 8.5.3.26051504，内置 Python 3.12.8 |
+| SQLite 驱动 | pysqlite3-binary 0.5.4.post2 |
+| DuckDB | DuckDB 1.5.6、duckdb-engine 0.17.0 |
 | 查询模式 | cached、live、materialized |
-| 存档 | 同一后端、同一事实 schema 的格式 2 快照 |
+| 快照 | 格式 2，同一后端及事实 schema |
 
-其他平台尚未验证，不在本次二进制发布范围。新版本变更事实 schema 或快照格式时，应说明存档兼容性；没有迁移承诺。规则 SQL 是可信构建产物，不是任意 SQL 的安全沙箱。
+其他平台的原生扩展与打包尚未验证。API 和格式可能在实验版本间变化；影响 schema 或快照格式的变更需要在 CHANGELOG 中说明，没有自动迁移。
 
-样例按后端隔离存档目录，避免两种原生镜像混用。此首版使用新的保存目录，开发阶段旧样例的存档不会自动导入。
+SQLAlchemy 固定为 2.0.43，以适配该 SDK 的 Python 模块集合。依赖二进制必须匹配 SDK Python 的 ABI；不能直接复制其他版本 Python 的开发环境。
+
+样例按后端隔离存档目录，首次切换后端应开始新游戏。编译产物按后端分别生成。
 
 ## 构建
 
-需要 Git、uv、Linux x86_64、Xvfb、xauth、软件 OpenGL 与原版 Ren’Py 8.5.3 SDK。从干净且已提交的仓库运行：
+需要 Git、uv、Linux x86_64、Xvfb、xauth、软件 OpenGL，以及原版 Ren’Py 8.5.3 SDK。先提交所有源码修改，再运行：
 
 ```sh
 uv sync --locked --extra duckdb --group renpy-linux --group assets
@@ -27,39 +30,36 @@ uv run --locked --extra duckdb --group renpy-linux --group assets python release
 uv run --locked python release.py verify dist/0.1.0
 ```
 
-输出目录必须尚不存在。失败时保留日志，不覆盖以前的产物。重新构建请选一个新目录。
+输出目录必须尚不存在，失败保留日志。重建时选择新目录。
 
-构建流程会：
+构建器执行以下检查：
 
-1. 从固定 Git 提交导出源码，生成源码包，再解包并执行全套 Python 检查。
-2. 在独立目录按锁文件和 wheel 哈希安装两种驱动，使用 SDK Python 验证加载。
-3. 对两个独立样例执行 lint，以及两后端三模式的完整真实引擎测试。
-4. 生成运行时 ZIP，保留依赖许可证并输出实际安装清单。
-5. 使用 Ren’Py 官方构建器生成 Linux 游戏，关闭开发模式、排除测试与本地历史文件。
-6. 检查归档必需文件，解包后用发行包自带的引擎测试两后端。测试脚本只注入临时解包副本；下载包不包含测试。
-7. 记录提交、源码文件哈希、SDK 与产物信息，生成 SHA-256 校验文件并验证。
+1. 从固定 Git 提交导出源码，解包后执行 Python 测试。
+2. 根据锁文件和 wheel 哈希安装独立样例依赖，用 SDK Python 检查加载。
+3. 对两个样例执行 lint 和两后端三模式的真实引擎测试。
+4. 使用官方构建器生成 Linux 游戏，关闭开发模式，排除测试、本地存档和开发缓存。
+5. 解包游戏，用它自带的引擎测试两后端；测试脚本只注入临时副本。
+6. 记录提交、源码哈希、实际检查与产物信息，生成并验证 SHA-256 清单。
 
-归档检查允许 SDK 生成的生产用字节码与构建元信息；本地存档、测试脚本与其余项目缓存不进入下载包。Ren’Py 的完整 `LICENSE.txt` 显式加入游戏，第三方声明与源码入口同时保留在 README。
+规则 JSON、剧情 JSON 和原生扩展保持实际文件。SDK 生成的生产字节码与构建元信息保留；许可证和依赖清单随包分发。Ren’Py 写入构建时间等元数据，流程不承诺逐字节确定性。
 
-流程可复现；Ren’Py 写入的构建时间等元数据可能导致不同构建的字节哈希不同，不承诺逐字节确定性。
+## 产物
 
-## 交付文件
+| 文件 | 内容 |
+| --- | --- |
+| `renpy-relations-0.1.0-source.tar.gz` | 源码、测试、规则、文档与 Benchmark 工具 |
+| `renpy-relations-0.1.0-linux-x86_64-runtime.zip` | 可合入其他游戏的运行时、两后端驱动与安装说明 |
+| `tidelight-0.1.0-linux.tar.bz2` | 自带引擎的中文短篇样例 |
+| `RELEASE.json` | 构建提交、源码哈希、测试范围、产物大小与哈希 |
+| `SHA256SUMS` | 三个归档和构建清单的 SHA-256 |
+| `logs/` | 安装、测试、lint 与构建输出 |
 
-- `renpy-relations-0.1.0-source.tar.gz`：完整源码、测试、规则、文档与基准。
-- `renpy-relations-0.1.0-linux-x86_64-runtime.zip`：可合入其他游戏的运行时与两后端驱动。
-- `tidelight-0.1.0-linux.tar.bz2`：解压即可玩的完整文字样例。
-- `RELEASE.json`：实际构建提交、源码哈希、检查范围与产物清单。
-- `SHA256SUMS`：三个包与构建清单的校验值。
-- `logs/`：安装、测试、lint、构建与发行包检查的完整输出。
+`DEPENDENCIES.json` 记录安装的版本及许可证路径。项目内容采用 MIT，字体采用 OFL，第三方软件保留原许可；可试玩包必须保留 SDK 的完整 `LICENSE.txt` 和官方源码入口。
 
-源码包包含两份带原提交与校验值的历史基准对照，默认基准不依赖 `.git`；其他自选历史版本仍需 Git checkout。
+## CI 与发布
 
-玩法与接入入口见 [QUICKSTART.md](QUICKSTART.md)。`DEPENDENCIES.json` 在运行时包及游戏内记录实际依赖版本、许可证文件路径。原生扩展、规则 JSON 和剧情 JSON 保持为实际文件。
+GitHub Actions 在 push／pull request 时检查 Python 与独立样例。手动触发或版本标签触发完整候选构建，上传附件，不自动创建公开 Release。工作流固定 uv、SDK 校验值和 Action 提交。
 
-## CI 与公开发布
+发布前核对清单提交与版本、检查日志、校验下载包，再将版本标签指向该提交。分发三个归档、`RELEASE.json`、`SHA256SUMS` 及对应 CHANGELOG。Benchmark 报告应保留其自己的测量源码身份，不用后续文档提交替换测量身份。
 
-GitHub Actions 在 push／pull request 时检查 Python 与独立样例；手动触发或推送版本标签时构建完整候选产物。CI 固定 uv、SDK 下载校验值及第三方 Action 提交。工作流只上传构建附件，不创建公开 Release。
-
-公开前检查 `RELEASE.json` 对应准备发布的提交、所有日志成功、校验通过，并确认下载说明与版本一致。发布时将标签指向该构建提交，并把上述三个包、清单、校验文件和本版 [CHANGELOG](CHANGELOG.md) 一同提供。当前仓库尚未配置远端；公开位置与上传属于下一步发布操作。
-
-参考：[Ren’Py 命令行构建](https://www.renpy.org/doc/html/cli.html)、[发行文件分类](https://www.renpy.org/doc/html/build.html)、[官方 8.5.3 校验值](https://www.renpy.org/dl/8.5.3/checksums.txt)。
+参考：[Ren’Py 命令行构建](https://www.renpy.org/doc/html/cli.html)、[发行文件分类](https://www.renpy.org/doc/html/build.html)、[组件许可与源码](https://www.renpy.org/doc/html/license.html)。

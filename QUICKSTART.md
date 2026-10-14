@@ -1,6 +1,6 @@
 # 五分钟上手
 
-首版为 **0.1.0 实验版**。已验证的平台是 Linux x86_64、Ren’Py 8.5.3（内置 Python 3.12）。
+当前版本为 **0.1.0 实验版**。已验证的平台是 Linux x86_64、Ren’Py 8.5.3（内置 Python 3.12）。
 
 ## 直接试玩
 
@@ -69,7 +69,7 @@ init python:
     logic.install_renpy(config)
 ```
 
-脚本通过 `logic.batch()` 写事实，再使用 `logic.has()` 或 `logic.query()` 决定可选行动。完整可运行代码见 [palace](examples/palace/game/script.rpy)。规则 JSON、以 Path 读取的数据和原生扩展须作为实际文件打包。
+脚本通过 `logic.batch()` 写事实，再使用 `logic.has()` 或 `logic.query()` 决定可选行动。完整可运行代码见 [palace](examples/palace/game/script.rpy)，接口契约见 [USAGE](USAGE.md)。规则 JSON、以 Path 读取的数据和原生扩展须作为实际文件打包。
 
 ## 验证下载文件
 

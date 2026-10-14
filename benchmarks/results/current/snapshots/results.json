@@ -1,0 +1,456 @@
+{
+  "baseline_ref": null,
+  "parameters": {
+    "sizes": [
+      10000,
+      100000,
+      1000000
+    ],
+    "repetitions": 1,
+    "process_repetitions": 3,
+    "drivers": [
+      "pysqlite3",
+      "duckdb"
+    ],
+    "timeout": 180
+  },
+  "file_sha256": {
+    "benchmarks/snapshots.py": "c95ae763b2eedc0c4b090048c9b6a64af41122185bf7810d5159d5f9f42332b8",
+    "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d"
+  },
+  "created_at": "2026-10-14T18:14:58.869088+08:00",
+  "runs": [
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0006452689412981272,
+          "snapshot_reused": 6.211921572685242e-07,
+          "plain_commit": 0.0003364349249750376,
+          "history_commit": 0.0007936239708214998,
+          "restore": 0.002266559051349759,
+          "snapshot_bytes": 438272
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.01226671994663775,
+          "snapshot_reused": 8.011702448129654e-07,
+          "plain_commit": 0.002681009005755186,
+          "history_commit": 0.014897544868290424,
+          "restore": 0.04585827188566327,
+          "snapshot_bytes": 1323008
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0120121780782938,
+          "snapshot_reused": 5.508773028850555e-07,
+          "plain_commit": 0.002434310968965292,
+          "history_commit": 0.015005487017333508,
+          "restore": 0.045772293116897345,
+          "snapshot_bytes": 1323008
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.0007108200807124376,
+          "snapshot_reused": 5.511101335287094e-07,
+          "plain_commit": 0.00032364088110625744,
+          "history_commit": 0.0007917599286884069,
+          "restore": 0.002327872905880213,
+          "snapshot_bytes": 438272
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.000730286119505763,
+          "snapshot_reused": 6.409827619791031e-07,
+          "plain_commit": 0.0003136929590255022,
+          "history_commit": 0.0008150930516421795,
+          "restore": 0.0023211310617625713,
+          "snapshot_bytes": 438272
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 10000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.012307115131989121,
+          "snapshot_reused": 6.610061973333359e-07,
+          "plain_commit": 0.002568671014159918,
+          "history_commit": 0.01526874490082264,
+          "restore": 0.04691713000647724,
+          "snapshot_bytes": 1323008
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.003667800920084119,
+          "snapshot_reused": 7.008202373981476e-07,
+          "plain_commit": 0.000324492109939456,
+          "history_commit": 0.003260173834860325,
+          "restore": 0.009681229013949633,
+          "snapshot_bytes": 4349952
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.08789787697605789,
+          "snapshot_reused": 8.710194379091263e-07,
+          "plain_commit": 0.003061785828322172,
+          "history_commit": 0.09201115579344332,
+          "restore": 0.09994938806630671,
+          "snapshot_bytes": 5517312
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.09509388403967023,
+          "snapshot_reused": 8.919741958379745e-07,
+          "plain_commit": 0.0032385941594839096,
+          "history_commit": 0.09202550491318107,
+          "restore": 0.09783573588356376,
+          "snapshot_bytes": 5517312
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.004590796073898673,
+          "snapshot_reused": 5.408655852079391e-07,
+          "plain_commit": 0.0003373159561306238,
+          "history_commit": 0.0031121300999075174,
+          "restore": 0.010397559031844139,
+          "snapshot_bytes": 4349952
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.003660287009552121,
+          "snapshot_reused": 7.220078259706497e-07,
+          "plain_commit": 0.00035720388405025005,
+          "history_commit": 0.003095438936725259,
+          "restore": 0.009665440069511533,
+          "snapshot_bytes": 4349952
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 100000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.08881472516804934,
+          "snapshot_reused": 1.0819640010595322e-06,
+          "plain_commit": 0.0032748619560152292,
+          "history_commit": 0.09373833891004324,
+          "restore": 0.0996974571608007,
+          "snapshot_bytes": 5517312
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.03199962107464671,
+          "snapshot_reused": 1.3220123946666718e-06,
+          "plain_commit": 0.0006173569709062576,
+          "history_commit": 0.031655711121857166,
+          "restore": 0.09033411997370422,
+          "snapshot_bytes": 43507712
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 0,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.9173236889764667,
+          "snapshot_reused": 1.0521616786718369e-06,
+          "plain_commit": 0.0035774451680481434,
+          "history_commit": 0.9370476948097348,
+          "restore": 0.6958705359138548,
+          "snapshot_bytes": 48246784
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.9162082260008901,
+          "snapshot_reused": 1.1620577424764633e-06,
+          "plain_commit": 0.0035849481355398893,
+          "history_commit": 0.931967998854816,
+          "restore": 0.6602040380239487,
+          "snapshot_bytes": 48508928
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 1,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.03187091904692352,
+          "snapshot_reused": 1.7029233276844025e-06,
+          "plain_commit": 0.0006135089788585901,
+          "history_commit": 0.030576735036447644,
+          "restore": 0.09277912485413253,
+          "snapshot_bytes": 43507712
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "sqlite",
+      "driver": "pysqlite3",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "3.51.1",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.03275882010348141,
+          "snapshot_reused": 1.0021030902862549e-06,
+          "plain_commit": 0.0006205430254340172,
+          "history_commit": 0.03109619114547968,
+          "restore": 0.09151138202287257,
+          "snapshot_bytes": 43507712
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "backend": "duckdb",
+      "driver": "duckdb",
+      "process_repeat": 2,
+      "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+      "legacy": false,
+      "size": 1000000,
+      "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+      "runtime_sha256": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+      "database_version": "1.5.6",
+      "sqlalchemy": "2.0.43",
+      "samples": [
+        {
+          "snapshot": 0.9106395889539272,
+          "snapshot_reused": 1.0919757187366486e-06,
+          "plain_commit": 0.0035268820356577635,
+          "history_commit": 0.9356404000427574,
+          "restore": 0.6878524799831212,
+          "snapshot_bytes": 48246784
+        }
+      ]
+    }
+  ]
+}

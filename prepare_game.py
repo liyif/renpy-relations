@@ -62,7 +62,7 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         staging.mkdir()
         shutil.copytree(game / "game", staging / "game", ignore=shutil.ignore_patterns(
             "python-packages", "cache", "saves", "__pycache__", "*.rpyc", "*.pyc", "release.json"))
-        for name in ("README.md", "ROUTES.md", "VALIDATION.md", "world.l", "schema.json", "build_font.py"):
+        for name in ("README.md", "ROUTES.md", "world.l", "schema.json", "build_font.py"):
             if (game / name).is_file():
                 shutil.copy2(game / name, staging / name)
         for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
@@ -74,10 +74,6 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         if readme.is_file():
             readme.write_text(readme.read_text().replace("[QUICKSTART.md](../../QUICKSTART.md)",
                                                        "QUICKSTART.md（源码包根目录）"))
-        validation = staging / "VALIDATION.md"
-        if validation.is_file():
-            validation.write_text(validation.read_text().replace("[RELEASE.md](../../RELEASE.md)",
-                                                                "RELEASE.md（源码包根目录）"))
         packages = staging / "game/python-packages"
         requirements = staging / "runtime-requirements.txt"
         command = ["uv", "export", "--project", ROOT, "--locked", "--no-dev", "--group", "renpy-linux",

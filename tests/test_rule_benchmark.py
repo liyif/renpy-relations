@@ -119,11 +119,14 @@ def test_large_condition_cli_reads_every_condition_and_preserves_legacy_workload
     output = tmp_path / "conditions"
     result = subprocess.run([
         sys.executable, str(ROOT / "benchmarks/conditions.py"), "--conditions", "320", "--ratios", "10",
-        "--shapes", "partitioned", "--modes", "cached", "--repetitions", "1", "--out", str(output)],
+        "--shapes", "partitioned", "--modes", "cached", "--repetitions", "1",
+        "--backends", "sqlite", "--variants", "baseline", "native", "--out", str(output)],
         capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     document = json.loads((output / "results.json").read_text())
     assert len(document["runs"]) == 2
+    assert len(document["validations"]) == 2
+    assert all(r["status"] == "ok" and r["validated_full_relations"] == 1600 for r in document["validations"])
     for run in document["runs"]:
         assert run["status"] == "ok"
         assert run["conditions"] == 320 and run["rules"] == 384 and run["facts"] == 39
@@ -137,3 +140,19 @@ def test_large_condition_cli_reads_every_condition_and_preserves_legacy_workload
     assert native["local_rebuilt"] == 12
     assert baseline["local_rebuilt"] == 384
     assert "320" in (output / "REPORT.md").read_text()
+
+
+def test_condition_cli_current_backends_do_not_read_unselected_baseline(tmp_path):
+    pytest.importorskip("duckdb")
+    output = tmp_path / "conditions-current"
+    result = subprocess.run([
+        sys.executable, str(ROOT / "benchmarks/conditions.py"), "--conditions", "320", "--ratios", "10",
+        "--shapes", "partitioned", "--modes", "cached", "--repetitions", "1",
+        "--baseline-ref", "deliberately-missing", "--out", str(output)], capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stdout + result.stderr
+    document = json.loads((output / "results.json").read_text())
+    assert set(document["source_sha256"]) == {"native"}
+    assert {r["backend"] for r in document["runs"]} == {"sqlite", "duckdb"}
+    assert len(document["runs"]) == len(document["validations"]) == 2
+    assert all(r["status"] == "ok" and not r["history_bound"] for r in document["runs"])
+    assert all(r["validated_full_relations"] == 1600 for r in document["validations"])

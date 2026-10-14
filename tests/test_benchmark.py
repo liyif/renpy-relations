@@ -77,6 +77,24 @@ def test_failed_runs_are_not_averaged_into_successful_measurements():
     assert summary["phases"]["first_has"]["n"] == 1
 
 
+def test_backend_workers_use_distinct_fixtures_and_summary_groups(tmp_path):
+    pytest.importorskip("duckdb")
+    output = tmp_path / "backends"
+    result = subprocess.run([
+        sys.executable, str(SCRIPT), "--sizes", "40", "--backends", "sqlite", "duckdb",
+        "--modes", "cached", "--repetitions", "1", "--queries", "6", "--batch-size", "3",
+        "--out", str(output)], capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stdout + result.stderr
+    document = json.loads((output / "results.json").read_text())
+    assert len(document["runs"]) == 4
+    assert {r["backend"] for r in document["summary"]} == {"sqlite", "duckdb"}
+    for backend in ("sqlite", "duckdb"):
+        records = [r for r in document["runs"] if r["backend"] == backend]
+        assert len({r["fixture_sha256"] for r in records}) == 1
+        assert all(r["status"] == "ok" and not r["history_bound"] for r in records)
+        assert (output / ".work" / f"world-40-{backend}.snapshot").is_file()
+
+
 def test_missing_worker_result_is_a_recorded_failure(tmp_path):
     output = tmp_path / "missing-worker"
     result = subprocess.run(

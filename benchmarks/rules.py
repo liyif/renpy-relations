@@ -14,7 +14,7 @@ import traceback
 from run import ROOT, CLIENT_TIMEZONE, atomic_json, memory, runtime_info
 
 
-def dataset(facts, ratio, shape, *, conditions=None):
+def dataset(facts, ratio, shape, *, conditions=None, backend="sqlite"):
     columns = {"flag": "text", "enabled": "integer"}
     declarations = {"GlobalState": {"columns": {"enabled": "integer"}},
                     "Blocked": {"columns": {"flag": "text"}},
@@ -46,7 +46,10 @@ def dataset(facts, ratio, shape, *, conditions=None):
                     forbidden = ordinal % 2
                     sql += f" AND CAST(substr(r.flag,2) AS INTEGER) % {modulus} != {forbidden}"
             derived[name] = {"columns": {"flag": "text"}, "sql": sql}
-    return {"format": "renpy-relations", "version": 1, "facts": declarations, "derived": derived}
+    document = {"format": "renpy-relations", "version": 1, "facts": declarations, "derived": derived}
+    if backend != "sqlite":
+        document["backend"] = backend
+    return document
 
 
 def populate(db, facts, shape):
@@ -69,7 +72,8 @@ def worker(args):
 
     record = {"facts": args.facts, "ratio": args.ratio, "rules": args.facts * args.ratio,
               "shape": args.shape, "mode": args.mode, "variant": args.variant,
-              "repeat": args.repeat, "status": "running", "phases": {}, "runtime": runtime_info()}
+              "repeat": args.repeat, "backend": args.backend, "history_bound": False,
+              "status": "running", "phases": {}, "runtime": runtime_info(args.backend)}
     db = None
 
     def measure(name, action):
@@ -130,11 +134,39 @@ def worker(args):
                 db.remove("Note", text="initial")
                 db.add("Note", text="changed")
 
+    def verify_full(local=False, global_off=False, blocked=False):
+        checked = 0
+        for domain, name, ordinal in panel:
+            expected = {f"v{i // 32}" for i in range(domain, args.facts - 2, 32)
+                        if not global_off and not (local and domain == 0 and i // 32 == 0)
+                        and not (blocked and i // 32 == 0)
+                        and (i // 32) % (ordinal + 2) != ordinal % 2}
+            rows = db.query(name)
+            assert len(rows) == len(expected), name
+            assert {r["flag"] for r in rows} == expected, name
+            checked += 1
+        record["validated_full_relations"] = record.get("validated_full_relations", 0) + checked
+
     try:
         document = json.loads(args.bundle.read_text())
         record["bundle_sha256"] = hashlib.sha256(args.bundle.read_bytes()).hexdigest()
         db = measure("load", lambda: LogicDB(RuleSet(document), mode=args.mode))
         measure("ingest", lambda: populate(db, args.facts, args.shape))
+        if args.validate_only:
+            verify_full()
+            change(domain=True)
+            verify_full(local=True)
+            change(global_off=True)
+            verify_full(local=True, global_off=True)
+            change(note=True)
+            verify_full(local=True, global_off=True)
+            with db.batch():
+                db.remove("GlobalState", enabled=0)
+                db.add("GlobalState", enabled=1)
+                db.add("Blocked", flag="v0")
+            verify_full(local=True, blocked=True)
+            record.update(status="ok", validation_only=True, **memory())
+            return 0
         for phase in ("cold_panel", "warm_panel"):
             samples = measure(phase, read_panel)
             save_samples(phase, samples)
@@ -220,6 +252,8 @@ def main():
     p.add_argument("--variant", help=argparse.SUPPRESS)
     p.add_argument("--repeat", type=int, help=argparse.SUPPRESS)
     p.add_argument("--condition-count", type=int, help=argparse.SUPPRESS)
+    p.add_argument("--backend", choices=["sqlite", "duckdb"], default="sqlite", help=argparse.SUPPRESS)
+    p.add_argument("--validate-only", action="store_true", help=argparse.SUPPRESS)
     args = p.parse_args()
     if args.worker and args.condition_count is not None:
         if len(args.facts) != 1 or args.facts[0] < 34 or args.condition_count < 32:

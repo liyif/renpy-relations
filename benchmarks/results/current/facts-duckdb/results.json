@@ -1,0 +1,2468 @@
+{
+  "format": "renpy-relations-benchmark",
+  "version": 1,
+  "started_at": "2026-10-14T18:14:17.151642+08:00",
+  "parameters": {
+    "sizes": [
+      10000
+    ],
+    "modes": [
+      "cached",
+      "live",
+      "materialized"
+    ],
+    "backends": [
+      "duckdb"
+    ],
+    "history_bound": false,
+    "repetitions": 3,
+    "queries": 12,
+    "batch_size": 100,
+    "timeout": 1800
+  },
+  "host": {
+    "platform": "Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44",
+    "cpu": "AMD Ryzen 9 7900X 12-Core Processor",
+    "logical_cpus": 24
+  },
+  "source": {
+    "git_commit": "e04cd2921febe1bff05810b4ba6d02b44157cc8e",
+    "git_dirty": true,
+    "sha256": {
+      "renpy_relations.py": "11ce97f728c42ecbe06d3c69e58cb2d67d13831b06693b6ac985c820df3d8a32",
+      "compile_rules.py": "d844636480e4e8fa7205151b6ac9f3752741b7de05c09a7502c2b7446308fa4e",
+      "benchmarks/run.py": "bc4df5e672e02b84f9566b07ff40bca6562720e6cf00de5fc53763709f8a922a",
+      "uv.lock": "270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d"
+    }
+  },
+  "compiler": {
+    "logica": "1.3.1415926535897",
+    "seconds": 0.5377386659383774
+  },
+  "runs": [
+    {
+      "kind": "seed",
+      "size": 10000,
+      "mode": "cached",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.0839030179195106,
+          "cpu_seconds": 0.09211029599999998,
+          "rss_before_bytes": 89063424,
+          "rss_bytes": 133079040,
+          "peak_rss_bytes": 133079040
+        },
+        "public_ingest": {
+          "seconds": 14.619130233069882,
+          "cpu_seconds": 14.545022694,
+          "rss_before_bytes": 133087232,
+          "rss_bytes": 215371776,
+          "peak_rss_bytes": 215371776
+        },
+        "snapshot": {
+          "seconds": 0.02419811300933361,
+          "cpu_seconds": 0.024089964999999935,
+          "rss_before_bytes": 215375872,
+          "rss_bytes": 222703616,
+          "peak_rss_bytes": 222703616
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "rss_bytes": 223178752,
+      "peak_rss_bytes": 223178752
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "cached",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08486305898986757,
+          "cpu_seconds": 0.08975351000000001,
+          "rss_before_bytes": 89063424,
+          "rss_bytes": 136982528,
+          "peak_rss_bytes": 136982528
+        },
+        "restore_initial": {
+          "seconds": 0.07653007586486638,
+          "cpu_seconds": 0.07627343199999997,
+          "rss_before_bytes": 140414976,
+          "rss_bytes": 127143936,
+          "peak_rss_bytes": 155181056
+        },
+        "first_has": {
+          "seconds": 0.012298456160351634,
+          "cpu_seconds": 0.012243098000000008,
+          "rss_before_bytes": 127156224,
+          "rss_bytes": 141254656,
+          "peak_rss_bytes": 155181056
+        },
+        "warm_has": {
+          "seconds": 0.01009904290549457,
+          "cpu_seconds": 0.01004174699999999,
+          "rss_before_bytes": 141254656,
+          "rss_bytes": 141262848,
+          "peak_rss_bytes": 155181056,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009357081726193428,
+            0.0008604580070823431,
+            0.0008445980492979288,
+            0.0008367039263248444,
+            0.0008405509870499372,
+            0.0007861489430069923,
+            0.0008326158858835697,
+            0.000840269960463047,
+            0.0008345600217580795,
+            0.0008252819534391165,
+            0.0008282079361379147,
+            0.0008303618524223566
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010561712086200714,
+          "cpu_seconds": 0.010499445999999968,
+          "rss_before_bytes": 141275136,
+          "rss_bytes": 141307904,
+          "peak_rss_bytes": 155181056,
+          "requests": 12,
+          "samples_seconds": [
+            0.0010024309158325195,
+            0.0009522589389234781,
+            0.0009293558541685343,
+            0.0008215561974793673,
+            0.0009339340031147003,
+            0.0006089608650654554,
+            0.0009467180352658033,
+            0.000906853936612606,
+            0.0009168421383947134,
+            0.0008295897860080004,
+            0.000903919106349349,
+            0.0008060568943619728
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.2421514838933945e-06,
+          "cpu_seconds": 2.644999999967812e-06,
+          "rss_before_bytes": 141324288,
+          "rss_bytes": 141324288,
+          "peak_rss_bytes": 155181056
+        },
+        "single_commit": {
+          "seconds": 0.002686257939785719,
+          "cpu_seconds": 0.002672123999999998,
+          "rss_before_bytes": 141332480,
+          "rss_bytes": 141488128,
+          "peak_rss_bytes": 155181056
+        },
+        "first_has_after_single": {
+          "seconds": 0.00548635795712471,
+          "cpu_seconds": 0.005453309999999989,
+          "rss_before_bytes": 141488128,
+          "rss_bytes": 143790080,
+          "peak_rss_bytes": 155181056
+        },
+        "batch_commit": {
+          "seconds": 0.08185971388593316,
+          "cpu_seconds": 0.08144139299999997,
+          "rss_before_bytes": 143790080,
+          "rss_bytes": 144097280,
+          "peak_rss_bytes": 155181056
+        },
+        "first_has_after_batch": {
+          "seconds": 0.005717537133023143,
+          "cpu_seconds": 0.0056899940000000315,
+          "rss_before_bytes": 144109568,
+          "rss_bytes": 144195584,
+          "peak_rss_bytes": 155181056
+        },
+        "reload_same_rules": {
+          "seconds": 0.10675443080253899,
+          "cpu_seconds": 0.10629589199999995,
+          "rss_before_bytes": 144195584,
+          "rss_bytes": 133820416,
+          "peak_rss_bytes": 168714240
+        },
+        "first_has_after_reload": {
+          "seconds": 0.011723469011485577,
+          "cpu_seconds": 0.011668930999999994,
+          "rss_before_bytes": 133832704,
+          "rss_bytes": 145510400,
+          "peak_rss_bytes": 168714240
+        },
+        "restore_after_edits": {
+          "seconds": 0.07754813903011382,
+          "cpu_seconds": 0.07814479299999999,
+          "rss_before_bytes": 145518592,
+          "rss_bytes": 142864384,
+          "peak_rss_bytes": 173441024
+        },
+        "first_has_after_restore": {
+          "seconds": 0.012334945145994425,
+          "cpu_seconds": 0.012242496999999908,
+          "rss_before_bytes": 142868480,
+          "rss_bytes": 155381760,
+          "peak_rss_bytes": 173441024
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "cached",
+        "backend": "duckdb",
+        "cached_relations": [
+          "CanClaimReward",
+          "CanEnter",
+          "CanInvestigate"
+        ],
+        "materializations": {
+          "CanInvestigate": 5,
+          "CanEnter": 3,
+          "CanClaimReward": 5
+        },
+        "materialization_seconds": 0.035269921412691474,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 155381760,
+      "peak_rss_bytes": 173441024
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "live",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08657337795011699,
+          "cpu_seconds": 0.089605151,
+          "rss_before_bytes": 89047040,
+          "rss_bytes": 134627328,
+          "peak_rss_bytes": 134627328
+        },
+        "restore_initial": {
+          "seconds": 0.07759290095418692,
+          "cpu_seconds": 0.07727450899999996,
+          "rss_before_bytes": 138063872,
+          "rss_bytes": 125067264,
+          "peak_rss_bytes": 152375296
+        },
+        "first_has": {
+          "seconds": 0.0032726870849728584,
+          "cpu_seconds": 0.0032579420000000137,
+          "rss_before_bytes": 125075456,
+          "rss_bytes": 131067904,
+          "peak_rss_bytes": 152375296
+        },
+        "warm_has": {
+          "seconds": 0.024023439036682248,
+          "cpu_seconds": 0.02389396199999999,
+          "rss_before_bytes": 131076096,
+          "rss_bytes": 131907584,
+          "peak_rss_bytes": 152375296,
+          "requests": 12,
+          "samples_seconds": [
+            0.002301765140146017,
+            0.002219540998339653,
+            0.0019584668334573507,
+            0.002149352105334401,
+            0.0019100168719887733,
+            0.0017002869863063097,
+            0.0021287829149514437,
+            0.0018873449880629778,
+            0.0018749521113932133,
+            0.0019394010305404663,
+            0.0018812131602317095,
+            0.0020683498587459326
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.013035374926403165,
+          "cpu_seconds": 0.012962807999999992,
+          "rss_before_bytes": 131919872,
+          "rss_bytes": 132104192,
+          "peak_rss_bytes": 152375296,
+          "requests": 12,
+          "samples_seconds": [
+            0.0012197750620543957,
+            0.001163500128313899,
+            0.001073803985491395,
+            0.0011011450551450253,
+            0.001133123878389597,
+            0.0008632431272417307,
+            0.0011226451024413109,
+            0.0011069858446717262,
+            0.0010603801347315311,
+            0.0010697059333324432,
+            0.0010545479599386454,
+            0.0010633249767124653
+          ]
+        },
+        "snapshot": {
+          "seconds": 8.910428732633591e-07,
+          "cpu_seconds": 2.2840000000190486e-06,
+          "rss_before_bytes": 132120576,
+          "rss_bytes": 132120576,
+          "peak_rss_bytes": 152375296
+        },
+        "single_commit": {
+          "seconds": 0.0014468571171164513,
+          "cpu_seconds": 0.001443216000000025,
+          "rss_before_bytes": 132132864,
+          "rss_bytes": 132403200,
+          "peak_rss_bytes": 152375296
+        },
+        "first_has_after_single": {
+          "seconds": 0.0021575959399342537,
+          "cpu_seconds": 0.0021442009999999567,
+          "rss_before_bytes": 132407296,
+          "rss_bytes": 132513792,
+          "peak_rss_bytes": 152375296
+        },
+        "batch_commit": {
+          "seconds": 0.08131627505645156,
+          "cpu_seconds": 0.08081903099999999,
+          "rss_before_bytes": 132521984,
+          "rss_bytes": 132636672,
+          "peak_rss_bytes": 152375296
+        },
+        "first_has_after_batch": {
+          "seconds": 0.002608422888442874,
+          "cpu_seconds": 0.002590830000000044,
+          "rss_before_bytes": 132644864,
+          "rss_bytes": 132648960,
+          "peak_rss_bytes": 152375296
+        },
+        "reload_same_rules": {
+          "seconds": 0.12079353001900017,
+          "cpu_seconds": 0.12028056800000003,
+          "rss_before_bytes": 132653056,
+          "rss_bytes": 129359872,
+          "peak_rss_bytes": 156221440
+        },
+        "first_has_after_reload": {
+          "seconds": 0.003042760072275996,
+          "cpu_seconds": 0.0030265959999999925,
+          "rss_before_bytes": 129384448,
+          "rss_bytes": 133365760,
+          "peak_rss_bytes": 156221440
+        },
+        "restore_after_edits": {
+          "seconds": 0.08091146405786276,
+          "cpu_seconds": 0.08233082199999997,
+          "rss_before_bytes": 134402048,
+          "rss_bytes": 150863872,
+          "peak_rss_bytes": 175022080
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0028185341507196426,
+          "cpu_seconds": 0.002813537999999949,
+          "rss_before_bytes": 150863872,
+          "rss_bytes": 154509312,
+          "peak_rss_bytes": 175022080
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "live",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 154509312,
+      "peak_rss_bytes": 175022080
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "materialized",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 0,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.09062255802564323,
+          "cpu_seconds": 0.09409132799999997,
+          "rss_before_bytes": 88989696,
+          "rss_bytes": 138973184,
+          "peak_rss_bytes": 138973184
+        },
+        "restore_initial": {
+          "seconds": 0.09120430890470743,
+          "cpu_seconds": 0.09086255499999998,
+          "rss_before_bytes": 142405632,
+          "rss_bytes": 131895296,
+          "peak_rss_bytes": 156303360
+        },
+        "first_has": {
+          "seconds": 0.0014560238923877478,
+          "cpu_seconds": 0.0014481570000000055,
+          "rss_before_bytes": 131907584,
+          "rss_bytes": 132026368,
+          "peak_rss_bytes": 156303360
+        },
+        "warm_has": {
+          "seconds": 0.010124581167474389,
+          "cpu_seconds": 0.010061134999999999,
+          "rss_before_bytes": 132026368,
+          "rss_bytes": 132050944,
+          "peak_rss_bytes": 156303360,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009121941402554512,
+            0.000850809970870614,
+            0.0008380659855902195,
+            0.0008777698967605829,
+            0.0008355509489774704,
+            0.0008015979547053576,
+            0.0008369139395654202,
+            0.000825934112071991,
+            0.0008356219623237848,
+            0.0008268060628324747,
+            0.0008442581165581942,
+            0.0008352911099791527
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.01064501702785492,
+          "cpu_seconds": 0.010595937999999971,
+          "rss_before_bytes": 132063232,
+          "rss_bytes": 132313088,
+          "peak_rss_bytes": 156303360,
+          "requests": 12,
+          "samples_seconds": [
+            0.0010371159296482801,
+            0.0009839769918471575,
+            0.0009470691438764334,
+            0.0008389782160520554,
+            0.0009251679293811321,
+            0.0006103140767663717,
+            0.0009313190821558237,
+            0.0009118530433624983,
+            0.0009181350469589233,
+            0.0008258430752903223,
+            0.0008984480518847704,
+            0.0008136711549013853
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.4719553291797638e-06,
+          "cpu_seconds": 2.8260000000113195e-06,
+          "rss_before_bytes": 132325376,
+          "rss_bytes": 132325376,
+          "peak_rss_bytes": 156303360
+        },
+        "single_commit": {
+          "seconds": 0.008092828094959259,
+          "cpu_seconds": 0.008053258000000008,
+          "rss_before_bytes": 132337664,
+          "rss_bytes": 145612800,
+          "peak_rss_bytes": 156303360
+        },
+        "first_has_after_single": {
+          "seconds": 0.0009049410000443459,
+          "cpu_seconds": 0.0009025750000000166,
+          "rss_before_bytes": 145616896,
+          "rss_bytes": 145620992,
+          "peak_rss_bytes": 156303360
+        },
+        "batch_commit": {
+          "seconds": 0.08715016092173755,
+          "cpu_seconds": 0.086753998,
+          "rss_before_bytes": 145620992,
+          "rss_bytes": 147042304,
+          "peak_rss_bytes": 156303360
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0010230890475213528,
+          "cpu_seconds": 0.0010205459999999555,
+          "rss_before_bytes": 147050496,
+          "rss_bytes": 147050496,
+          "peak_rss_bytes": 156303360
+        },
+        "reload_same_rules": {
+          "seconds": 0.10898553696461022,
+          "cpu_seconds": 0.10851945299999993,
+          "rss_before_bytes": 147054592,
+          "rss_bytes": 134668288,
+          "peak_rss_bytes": 161943552
+        },
+        "first_has_after_reload": {
+          "seconds": 0.0012353539932519197,
+          "cpu_seconds": 0.0012314390000000008,
+          "rss_before_bytes": 134680576,
+          "rss_bytes": 134787072,
+          "peak_rss_bytes": 161943552
+        },
+        "restore_after_edits": {
+          "seconds": 0.08967149187810719,
+          "cpu_seconds": 0.09028123300000002,
+          "rss_before_bytes": 134819840,
+          "rss_bytes": 143794176,
+          "peak_rss_bytes": 172408832
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0012003991287201643,
+          "cpu_seconds": 0.001817498000000084,
+          "rss_before_bytes": 143798272,
+          "rss_bytes": 152309760,
+          "peak_rss_bytes": 172408832
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "materialized",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 152309760,
+      "peak_rss_bytes": 172408832
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "live",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08517179707996547,
+          "cpu_seconds": 0.08936792199999999,
+          "rss_before_bytes": 89042944,
+          "rss_bytes": 139100160,
+          "peak_rss_bytes": 139100160
+        },
+        "restore_initial": {
+          "seconds": 0.07924717804417014,
+          "cpu_seconds": 0.07891805700000001,
+          "rss_before_bytes": 142532608,
+          "rss_bytes": 129609728,
+          "peak_rss_bytes": 156332032
+        },
+        "first_has": {
+          "seconds": 0.00336768408305943,
+          "cpu_seconds": 0.003355755000000016,
+          "rss_before_bytes": 129617920,
+          "rss_bytes": 133754880,
+          "peak_rss_bytes": 156332032
+        },
+        "warm_has": {
+          "seconds": 0.02410197607241571,
+          "cpu_seconds": 0.023962576000000013,
+          "rss_before_bytes": 133754880,
+          "rss_bytes": 134541312,
+          "peak_rss_bytes": 156332032,
+          "requests": 12,
+          "samples_seconds": [
+            0.0023438220378011465,
+            0.0022154441103339195,
+            0.0019028340466320515,
+            0.002126920036971569,
+            0.001950942911207676,
+            0.0017116488888859749,
+            0.0021196871530264616,
+            0.0019182818941771984,
+            0.0019008999224752188,
+            0.0018924940377473831,
+            0.0019099069759249687,
+            0.002105250023305416
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.013020158046856523,
+          "cpu_seconds": 0.012936274999999997,
+          "rss_before_bytes": 134553600,
+          "rss_bytes": 134877184,
+          "peak_rss_bytes": 156332032,
+          "requests": 12,
+          "samples_seconds": [
+            0.001205227803438902,
+            0.0011493749916553497,
+            0.001086177071556449,
+            0.0010668509639799595,
+            0.0011447961442172527,
+            0.0008575229439884424,
+            0.0011284048669040203,
+            0.0011058931704610586,
+            0.0010739939752966166,
+            0.0010777618736028671,
+            0.00106074009090662,
+            0.0010603789705783129
+          ]
+        },
+        "snapshot": {
+          "seconds": 9.818468242883682e-07,
+          "cpu_seconds": 2.3049999999802395e-06,
+          "rss_before_bytes": 134893568,
+          "rss_bytes": 134893568,
+          "peak_rss_bytes": 156332032
+        },
+        "single_commit": {
+          "seconds": 0.0014302260242402554,
+          "cpu_seconds": 0.0014268159999999974,
+          "rss_before_bytes": 134901760,
+          "rss_bytes": 135188480,
+          "peak_rss_bytes": 156332032
+        },
+        "first_has_after_single": {
+          "seconds": 0.002134823938831687,
+          "cpu_seconds": 0.0021261479999999944,
+          "rss_before_bytes": 135188480,
+          "rss_bytes": 135282688,
+          "peak_rss_bytes": 156332032
+        },
+        "batch_commit": {
+          "seconds": 0.08198458096012473,
+          "cpu_seconds": 0.081506672,
+          "rss_before_bytes": 135286784,
+          "rss_bytes": 137502720,
+          "peak_rss_bytes": 156332032
+        },
+        "first_has_after_batch": {
+          "seconds": 0.002383867045864463,
+          "cpu_seconds": 0.0023757869999999626,
+          "rss_before_bytes": 137502720,
+          "rss_bytes": 137646080,
+          "peak_rss_bytes": 156332032
+        },
+        "reload_same_rules": {
+          "seconds": 0.10835638199932873,
+          "cpu_seconds": 0.10784102100000004,
+          "rss_before_bytes": 137650176,
+          "rss_bytes": 134594560,
+          "peak_rss_bytes": 163479552
+        },
+        "first_has_after_reload": {
+          "seconds": 0.003480402985587716,
+          "cpu_seconds": 0.0034611520000000784,
+          "rss_before_bytes": 134606848,
+          "rss_bytes": 140660736,
+          "peak_rss_bytes": 163479552
+        },
+        "restore_after_edits": {
+          "seconds": 0.0800756870303303,
+          "cpu_seconds": 0.08049122599999992,
+          "rss_before_bytes": 141369344,
+          "rss_bytes": 140681216,
+          "peak_rss_bytes": 168927232
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0029667990747839212,
+          "cpu_seconds": 0.0034494129999999013,
+          "rss_before_bytes": 140693504,
+          "rss_bytes": 151711744,
+          "peak_rss_bytes": 168927232
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "live",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 151715840,
+      "peak_rss_bytes": 168927232
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "materialized",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08845785213634372,
+          "cpu_seconds": 0.09235247399999999,
+          "rss_before_bytes": 89083904,
+          "rss_bytes": 134758400,
+          "peak_rss_bytes": 134758400
+        },
+        "restore_initial": {
+          "seconds": 0.08385044592432678,
+          "cpu_seconds": 0.083512385,
+          "rss_before_bytes": 138190848,
+          "rss_bytes": 128401408,
+          "peak_rss_bytes": 152354816
+        },
+        "first_has": {
+          "seconds": 0.001315792789682746,
+          "cpu_seconds": 0.0013119719999999946,
+          "rss_before_bytes": 128413696,
+          "rss_bytes": 128532480,
+          "peak_rss_bytes": 152354816
+        },
+        "warm_has": {
+          "seconds": 0.010034193051978946,
+          "cpu_seconds": 0.009987203,
+          "rss_before_bytes": 128536576,
+          "rss_bytes": 128557056,
+          "peak_rss_bytes": 152354816,
+          "requests": 12,
+          "samples_seconds": [
+            0.0008843319956213236,
+            0.0008576731197535992,
+            0.0008450490422546864,
+            0.000843956833705306,
+            0.0008406508713960648,
+            0.0008040829561650753,
+            0.0008255729917436838,
+            0.0008255629800260067,
+            0.0008240898605436087,
+            0.0008238400332629681,
+            0.000831464072689414,
+            0.0008238800801336765
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.01059840084053576,
+          "cpu_seconds": 0.010544780000000031,
+          "rss_before_bytes": 128565248,
+          "rss_bytes": 128815104,
+          "peak_rss_bytes": 152354816,
+          "requests": 12,
+          "samples_seconds": [
+            0.0010045049712061882,
+            0.0009692299645394087,
+            0.000952848931774497,
+            0.0008386869449168444,
+            0.0009207201655954123,
+            0.0005980799905955791,
+            0.0009313588961958885,
+            0.0009092679247260094,
+            0.0009162109345197678,
+            0.0008297311142086983,
+            0.0009115429129451513,
+            0.0008130690548568964
+          ]
+        },
+        "snapshot": {
+          "seconds": 9.920913726091385e-07,
+          "cpu_seconds": 2.514000000009009e-06,
+          "rss_before_bytes": 128831488,
+          "rss_bytes": 128831488,
+          "peak_rss_bytes": 152354816
+        },
+        "single_commit": {
+          "seconds": 0.007572091184556484,
+          "cpu_seconds": 0.007525312999999978,
+          "rss_before_bytes": 128839680,
+          "rss_bytes": 143634432,
+          "peak_rss_bytes": 152354816
+        },
+        "first_has_after_single": {
+          "seconds": 0.0009257688652724028,
+          "cpu_seconds": 0.0009217810000000104,
+          "rss_before_bytes": 143634432,
+          "rss_bytes": 143638528,
+          "peak_rss_bytes": 152354816
+        },
+        "batch_commit": {
+          "seconds": 0.08581112697720528,
+          "cpu_seconds": 0.08532812699999998,
+          "rss_before_bytes": 143642624,
+          "rss_bytes": 144818176,
+          "peak_rss_bytes": 152354816
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0009428099729120731,
+          "cpu_seconds": 0.0009395520000000102,
+          "rss_before_bytes": 144826368,
+          "rss_bytes": 144830464,
+          "peak_rss_bytes": 152354816
+        },
+        "reload_same_rules": {
+          "seconds": 0.10550293512642384,
+          "cpu_seconds": 0.10506785300000004,
+          "rss_before_bytes": 144830464,
+          "rss_bytes": 131645440,
+          "peak_rss_bytes": 160636928
+        },
+        "first_has_after_reload": {
+          "seconds": 0.0011846187990158796,
+          "cpu_seconds": 0.001159134000000006,
+          "rss_before_bytes": 131665920,
+          "rss_bytes": 131772416,
+          "peak_rss_bytes": 160636928
+        },
+        "restore_after_edits": {
+          "seconds": 0.08895515697076917,
+          "cpu_seconds": 0.08988998699999995,
+          "rss_before_bytes": 131805184,
+          "rss_bytes": 142127104,
+          "peak_rss_bytes": 168812544
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0011289368849247694,
+          "cpu_seconds": 0.0011251910000000809,
+          "rss_before_bytes": 142131200,
+          "rss_bytes": 142196736,
+          "peak_rss_bytes": 168812544
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "materialized",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 142200832,
+      "peak_rss_bytes": 168812544
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "cached",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 1,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08561195014044642,
+          "cpu_seconds": 0.09052901199999999,
+          "rss_before_bytes": 89120768,
+          "rss_bytes": 135245824,
+          "peak_rss_bytes": 135245824
+        },
+        "restore_initial": {
+          "seconds": 0.07641766616143286,
+          "cpu_seconds": 0.076138751,
+          "rss_before_bytes": 138678272,
+          "rss_bytes": 125726720,
+          "peak_rss_bytes": 152969216
+        },
+        "first_has": {
+          "seconds": 0.011630007065832615,
+          "cpu_seconds": 0.011575277999999967,
+          "rss_before_bytes": 125739008,
+          "rss_bytes": 140300288,
+          "peak_rss_bytes": 152969216
+        },
+        "warm_has": {
+          "seconds": 0.010048168944194913,
+          "cpu_seconds": 0.009997343999999964,
+          "rss_before_bytes": 140300288,
+          "rss_bytes": 140308480,
+          "peak_rss_bytes": 152969216,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009252780582755804,
+            0.000854315934702754,
+            0.0008491671178489923,
+            0.000828038202598691,
+            0.0008391891606152058,
+            0.000795617001131177,
+            0.0008278368040919304,
+            0.000836412888020277,
+            0.0008242209441959858,
+            0.0008163859602063894,
+            0.0008278670720756054,
+            0.0008199128787964582
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010523491073399782,
+          "cpu_seconds": 0.010467416000000007,
+          "rss_before_bytes": 140316672,
+          "rss_bytes": 140369920,
+          "peak_rss_bytes": 152969216,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009946469217538834,
+            0.0009533909615129232,
+            0.0009223029483109713,
+            0.0008333469741046429,
+            0.0009105911012738943,
+            0.0006117660086601973,
+            0.0009156500454992056,
+            0.0008899031672626734,
+            0.0009126849472522736,
+            0.0008305627852678299,
+            0.0009453250095248222,
+            0.0008001059759408236
+          ]
+        },
+        "snapshot": {
+          "seconds": 8.021015673875809e-07,
+          "cpu_seconds": 2.1640000000267e-06,
+          "rss_before_bytes": 140386304,
+          "rss_bytes": 140386304,
+          "peak_rss_bytes": 152969216
+        },
+        "single_commit": {
+          "seconds": 0.0026766599621623755,
+          "cpu_seconds": 0.0026632169999999955,
+          "rss_before_bytes": 140394496,
+          "rss_bytes": 140492800,
+          "peak_rss_bytes": 152969216
+        },
+        "first_has_after_single": {
+          "seconds": 0.005494202021509409,
+          "cpu_seconds": 0.005469400000000013,
+          "rss_before_bytes": 140492800,
+          "rss_bytes": 142880768,
+          "peak_rss_bytes": 152969216
+        },
+        "batch_commit": {
+          "seconds": 0.08124205400235951,
+          "cpu_seconds": 0.080849854,
+          "rss_before_bytes": 142880768,
+          "rss_bytes": 143032320,
+          "peak_rss_bytes": 152969216
+        },
+        "first_has_after_batch": {
+          "seconds": 0.005421377951279283,
+          "cpu_seconds": 0.005392307999999957,
+          "rss_before_bytes": 143040512,
+          "rss_bytes": 143179776,
+          "peak_rss_bytes": 152969216
+        },
+        "reload_same_rules": {
+          "seconds": 0.10841774009168148,
+          "cpu_seconds": 0.10790017000000002,
+          "rss_before_bytes": 143183872,
+          "rss_bytes": 131436544,
+          "peak_rss_bytes": 166801408
+        },
+        "first_has_after_reload": {
+          "seconds": 0.011607405031099916,
+          "cpu_seconds": 0.011552333000000026,
+          "rss_before_bytes": 131452928,
+          "rss_bytes": 142663680,
+          "peak_rss_bytes": 166801408
+        },
+        "restore_after_edits": {
+          "seconds": 0.0808079200796783,
+          "cpu_seconds": 0.08144830999999997,
+          "rss_before_bytes": 142675968,
+          "rss_bytes": 140427264,
+          "peak_rss_bytes": 171167744
+        },
+        "first_has_after_restore": {
+          "seconds": 0.012039338005706668,
+          "cpu_seconds": 0.012443520000000041,
+          "rss_before_bytes": 140435456,
+          "rss_bytes": 161669120,
+          "peak_rss_bytes": 171167744
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "cached",
+        "backend": "duckdb",
+        "cached_relations": [
+          "CanClaimReward",
+          "CanEnter",
+          "CanInvestigate"
+        ],
+        "materializations": {
+          "CanEnter": 3,
+          "CanClaimReward": 5,
+          "CanInvestigate": 5
+        },
+        "materialization_seconds": 0.03398551163263619,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 161673216,
+      "peak_rss_bytes": 171167744
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "materialized",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 2,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08565140585415065,
+          "cpu_seconds": 0.091438625,
+          "rss_before_bytes": 89071616,
+          "rss_bytes": 137170944,
+          "peak_rss_bytes": 137170944
+        },
+        "restore_initial": {
+          "seconds": 0.08477071998640895,
+          "cpu_seconds": 0.08444305399999999,
+          "rss_before_bytes": 140603392,
+          "rss_bytes": 130506752,
+          "peak_rss_bytes": 155209728
+        },
+        "first_has": {
+          "seconds": 0.0013272440992295742,
+          "cpu_seconds": 0.0013232320000000075,
+          "rss_before_bytes": 130514944,
+          "rss_bytes": 130633728,
+          "peak_rss_bytes": 155209728
+        },
+        "warm_has": {
+          "seconds": 0.010163794970139861,
+          "cpu_seconds": 0.01010183800000003,
+          "rss_before_bytes": 130637824,
+          "rss_bytes": 130662400,
+          "peak_rss_bytes": 155209728,
+          "requests": 12,
+          "samples_seconds": [
+            0.0008871469181030989,
+            0.0008569720666855574,
+            0.0008427950087934732,
+            0.0008304018992930651,
+            0.000850259093567729,
+            0.0008144120220094919,
+            0.0008307518437504768,
+            0.0008342289365828037,
+            0.000831865007057786,
+            0.0008307218085974455,
+            0.0009040688164532185,
+            0.0008460909593850374
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.010679771890863776,
+          "cpu_seconds": 0.010613121000000003,
+          "rss_before_bytes": 130670592,
+          "rss_bytes": 130916352,
+          "peak_rss_bytes": 155209728,
+          "requests": 12,
+          "samples_seconds": [
+            0.0010231700725853443,
+            0.0009721450041979551,
+            0.000945196021348238,
+            0.0008493768982589245,
+            0.0009413380175828934,
+            0.0006216350011527538,
+            0.0009337537921965122,
+            0.0009162221103906631,
+            0.0009227839764207602,
+            0.0008267161902040243,
+            0.0009139468893408775,
+            0.0008102240972220898
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.0121148079633713e-06,
+          "cpu_seconds": 2.4339999999956063e-06,
+          "rss_before_bytes": 130932736,
+          "rss_bytes": 130932736,
+          "peak_rss_bytes": 155209728
+        },
+        "single_commit": {
+          "seconds": 0.00795391108840704,
+          "cpu_seconds": 0.007914134999999989,
+          "rss_before_bytes": 130940928,
+          "rss_bytes": 146739200,
+          "peak_rss_bytes": 155209728
+        },
+        "first_has_after_single": {
+          "seconds": 0.0009051009546965361,
+          "cpu_seconds": 0.0008983639999999848,
+          "rss_before_bytes": 146739200,
+          "rss_bytes": 146743296,
+          "peak_rss_bytes": 155209728
+        },
+        "batch_commit": {
+          "seconds": 0.08528669807128608,
+          "cpu_seconds": 0.08484797599999999,
+          "rss_before_bytes": 146743296,
+          "rss_bytes": 147742720,
+          "peak_rss_bytes": 155209728
+        },
+        "first_has_after_batch": {
+          "seconds": 0.0009231939911842346,
+          "cpu_seconds": 0.0009194049999999843,
+          "rss_before_bytes": 147746816,
+          "rss_bytes": 147746816,
+          "peak_rss_bytes": 155209728
+        },
+        "reload_same_rules": {
+          "seconds": 0.10541329300031066,
+          "cpu_seconds": 0.10489163099999999,
+          "rss_before_bytes": 147750912,
+          "rss_bytes": 134639616,
+          "peak_rss_bytes": 166584320
+        },
+        "first_has_after_reload": {
+          "seconds": 0.0011616579722613096,
+          "cpu_seconds": 0.001158793999999963,
+          "rss_before_bytes": 134651904,
+          "rss_bytes": 134758400,
+          "peak_rss_bytes": 166584320
+        },
+        "restore_after_edits": {
+          "seconds": 0.08688562689349055,
+          "cpu_seconds": 0.08749954199999999,
+          "rss_before_bytes": 134791168,
+          "rss_bytes": 146911232,
+          "peak_rss_bytes": 169992192
+        },
+        "first_has_after_restore": {
+          "seconds": 0.0011195489205420017,
+          "cpu_seconds": 0.0011165840000000316,
+          "rss_before_bytes": 146911232,
+          "rss_bytes": 146972672,
+          "peak_rss_bytes": 169992192
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "materialized",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 146972672,
+      "peak_rss_bytes": 169992192
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "cached",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 2,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08381024608388543,
+          "cpu_seconds": 0.09186534099999999,
+          "rss_before_bytes": 89128960,
+          "rss_bytes": 139378688,
+          "peak_rss_bytes": 139378688
+        },
+        "restore_initial": {
+          "seconds": 0.07692734501324594,
+          "cpu_seconds": 0.07664612700000001,
+          "rss_before_bytes": 142811136,
+          "rss_bytes": 131641344,
+          "peak_rss_bytes": 159768576
+        },
+        "first_has": {
+          "seconds": 0.012432537041604519,
+          "cpu_seconds": 0.01233783500000002,
+          "rss_before_bytes": 131649536,
+          "rss_bytes": 145707008,
+          "peak_rss_bytes": 159768576
+        },
+        "warm_has": {
+          "seconds": 0.010054972022771835,
+          "cpu_seconds": 0.009995454999999986,
+          "rss_before_bytes": 145707008,
+          "rss_bytes": 145715200,
+          "peak_rss_bytes": 159768576,
+          "requests": 12,
+          "samples_seconds": [
+            0.0009235949255526066,
+            0.0008609490469098091,
+            0.0008352210279554129,
+            0.0008301020134240389,
+            0.0008435870986431837,
+            0.0007951671723276377,
+            0.0008275259751826525,
+            0.000830481993034482,
+            0.0008179389405995607,
+            0.000836151884868741,
+            0.0008329369593411684,
+            0.0008172378875315189
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.01054696599021554,
+          "cpu_seconds": 0.010491130000000015,
+          "rss_before_bytes": 145723392,
+          "rss_bytes": 145780736,
+          "peak_rss_bytes": 159768576,
+          "requests": 12,
+          "samples_seconds": [
+            0.0010116191115230322,
+            0.000952528091147542,
+            0.0009271118324249983,
+            0.0008398699574172497,
+            0.0009204789530485868,
+            0.0006087599322199821,
+            0.0009274820331484079,
+            0.0009014951065182686,
+            0.0009213709272444248,
+            0.0008119670674204826,
+            0.0009127049706876278,
+            0.0008082210551947355
+          ]
+        },
+        "snapshot": {
+          "seconds": 1.0021030902862549e-06,
+          "cpu_seconds": 2.3439999999874672e-06,
+          "rss_before_bytes": 145793024,
+          "rss_bytes": 145793024,
+          "peak_rss_bytes": 159768576
+        },
+        "single_commit": {
+          "seconds": 0.0027110339142382145,
+          "cpu_seconds": 0.002702518999999959,
+          "rss_before_bytes": 145805312,
+          "rss_bytes": 145973248,
+          "peak_rss_bytes": 159768576
+        },
+        "first_has_after_single": {
+          "seconds": 0.0054759790655225515,
+          "cpu_seconds": 0.005450043999999987,
+          "rss_before_bytes": 145977344,
+          "rss_bytes": 148246528,
+          "peak_rss_bytes": 159768576
+        },
+        "batch_commit": {
+          "seconds": 0.081798902945593,
+          "cpu_seconds": 0.08139176599999998,
+          "rss_before_bytes": 148246528,
+          "rss_bytes": 148545536,
+          "peak_rss_bytes": 159768576
+        },
+        "first_has_after_batch": {
+          "seconds": 0.005732275079935789,
+          "cpu_seconds": 0.00570443100000001,
+          "rss_before_bytes": 148553728,
+          "rss_bytes": 148676608,
+          "peak_rss_bytes": 159768576
+        },
+        "reload_same_rules": {
+          "seconds": 0.10752122988924384,
+          "cpu_seconds": 0.10724331699999995,
+          "rss_before_bytes": 148680704,
+          "rss_bytes": 136130560,
+          "peak_rss_bytes": 173367296
+        },
+        "first_has_after_reload": {
+          "seconds": 0.011423413874581456,
+          "cpu_seconds": 0.011369128000000006,
+          "rss_before_bytes": 136146944,
+          "rss_bytes": 148455424,
+          "peak_rss_bytes": 173367296
+        },
+        "restore_after_edits": {
+          "seconds": 0.07771433796733618,
+          "cpu_seconds": 0.07939555899999995,
+          "rss_before_bytes": 148475904,
+          "rss_bytes": 151474176,
+          "peak_rss_bytes": 183369728
+        },
+        "first_has_after_restore": {
+          "seconds": 0.01196908694691956,
+          "cpu_seconds": 0.011914594000000056,
+          "rss_before_bytes": 151482368,
+          "rss_bytes": 164630528,
+          "peak_rss_bytes": 183369728
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "cached",
+        "backend": "duckdb",
+        "cached_relations": [
+          "CanClaimReward",
+          "CanEnter",
+          "CanInvestigate"
+        ],
+        "materializations": {
+          "CanEnter": 3,
+          "CanInvestigate": 5,
+          "CanClaimReward": 5
+        },
+        "materialization_seconds": 0.03479959303513169,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 164634624,
+      "peak_rss_bytes": 183369728
+    },
+    {
+      "kind": "measure",
+      "size": 10000,
+      "mode": "live",
+      "backend": "duckdb",
+      "history_bound": false,
+      "repeat": 2,
+      "status": "ok",
+      "phases": {
+        "init_empty": {
+          "seconds": 0.08508722111582756,
+          "cpu_seconds": 0.090793505,
+          "rss_before_bytes": 89141248,
+          "rss_bytes": 128765952,
+          "peak_rss_bytes": 128765952
+        },
+        "restore_initial": {
+          "seconds": 0.07723294384777546,
+          "cpu_seconds": 0.07690058800000002,
+          "rss_before_bytes": 132202496,
+          "rss_bytes": 124309504,
+          "peak_rss_bytes": 143179776
+        },
+        "first_has": {
+          "seconds": 0.0031925379298627377,
+          "cpu_seconds": 0.0031805949999999528,
+          "rss_before_bytes": 124321792,
+          "rss_bytes": 128466944,
+          "peak_rss_bytes": 143179776
+        },
+        "warm_has": {
+          "seconds": 0.023999608121812344,
+          "cpu_seconds": 0.023866726000000005,
+          "rss_before_bytes": 128471040,
+          "rss_bytes": 129191936,
+          "peak_rss_bytes": 143179776,
+          "requests": 12,
+          "samples_seconds": [
+            0.0022091828286647797,
+            0.002157326089218259,
+            0.001898495014756918,
+            0.002141395816579461,
+            0.0019219089299440384,
+            0.001735001802444458,
+            0.0021168708335608244,
+            0.001912933075800538,
+            0.001913473941385746,
+            0.001990195829421282,
+            0.0019008100498467684,
+            0.0020980059634894133
+          ]
+        },
+        "warm_query": {
+          "seconds": 0.01325708907097578,
+          "cpu_seconds": 0.01318593400000001,
+          "rss_before_bytes": 129200128,
+          "rss_bytes": 129495040,
+          "peak_rss_bytes": 143179776,
+          "requests": 12,
+          "samples_seconds": [
+            0.0011982249561697245,
+            0.0011593529488891363,
+            0.0010915871243923903,
+            0.0010828599333763123,
+            0.0011366810649633408,
+            0.0008735719602555037,
+            0.001127544092014432,
+            0.0010919778142124414,
+            0.0010605801362544298,
+            0.0012585981748998165,
+            0.0010955550242215395,
+            0.0010773111134767532
+          ]
+        },
+        "snapshot": {
+          "seconds": 7.308553904294968e-07,
+          "cpu_seconds": 2.1539999999764525e-06,
+          "rss_before_bytes": 129507328,
+          "rss_bytes": 129507328,
+          "peak_rss_bytes": 143179776
+        },
+        "single_commit": {
+          "seconds": 0.0014678558800369501,
+          "cpu_seconds": 0.0014645159999999713,
+          "rss_before_bytes": 129519616,
+          "rss_bytes": 129814528,
+          "peak_rss_bytes": 143179776
+        },
+        "first_has_after_single": {
+          "seconds": 0.002181560965254903,
+          "cpu_seconds": 0.0021737399999999796,
+          "rss_before_bytes": 129818624,
+          "rss_bytes": 130015232,
+          "peak_rss_bytes": 143179776
+        },
+        "batch_commit": {
+          "seconds": 0.08120165509171784,
+          "cpu_seconds": 0.08081758099999997,
+          "rss_before_bytes": 130019328,
+          "rss_bytes": 132509696,
+          "peak_rss_bytes": 143179776
+        },
+        "first_has_after_batch": {
+          "seconds": 0.002207288984209299,
+          "cpu_seconds": 0.002201840999999982,
+          "rss_before_bytes": 132521984,
+          "rss_bytes": 132653056,
+          "peak_rss_bytes": 143179776
+        },
+        "reload_same_rules": {
+          "seconds": 0.10763056389987469,
+          "cpu_seconds": 0.107150109,
+          "rss_before_bytes": 132661248,
+          "rss_bytes": 127729664,
+          "peak_rss_bytes": 160559104
+        },
+        "first_has_after_reload": {
+          "seconds": 0.0035008310806006193,
+          "cpu_seconds": 0.003485410000000022,
+          "rss_before_bytes": 127750144,
+          "rss_bytes": 133808128,
+          "peak_rss_bytes": 160559104
+        },
+        "restore_after_edits": {
+          "seconds": 0.0785637660883367,
+          "cpu_seconds": 0.07975964299999994,
+          "rss_before_bytes": 134606848,
+          "rss_bytes": 140779520,
+          "peak_rss_bytes": 169320448
+        },
+        "first_has_after_restore": {
+          "seconds": 0.002713989932090044,
+          "cpu_seconds": 0.0026957690000000145,
+          "rss_before_bytes": 140787712,
+          "rss_bytes": 144437248,
+          "peak_rss_bytes": 169320448
+        }
+      },
+      "cardinalities": {
+        "facts_by_relation": {
+          "Member": 10000,
+          "FactionAccess": 128,
+          "Sponsor": 1000,
+          "Knows": 3334,
+          "RewardClaimed": 910
+        },
+        "facts": 15372,
+        "expected_derived_rows": {
+          "CanEnter": 41000,
+          "CanInvestigate": 3334,
+          "CanClaimReward": 3030
+        }
+      },
+      "runtime": {
+        "python": "3.12.8 (main, Apr 29 2026, 22:28:48) [Clang 18.1.8 (++20240731025043+3b5b5c1ec4a3-1~exp1~20240731145144.92)]",
+        "executable": "/tmp/relations-official-sdk-20261014/renpy-8.5.3-sdk/lib/py3-linux-x86_64/python",
+        "backend": "duckdb",
+        "driver": "pysqlite3",
+        "sqlite": "3.51.1",
+        "sqlalchemy": "2.0.43",
+        "temp_store_default": 0,
+        "sqlite_compile_options": [
+          "ATOMIC_INTRINSICS=1",
+          "COMPILER=gcc-10.2.1 20210130 (Red Hat 10.2.1-11)",
+          "DEFAULT_AUTOVACUUM",
+          "DEFAULT_CACHE_SIZE=-2000",
+          "DEFAULT_FILE_FORMAT=4",
+          "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+          "DEFAULT_MMAP_SIZE=0",
+          "DEFAULT_PAGE_SIZE=4096",
+          "DEFAULT_PCACHE_INITSZ=20",
+          "DEFAULT_RECURSIVE_TRIGGERS",
+          "DEFAULT_SECTOR_SIZE=4096",
+          "DEFAULT_SYNCHRONOUS=2",
+          "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+          "DEFAULT_WAL_SYNCHRONOUS=2",
+          "DEFAULT_WORKER_THREADS=0",
+          "DIRECT_OVERFLOW_READ",
+          "ENABLE_FTS3",
+          "ENABLE_FTS3_PARENTHESIS",
+          "ENABLE_FTS4",
+          "ENABLE_FTS5",
+          "ENABLE_LOAD_EXTENSION",
+          "ENABLE_MATH_FUNCTIONS",
+          "ENABLE_RTREE",
+          "ENABLE_STAT4",
+          "ENABLE_UPDATE_DELETE_LIMIT",
+          "MALLOC_SOFT_LIMIT=1024",
+          "MAX_ATTACHED=10",
+          "MAX_COLUMN=2000",
+          "MAX_COMPOUND_SELECT=500",
+          "MAX_DEFAULT_PAGE_SIZE=8192",
+          "MAX_EXPR_DEPTH=1000",
+          "MAX_FUNCTION_ARG=1000",
+          "MAX_LENGTH=1000000000",
+          "MAX_LIKE_PATTERN_LENGTH=50000",
+          "MAX_MMAP_SIZE=1099511627776",
+          "MAX_PAGE_COUNT=0xfffffffe",
+          "MAX_PAGE_SIZE=65536",
+          "MAX_SQL_LENGTH=1000000000",
+          "MAX_TRIGGER_DEPTH=1000",
+          "MAX_VARIABLE_NUMBER=250000",
+          "MAX_VDBE_OP=250000000",
+          "MAX_WORKER_THREADS=0",
+          "MUTEX_PTHREADS",
+          "SOUNDEX",
+          "SYSTEM_MALLOC",
+          "TEMP_STORE=3",
+          "THREADSAFE=1",
+          "USE_URI"
+        ],
+        "duckdb": "1.5.6"
+      },
+      "snapshot_bytes": 3420160,
+      "fixture_sha256": "3787f82b29b1356ea2c1febc9b02a42c861b99085ca3cd5d45787ffa3325f1ae",
+      "batch_changes": 100,
+      "cache_stats": {
+        "mode": "live",
+        "backend": "duckdb",
+        "cached_relations": [],
+        "materializations": {},
+        "materialization_seconds": 0.0,
+        "snapshot_bytes": 3420160
+      },
+      "rss_bytes": 144445440,
+      "peak_rss_bytes": 169320448
+    }
+  ],
+  "summary": [
+    {
+      "size": 10000,
+      "mode": "cached",
+      "attempted": 3,
+      "backend": "duckdb",
+      "successful": 3,
+      "phases": {
+        "init_empty": {
+          "n": 3,
+          "median_seconds": 0.08486305898986757,
+          "p95_seconds": 0.08561195014044642
+        },
+        "restore_initial": {
+          "n": 3,
+          "median_seconds": 0.07653007586486638,
+          "p95_seconds": 0.07692734501324594
+        },
+        "first_has": {
+          "n": 3,
+          "median_seconds": 0.012298456160351634,
+          "p95_seconds": 0.012432537041604519
+        },
+        "warm_has": {
+          "n": 36,
+          "median_seconds": 0.0008327764226123691,
+          "p95_seconds": 0.0009252780582755804
+        },
+        "warm_query": {
+          "n": 36,
+          "median_seconds": 0.0009126949589699507,
+          "p95_seconds": 0.0010024309158325195
+        },
+        "snapshot": {
+          "n": 3,
+          "median_seconds": 1.0021030902862549e-06,
+          "p95_seconds": 1.2421514838933945e-06
+        },
+        "single_commit": {
+          "n": 3,
+          "median_seconds": 0.002686257939785719,
+          "p95_seconds": 0.0027110339142382145
+        },
+        "first_has_after_single": {
+          "n": 3,
+          "median_seconds": 0.00548635795712471,
+          "p95_seconds": 0.005494202021509409
+        },
+        "batch_commit": {
+          "n": 3,
+          "median_seconds": 0.081798902945593,
+          "p95_seconds": 0.08185971388593316
+        },
+        "first_has_after_batch": {
+          "n": 3,
+          "median_seconds": 0.005717537133023143,
+          "p95_seconds": 0.005732275079935789
+        },
+        "reload_same_rules": {
+          "n": 3,
+          "median_seconds": 0.10752122988924384,
+          "p95_seconds": 0.10841774009168148
+        },
+        "first_has_after_reload": {
+          "n": 3,
+          "median_seconds": 0.011607405031099916,
+          "p95_seconds": 0.011723469011485577
+        },
+        "restore_after_edits": {
+          "n": 3,
+          "median_seconds": 0.07771433796733618,
+          "p95_seconds": 0.0808079200796783
+        },
+        "first_has_after_restore": {
+          "n": 3,
+          "median_seconds": 0.012039338005706668,
+          "p95_seconds": 0.012334945145994425
+        }
+      },
+      "snapshot_bytes": 3420160,
+      "peak_rss_bytes": 183369728
+    },
+    {
+      "size": 10000,
+      "mode": "live",
+      "attempted": 3,
+      "backend": "duckdb",
+      "successful": 3,
+      "phases": {
+        "init_empty": {
+          "n": 3,
+          "median_seconds": 0.08517179707996547,
+          "p95_seconds": 0.08657337795011699
+        },
+        "restore_initial": {
+          "n": 3,
+          "median_seconds": 0.07759290095418692,
+          "p95_seconds": 0.07924717804417014
+        },
+        "first_has": {
+          "n": 3,
+          "median_seconds": 0.0032726870849728584,
+          "p95_seconds": 0.00336768408305943
+        },
+        "warm_has": {
+          "n": 36,
+          "median_seconds": 0.0019451719708740711,
+          "p95_seconds": 0.002301765140146017
+        },
+        "warm_query": {
+          "n": 36,
+          "median_seconds": 0.0010917824693024158,
+          "p95_seconds": 0.0012197750620543957
+        },
+        "snapshot": {
+          "n": 3,
+          "median_seconds": 8.910428732633591e-07,
+          "p95_seconds": 9.818468242883682e-07
+        },
+        "single_commit": {
+          "n": 3,
+          "median_seconds": 0.0014468571171164513,
+          "p95_seconds": 0.0014678558800369501
+        },
+        "first_has_after_single": {
+          "n": 3,
+          "median_seconds": 0.0021575959399342537,
+          "p95_seconds": 0.002181560965254903
+        },
+        "batch_commit": {
+          "n": 3,
+          "median_seconds": 0.08131627505645156,
+          "p95_seconds": 0.08198458096012473
+        },
+        "first_has_after_batch": {
+          "n": 3,
+          "median_seconds": 0.002383867045864463,
+          "p95_seconds": 0.002608422888442874
+        },
+        "reload_same_rules": {
+          "n": 3,
+          "median_seconds": 0.10835638199932873,
+          "p95_seconds": 0.12079353001900017
+        },
+        "first_has_after_reload": {
+          "n": 3,
+          "median_seconds": 0.003480402985587716,
+          "p95_seconds": 0.0035008310806006193
+        },
+        "restore_after_edits": {
+          "n": 3,
+          "median_seconds": 0.0800756870303303,
+          "p95_seconds": 0.08091146405786276
+        },
+        "first_has_after_restore": {
+          "n": 3,
+          "median_seconds": 0.0028185341507196426,
+          "p95_seconds": 0.0029667990747839212
+        }
+      },
+      "snapshot_bytes": 3420160,
+      "peak_rss_bytes": 175022080
+    },
+    {
+      "size": 10000,
+      "mode": "materialized",
+      "attempted": 3,
+      "backend": "duckdb",
+      "successful": 3,
+      "phases": {
+        "init_empty": {
+          "n": 3,
+          "median_seconds": 0.08845785213634372,
+          "p95_seconds": 0.09062255802564323
+        },
+        "restore_initial": {
+          "n": 3,
+          "median_seconds": 0.08477071998640895,
+          "p95_seconds": 0.09120430890470743
+        },
+        "first_has": {
+          "n": 3,
+          "median_seconds": 0.0013272440992295742,
+          "p95_seconds": 0.0014560238923877478
+        },
+        "warm_has": {
+          "n": 36,
+          "median_seconds": 0.0008355864556506276,
+          "p95_seconds": 0.0009040688164532185
+        },
+        "warm_query": {
+          "n": 36,
+          "median_seconds": 0.0009162165224552155,
+          "p95_seconds": 0.0010231700725853443
+        },
+        "snapshot": {
+          "n": 3,
+          "median_seconds": 1.0121148079633713e-06,
+          "p95_seconds": 1.4719553291797638e-06
+        },
+        "single_commit": {
+          "n": 3,
+          "median_seconds": 0.00795391108840704,
+          "p95_seconds": 0.008092828094959259
+        },
+        "first_has_after_single": {
+          "n": 3,
+          "median_seconds": 0.0009051009546965361,
+          "p95_seconds": 0.0009257688652724028
+        },
+        "batch_commit": {
+          "n": 3,
+          "median_seconds": 0.08581112697720528,
+          "p95_seconds": 0.08715016092173755
+        },
+        "first_has_after_batch": {
+          "n": 3,
+          "median_seconds": 0.0009428099729120731,
+          "p95_seconds": 0.0010230890475213528
+        },
+        "reload_same_rules": {
+          "n": 3,
+          "median_seconds": 0.10550293512642384,
+          "p95_seconds": 0.10898553696461022
+        },
+        "first_has_after_reload": {
+          "n": 3,
+          "median_seconds": 0.0011846187990158796,
+          "p95_seconds": 0.0012353539932519197
+        },
+        "restore_after_edits": {
+          "n": 3,
+          "median_seconds": 0.08895515697076917,
+          "p95_seconds": 0.08967149187810719
+        },
+        "first_has_after_restore": {
+          "n": 3,
+          "median_seconds": 0.0011289368849247694,
+          "p95_seconds": 0.0012003991287201643
+        }
+      },
+      "snapshot_bytes": 3420160,
+      "peak_rss_bytes": 172408832
+    }
+  ],
+  "finished_at": "2026-10-14T18:14:39.077363+08:00"
+}
