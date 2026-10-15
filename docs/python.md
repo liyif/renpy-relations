@@ -1,5 +1,7 @@
 # Use Ren’Py Relations in an ordinary Python application
 
+[English](python.md) · [简体中文](python.zh-CN.md)
+
 Ren’Py Relations includes an engine-independent core for ordinary Python applications. It stores relational facts, evaluates compiled rules, invalidates affected cached answers, and captures/restores fact snapshots. Your application chooses what to do with those answers. No Ren’Py SDK, event loop, or game lifecycle is required.
 
 ## Install

@@ -4,6 +4,8 @@
 
 Palace is a small world with archive access, a secret, and a reward that can be claimed once. This guide first runs it in ordinary Python, then stages the same example for Ren’Py. Basic Python is enough; you do not need SQL or database experience.
 
+Ordinary Python programs import `LogicDB` from `renpy_relations`; Ren’Py integrations use `RenpyLogicDB` from the same package.
+
 ## Facts, tables, and rules
 
 A **relation** is table-shaped data. Here it means more than a relationship score: `Sponsor` records who sponsors access to which place. Each **row** records one fact, and each named **column** holds part of that fact:

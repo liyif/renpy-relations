@@ -2,13 +2,11 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-**Ren’Py Relations 也可以在不使用 Ren’Py 的情况下工作。** 统一的 `renpy-relations` Python 发行包包含可嵌入普通应用的关系事实与声明式规则核心，从 `renpy_relations` 导入 `LogicDB` 即可使用。通用运行时不依赖 Ren’Py 或 Logica，Logica 仅用于开发阶段编译规则。安装方式和独立权限示例见 [Python 集成指南（英文）](docs/python.md)。
+一个支持关系事实与编译后 Logica 规则的可嵌入 Python 库，提供可选的 Ren’Py 集成。
 
-Ren’Py Relations 是一项实验：用关系事实和声明式规则表达故事中共用的条件。设想一座档案馆，某个派系的成员或获得担保的人都可以进入。多个剧情事件也会依赖档案馆的访问权限、某个秘密以及先前行动的记录。为这些条件命名并加以组合，可以把修改集中在一处，而场景脚本只需查询当前有哪些行动或事件符合条件。
+故事中的条件常常被多个事件共用：进入某个地点的资格、对秘密的了解，或先前作出的选择。Ren’Py Relations 让你为这些条件命名，并用规则组合它们。行动改变事实，脚本查询当前可用的行动和事件。同一套核心也可以用于普通 Python 程序。
 
-[Logica](https://github.com/evgskv/logica) 提供规则语言和 SQL 编译器。[SQLite](https://www.sqlite.org/about.html) 是默认的嵌入式数据库引擎，负责存储事实，并通过连接和筛选执行编译后的查询。行动改变事实，规则推导答案，脚本选择符合条件的事件并执行其效果。Ren’Py 负责对话、菜单、画面呈现和玩家交互。例如，奖励查询可以说明某项奖励现在可领取，但实际发放奖励并记录领取行为，仍要由脚本完成。
-
-这项实验想探索：这样的做法能否让共用条件更容易理解和修改，能否让当前状态决定事件的发生顺序，同时在存档、回滚和规则变更后保持一致。尝试这一方案意味着为游戏增加编译器、数据库驱动和集成工作。[快速入门](docs/quickstart.zh-CN.md) 会带你实际走通流程；[基准测试指南（英文）](benchmarks/README.md) 则说明如何衡量它的成本。
+[Logica](https://github.com/evgskv/logica) 在开发阶段把规则编译成 SQL，[SQLite](https://www.sqlite.org/about.html) 或 DuckDB 在运行时存储事实并执行查询。Ren’Py 适配器将事实快照接入存档、读档和回滚。
 
 ## 一个小例子
 
@@ -47,7 +45,7 @@ Ren’Py snapshot variable → save / load / rollback
 
 | 目标 | 阅读 |
 | --- | --- |
-| 嵌入普通 Python 程序 | [Python 集成指南（英文）](docs/python.md) |
+| 嵌入普通 Python 程序 | [Python 集成指南](docs/python.zh-CN.md) |
 | 学习概念，并在 Python 和 Ren’Py 中运行 Palace | [快速入门](docs/quickstart.zh-CN.md) |
 | 集成运行时，或查阅编译器、快照和重载的行为约定 | [参考手册](docs/reference.zh-CN.md) |
 | 游玩或研究一个完整的中文叙事示例 | [Tidelight 指南（英文）](examples/tidelight/README.md) |
@@ -62,7 +60,7 @@ Ren’Py snapshot variable → save / load / rollback
 uv sync --locked
 ```
 
-安装 wheel 或嵌入普通应用，请阅读 [Python 指南（英文）](docs/python.md)；准备游戏项目，请按 [Ren’Py 快速入门](docs/quickstart.zh-CN.md#准备并运行-palace)操作。开发环境使用 Python 3.12，支持环境和驱动版本见[参考手册](docs/reference.zh-CN.md#兼容性)。
+安装 wheel 或嵌入普通应用，请阅读 [Python 指南](docs/python.zh-CN.md)；准备游戏项目，请按 [Ren’Py 快速入门](docs/quickstart.zh-CN.md#准备并运行-palace)操作。开发环境使用 Python 3.12，支持环境和驱动版本见[参考手册](docs/reference.zh-CN.md#兼容性)。
 
 ## 项目结构
 

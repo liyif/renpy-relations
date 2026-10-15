@@ -6,7 +6,7 @@
 
 完整的入门练习请参阅 [Palace 快速入门](quickstart.zh-CN.md)。本页规定编译器、运行时、快照和 Ren’Py 适配器的接口契约。[Tidelight 指南（英文）](../examples/tidelight/README.md)介绍了一个基于这些接口构建的应用；[维护指南（英文）](maintaining.md)说明项目准备、验证和发布流程。
 
-统一从 `renpy_relations` 导入 `LogicDB`、`RenpyLogicDB`、`RuleSet` 和 `RuleError`。普通 Python 应用使用 `LogicDB`，Ren’Py 项目使用 `RenpyLogicDB`。独立安装方式见 [Python 指南（英文）](python.md)。
+统一从 `renpy_relations` 导入 `LogicDB`、`RenpyLogicDB`、`RuleSet` 和 `RuleError`。普通 Python 应用使用 `LogicDB`，Ren’Py 项目使用 `RenpyLogicDB`。独立安装方式见 [Python 指南](python.zh-CN.md)。
 
 ## 数据模型
 
