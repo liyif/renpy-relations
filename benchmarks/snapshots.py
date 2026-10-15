@@ -80,7 +80,7 @@ def worker(args):
             "process_repeat": args.process_repeat, "executable": sys.executable,
             "legacy": args.legacy, "size": args.size, "python": sys.version,
             "runtime_sha256": hashlib.sha256(args.runtime.read_bytes()).hexdigest(),
-            "runtime_source": "renpy_relations.py" if args.legacy else "relation_rules/runtime.py",
+            "runtime_source": "renpy_relations.py" if args.legacy else "src/renpy_relations/runtime.py",
             "platform": platform.platform(),
             "database_version": driver_version, "sqlalchemy": sqlalchemy.__version__, "samples": samples}
     finally:
@@ -119,9 +119,9 @@ def main():
         parser.error("Output directory must be empty")
     records = []
     with tempfile.TemporaryDirectory(prefix="relations-snapshot-benchmark-") as directory:
-        configs = [(ROOT / "relation_rules/runtime.py", "sqlite", "sqlite3", False),
-                   (ROOT / "relation_rules/runtime.py", "sqlite", "pysqlite3", False),
-                   (ROOT / "relation_rules/runtime.py", "duckdb", "duckdb", False)]
+        configs = [(ROOT / "src/renpy_relations/runtime.py", "sqlite", "sqlite3", False),
+                   (ROOT / "src/renpy_relations/runtime.py", "sqlite", "pysqlite3", False),
+                   (ROOT / "src/renpy_relations/runtime.py", "duckdb", "duckdb", False)]
         if args.baseline_ref:
             baseline = Path(directory) / "baseline.py"
             from baseline_sources import historical_runtime

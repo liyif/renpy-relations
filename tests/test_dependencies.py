@@ -20,7 +20,7 @@ def branched_rules():
 
 @pytest.mark.parametrize("mode", ["cached", "materialized", "live"])
 def test_selective_changes_preserve_unrelated_outputs_and_handle_negation(mode, monkeypatch):
-    import relation_rules.runtime as renpy_relations
+    import renpy_relations.runtime as renpy_relations
     db = LogicDB(branched_rules(), mode=mode)
     filled = []
     original = renpy_relations._fill

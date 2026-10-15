@@ -4,7 +4,7 @@ These experiments measure rule loading, queries, writes, and native fact snapsho
 
 For the runtime's query modes and lifecycle contracts, see the [reference](../docs/reference.md). For setup and the SDK target, see [maintenance](../docs/maintaining.md). The [project introduction](../README.md) describes what the experiment is intended to investigate.
 
-Current tooling measures `relation_rules/runtime.py`; copied workers receive that core under the historical module filename. New source records include the core/compiler package files. Archived results retain their original single-file identities and measurements.
+Current tooling measures `renpy_relations/runtime.py`; copied workers receive that core under the historical module filename. New source records include the core/compiler package files. Archived results retain their original single-file identities and measurements.
 
 ## Four experiment families
 
@@ -67,7 +67,7 @@ From the source root, install locked development dependencies and stage Palace w
 uv sync --locked --extra duckdb --group renpy-linux
 SDK=/path/to/renpy-8.5.3-sdk
 GAME=/tmp/relations-benchmark-game
-uv run --locked --extra duckdb python prepare_game.py \
+uv run --locked --extra duckdb python -m tools.prepare_game \
   --game examples/palace --out "$GAME" --backend duckdb --sdk "$SDK"
 uv run --locked --extra duckdb python benchmarks/suite.py --profile controlled --smoke \
   --python "$SDK/lib/py3-linux-x86_64/python" \

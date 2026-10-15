@@ -4,9 +4,9 @@
 
 [Data model](#data-model) · [Compile rules](#compile-rules) · [Runtime API](#runtime-api) · [Query modes](#query-modes) · [Snapshots and reload](#snapshots-and-reload) · [Ren’Py integration](#renpy-integration) · [Compatibility](#compatibility) · [Troubleshooting](#troubleshooting)
 
-Use the [Palace quickstart](../QUICKSTART.md) for a complete first exercise. This page defines the compiler, runtime, snapshot, and Ren’Py adapter contracts. The [Tidelight guide](../examples/tidelight/README.md) explains one application built on them; [maintenance](maintaining.md) covers staging, verification, and releases.
+Use the [Palace quickstart](quickstart.md) for a complete first exercise. This page defines the compiler, runtime, snapshot, and Ren’Py adapter contracts. The [Tidelight guide](../examples/tidelight/README.md) explains one application built on them; [maintenance](maintaining.md) covers staging, verification, and releases.
 
-For ordinary Python applications, import the core from `relation_rules`; see the [Python integration guide](python.md). Existing Ren’Py games retain `from renpy_relations import LogicDB`. This compatibility class is `relation_rules.renpy.RenpyLogicDB`, which adds the engine adapter to the shared core.
+Import `LogicDB`, `RenpyLogicDB`, `RuleSet`, and `RuleError` from `renpy_relations`. Ordinary Python applications use `LogicDB`; Ren’Py projects use `RenpyLogicDB`. See the [Python guide](python.md) for standalone installation.
 
 ## Data model
 
@@ -18,7 +18,7 @@ The boundary between components is deliberate:
 | --- | --- |
 | `schema.json` | Declare writable fact relations and exported derived relation columns. |
 | Logica source, usually `world.l` | Define derived predicates and optional internal helpers. |
-| `compile_rules.py` | Compile backend-specific SQL, record dependencies, validate outputs, and publish a JSON rule bundle. |
+| `renpy-relations-compile` | Compile backend-specific SQL, record dependencies, validate outputs, and publish a JSON rule bundle. |
 | `LogicDB` | Store facts, evaluate derived answers, group writes, and capture or restore fact images. |
 | Game code | Choose among eligible actions and record their effects. |
 | Ren’Py adapter | Publish fact images to a store variable and restore the database when Ren’Py restores that variable. |
@@ -102,7 +102,7 @@ Compiled SQL and dependency edges are trusted build output. The runtime executes
 Run commands from the repository root in its locked development environment:
 
 ```sh
-uv run --locked python compile_rules.py examples/palace/world.l \
+uv run --locked renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json \
   --output /tmp/palace-relations.rules.json
 ```
@@ -115,9 +115,9 @@ uv run --locked python compile_rules.py examples/palace/world.l \
 | `--backend sqlite\|duckdb` | Override the source’s `@Engine` selection without editing the source. |
 | `--watch` | Build initially, then rebuild after detected local input changes until interrupted. |
 
-Without an override, the source must select SQLite or DuckDB. Install the DuckDB extra when compiling or running DuckDB bundles, for example `uv run --locked --extra duckdb python compile_rules.py … --backend duckdb`. A bundle targets one backend; selecting a different backend at runtime does not translate its SQL.
+Without an override, the source must select SQLite or DuckDB. Install the DuckDB extra when compiling or running DuckDB bundles, for example `uv run --locked --extra duckdb renpy-relations-compile … --backend duckdb`. A bundle targets one backend; selecting a different backend at runtime does not translate its SQL.
 
-The Python entry point is `compile_rules(source, schema, output, *, backend=None)` in `compile_rules.py`. It returns the validated `RuleSet` after successful publication. The one-shot CLI exits `0` on success and `1` on a handled build failure.
+The Python entry point is `compile_rules(source, schema, output, *, backend=None)` in `renpy_relations.compiler`. It returns the validated `RuleSet` after successful publication. The one-shot CLI exits `0` on success and `1` on a handled build failure.
 
 Every declared derived output must be defined in Logica. Fact names are external tables: the compiler rejects Logica definitions of those names, including source facts. Undeclared external relation reads are rejected. Helpers that are not exported may be inlined by Logica. An exported derived predicate remains a relation boundary when another export reads it; this makes its typed result and cached work reusable. Negative and aggregate reads also participate in dependency tracking.
 
@@ -131,12 +131,12 @@ The compiler builds and validates before replacing the output. It writes beside 
 
 `--watch` checks every 0.5 seconds. Its input set includes the schema, the source, and all `*.l` files below the source directory, including local imports. External import roots are outside its watch scope. A failed build is reported to stderr and the watcher continues. It retries when the observed input state changes; it does not repeatedly rebuild an unchanged failing state. Interrupting the watcher exits normally.
 
-This watcher publishes a bundle. It does not update an already-running `LogicDB`; use runtime reload or the adapter watcher described below. Staging an example copies its shipped bundles, so compiling to `/tmp` does not change the staged game. See the [quickstart](../QUICKSTART.md) for compiling directly to a staged game’s selected bundle.
+This watcher publishes a bundle. It does not update an already-running `LogicDB`; use runtime reload or the adapter watcher described below. Staging an example copies its shipped bundles, so compiling to `/tmp` does not change the staged game. See the [quickstart](quickstart.md) for compiling directly to a staged game’s selected bundle.
 
 ## Runtime API
 
 ```python
-from relation_rules import LogicDB
+from renpy_relations import LogicDB
 
 logic = LogicDB("examples/palace/game/relations.rules.json")
 try:
@@ -260,7 +260,7 @@ Snapshots store facts, not frozen rule logic. Restoring an older snapshot after 
 
 ## Ren’Py integration
 
-Stage dependencies and bundles as described in the [quickstart](../QUICKSTART.md). A minimal binding uses a `default` store variable and installs once during initialization:
+Stage dependencies and bundles as described in the [quickstart](quickstart.md). A minimal binding uses a `default` store variable and installs once during initialization:
 
 ```renpy
 default logic_snapshot = None
@@ -269,7 +269,7 @@ init python:
     import os
     import sys
     sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    from renpy_relations import LogicDB
+    from renpy_relations import RenpyLogicDB as LogicDB
 
     logic = LogicDB(os.path.join(config.gamedir, "relations.rules.json"))
     logic.install_renpy(config)
@@ -320,11 +320,11 @@ Rule bundle version `1` and snapshot metadata version `2` are separate formats. 
 
 | Symptom | Cause and recovery |
 | --- | --- |
-| `No SQLite driver` | The interpreter has neither usable `sqlite3` nor `pysqlite3`. Use the supported staging workflow in the [quickstart](../QUICKSTART.md), which installs the Linux driver. |
+| `No SQLite driver` | The interpreter has neither usable `sqlite3` nor `pysqlite3`. Use the supported staging workflow in the [quickstart](quickstart.md), which installs the Linux driver. |
 | `DuckDB backend requires the uv extra: --extra duckdb` | Run with the DuckDB extra or stage with `--backend duckdb`. Both `duckdb` and `duckdb-engine` are required. |
 | `Logica is not installed in this Python environment` | Compile in the locked development environment, rather than the runtime-only staged game. |
 | Bundle backend differs from requested backend | Select a bundle compiled for that backend, or recompile with `--backend`. The constructor’s `backend` argument only checks the target. |
-| `lacks dependencies`, undeclared relations, or cyclic dependencies | Rebuild with `compile_rules.py`; correct relation spellings and exported dependency cycles. Do not guess edges from SQL. |
+| `lacks dependencies`, undeclared relations, or cyclic dependencies | Rebuild with `renpy-relations-compile`; correct relation spellings and exported dependency cycles. Do not guess edges from SQL. |
 | Output-column build failure | Make derived schema columns match the named Logica output columns. Repair the source/schema and rebuild; the previous published bundle remains available. |
 | `add(...) requires every field` or unknown fields | Supply a complete fact with exact declared column names. Filters can use a subset, but additions cannot. |
 | A different tuple for an existing key raises a database integrity error | Remove the old keyed row and add the replacement in one batch. Identical tuples alone are ignored. |

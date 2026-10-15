@@ -12,7 +12,7 @@ import tomllib
 from urllib.parse import unquote, urlsplit
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = "x86_64-manylinux_2_28"
 
 
@@ -100,8 +100,7 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         run(["uv", "pip", "install", "--python-version", "3.12", "--python-platform", PLATFORM,
              "--only-binary", ":all:", "--require-hashes", "--no-config", "--target", packages,
              "--requirements", requirements])
-        shutil.copy2(ROOT / "renpy_relations.py", packages / "renpy_relations.py")
-        shutil.copytree(ROOT / "relation_rules", packages / "relation_rules",
+        shutil.copytree(ROOT / "src/renpy_relations", packages / "renpy_relations",
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         (packages / "renpy_relations.LICENSE").write_bytes((ROOT / "LICENSE").read_bytes())
         dependencies = inventory(packages)

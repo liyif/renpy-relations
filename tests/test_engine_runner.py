@@ -7,7 +7,7 @@ import sys
 import pytest
 
 
-RUNNER = Path(__file__).resolve().parents[1] / "check_renpy.py"
+RUNNER = Path(__file__).resolve().parents[1] / "tools/check_renpy.py"
 
 
 @pytest.mark.parametrize("status,expected", [("PASSED", 0), ("FAILED", 1), (None, 1), ("COLORED", 0)])

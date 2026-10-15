@@ -15,7 +15,7 @@ import tarfile
 import tempfile
 import zipfile
 
-from prepare_game import ROOT, project_version
+from tools.prepare_game import ROOT, project_version
 
 
 SDK_VERSION = "8.5.3.26051504"
@@ -105,8 +105,8 @@ def check_payload(archive):
                     "DEPENDENCIES.json", "game/script.rpy", "game/story.rpy", "game/content.json",
                     "game/relations.rules.json", "game/relations.duckdb.rules.json",
                     "game/release.json", "game/fonts/tidelight.otf", "game/fonts/OFL.txt",
-                    "game/python-packages/renpy_relations.py", "game/python-packages/relation_rules/__init__.py",
-                    "game/python-packages/relation_rules/runtime.py", "game/python-packages/relation_rules/renpy.py",
+                    "game/python-packages/renpy_relations/__init__.py",
+                    "game/python-packages/renpy_relations/runtime.py", "game/python-packages/renpy_relations/renpy.py",
                     "lib/py3-linux-x86_64/python"}
         if not required <= names:
             raise ValueError(f"Game archive is missing: {sorted(required - names)}")
@@ -159,13 +159,13 @@ def build(sdk, output):
             staged = work / name
             expected_cases = len(re.findall(r"^    testcase ",
                 (source / "examples" / name / "game/testcases.rpy").read_text(), re.MULTILINE))
-            checked(uv + ["python", "prepare_game.py", "--game", source / "examples" / name,
+            checked(uv + ["python", "-m", "tools.prepare_game", "--game", source / "examples" / name,
                           "--out", staged, "--backend", "duckdb", "--sdk", sdk],
                     cwd=source, log=logs / f"{name}-install.log")
             checked([sdk / "renpy.sh", staged, "lint"], log=logs / f"{name}-lint.log", environment=environment)
             for backend in ("sqlite", "duckdb"):
                 for mode in ("cached", "live", "materialized"):
-                    checked(uv + ["python", "check_renpy.py", "--sdk", sdk, "--game", staged,
+                    checked(uv + ["python", "-m", "tools.check_renpy", "--sdk", sdk, "--game", staged,
                                   "--headless", "--backend", backend, "--mode", mode, "--timeout", "180"],
                             cwd=source, log=logs / f"{name}-{backend}-{mode}.log")
                     engine_runs.append({"game": name, "backend": backend, "mode": mode,
@@ -184,8 +184,8 @@ def build(sdk, output):
             archive.writestr(f"{prefix}/INSTALL.md", "# Ren’Py Relations runtime\n\n"
                             "Copy the contents of game/python-packages into your game's matching directory.\n"
                             "This bundle targets Linux x86_64 / CPython 3.12 and includes both database drivers.\n"
-                            "Compile your rules with compile_rules.py from the source archive; place the JSON in game/.\n"
-                            f"See QUICKSTART.md and docs/reference.md in renpy-relations-{version}-source.tar.gz "
+                            "Compile your rules with renpy-relations-compile; place the JSON in game/.\n"
+                            f"See docs/quickstart.md and docs/reference.md in renpy-relations-{version}-source.tar.gz "
                             "for the complete integration guide and API reference.\n"
                             "Keep LICENSE and the dependency license files listed in DEPENDENCIES.json.\n")
         (staged / "game/release.json").write_text(json.dumps({"version": version, "commit": commit}) + "\n")
@@ -236,10 +236,10 @@ def build(sdk, output):
         testcases = testcases.replace("    before testcase:\n", "    before testcase:\n"
             "        assert eval not config.developer\n"
             "        assert eval os.path.realpath(sys.modules['renpy_relations'].__file__) == "
-            "os.path.realpath(os.path.join(config.gamedir, 'python-packages', 'renpy_relations.py'))\n", 1)
+            "os.path.realpath(os.path.join(config.gamedir, 'python-packages', 'renpy_relations', '__init__.py'))\n", 1)
         (playable / "game/testcases.rpy").write_text(testcases)
         for backend in ("sqlite", "duckdb"):
-            checked(uv + ["python", "check_renpy.py", "--launcher", playable / "tidelight.sh",
+            checked(uv + ["python", "-m", "tools.check_renpy", "--launcher", playable / "tidelight.sh",
                           "--game", playable, "--headless", "--backend", backend, "--timeout", "180"],
                     cwd=source, log=logs / f"packaged-{backend}.log")
             engine_runs.append({"game": "packaged-tidelight", "backend": backend, "mode": "cached",

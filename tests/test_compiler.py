@@ -7,12 +7,12 @@ import time
 
 import pytest
 
-from compile_rules import compile_rules
+from renpy_relations.compiler import compile_rules
 from renpy_relations import LogicDB, RuleError, RuleSet
 
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "palace"
-COMPILER = Path(__file__).resolve().parents[1] / "compile_rules.py"
+COMPILER = "renpy_relations.compiler"
 
 
 @pytest.fixture(params=["sqlite", "duckdb"])
@@ -134,7 +134,7 @@ def test_watch_builds_changed_rules_and_keeps_last_good_output_on_error(inputs, 
     source, schema, output = inputs
     with (tmp_path / "watch.log").open("w") as log:
         process = subprocess.Popen(
-            [sys.executable, str(COMPILER), str(source), "--schema", str(schema),
+            [sys.executable, "-m", COMPILER, str(source), "--schema", str(schema),
              "--output", str(output), "--watch"], stdout=log, stderr=log,
         )
 

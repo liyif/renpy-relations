@@ -38,9 +38,10 @@ def test_distributions_include_core_compatibility_and_licenses(delivery):
     work, sdist, wheel, example = delivery
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
-        assert {"relation_rules/__init__.py", "relation_rules/runtime.py",
-                "relation_rules/compiler.py", "relation_rules/renpy.py",
-                "renpy_relations.py", "compile_rules.py"} <= set(names)
+        assert {"renpy_relations/__init__.py", "renpy_relations/runtime.py",
+                "renpy_relations/compiler.py", "renpy_relations/renpy.py"} <= set(names)
+        assert "renpy_relations.py" not in names
+        assert "compile_rules.py" not in names
         assert any(name.endswith("/licenses/LICENSE") for name in names)
         assert any(name.endswith("/licenses/THIRD_PARTY_NOTICES.md") for name in names)
         metadata = archive.read(next(name for name in names if name.endswith("/METADATA"))).decode()
@@ -73,12 +74,12 @@ class BlockEngine(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in ('renpy', 'logica'):
             raise RuntimeError('Unexpected dependency: ' + fullname)
 sys.meta_path.insert(0, BlockEngine())
-from relation_rules import LogicDB, RuleSet
-from renpy_relations import LogicDB as CompatibleDB
-assert issubclass(CompatibleDB, LogicDB)
+from renpy_relations import LogicDB, RuleSet
+from renpy_relations import RenpyLogicDB
+assert issubclass(RenpyLogicDB, LogicDB)
 assert not hasattr(LogicDB, 'install_renpy')
 assert not hasattr(LogicDB, '_renpy_binding')
-assert Path(sys.prefix) in Path(sys.modules['relation_rules'].__file__).parents
+assert Path(sys.prefix) in Path(sys.modules['renpy_relations'].__file__).parents
 for mode in ('cached', 'live', 'materialized'):
     db = LogicDB(sys.argv[1], mode=mode)
     try:
@@ -118,7 +119,7 @@ def test_installed_compiler_command_and_module(delivery):
     for backend in ("sqlite", "duckdb"):
         output = work / f"compiled-{backend}.json"
         command = ([str(env / "bin/renpy-relations-compile")] if backend == "sqlite" else
-                   [str(python), "-I", "-m", "relation_rules.compiler"])
+                   [str(python), "-I", "-m", "renpy_relations.compiler"])
         run(*command, str(example / "world.l"), "--schema", str(example / "schema.json"),
             "--backend", backend, "--output", str(output), cwd=work)
         assert json.loads(output.read_text()) == json.loads(

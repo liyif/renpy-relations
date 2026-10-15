@@ -53,7 +53,7 @@ def main():
         gc.callbacks.remove(collection)
         rules.atomic_json = original
     record = json.loads(args.result.read_text())
-    runtime_file = args.runtime / "relation_rules/runtime.py"
+    runtime_file = args.runtime / "src/renpy_relations/runtime.py"
     if not runtime_file.is_file():
         runtime_file = args.runtime / "renpy_relations.py"
     record.update(runtime_source=str(runtime_file.relative_to(args.runtime)), gc_enabled=gc.isenabled(), gc_events=events,

@@ -109,8 +109,8 @@ def main():
     if commits:
         lines += ["测量记录关联的基础提交（工作树工具变更以记录的 SHA-256 为准）：" + "、".join(f"`{cell(commit)}`" for commit in commits) + "。", ""]
     lines += ["| 测量输入 | SHA-256 |", "| --- | --- |"]
-    for name in ("relation_rules/runtime.py", "renpy_relations.py", "uv.lock"):
-        if name == "relation_rules/runtime.py" and name not in hashes:
+    for name in ("src/renpy_relations/runtime.py", "renpy_relations.py", "uv.lock"):
+        if name == "src/renpy_relations/runtime.py" and name not in hashes:
             continue
         lines.append(f"| `{name}` | `{cell(hashes.get(name, '未记录'))}` |")
     renderer_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()

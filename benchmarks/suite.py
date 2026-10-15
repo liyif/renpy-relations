@@ -116,9 +116,9 @@ def current_source_identity():
     """A workspace identity; only the executor may label it as measured."""
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
-    files = [ROOT / "renpy_relations.py", ROOT / "compile_rules.py", ROOT / "uv.lock",
+    files = [ROOT / "uv.lock",
              *sorted((ROOT / "benchmarks").glob("*.py")),
-             *sorted((ROOT / "relation_rules").glob("*.py"))]
+             *sorted((ROOT / "src/renpy_relations").glob("*.py"))]
     return {"captured_at": datetime.now(CLIENT_TIMEZONE).isoformat(), "git_commit": git.stdout.strip(),
             "git_dirty": bool(dirty.stdout),
             "sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}}
@@ -270,7 +270,7 @@ def probe(args):
     if args.packages:
         sys.path.insert(0, str(args.packages.resolve()))
     sys.path.insert(0, str(ROOT))
-    from relation_rules import LogicDB, RuleSet
+    from renpy_relations import LogicDB, RuleSet
     from rules import dataset, populate
 
     facts = (args.condition_count + 73) // 10
@@ -278,8 +278,8 @@ def probe(args):
     record = {"status": "running", "kind": "load_probe", "backend": "duckdb", "conditions": args.condition_count,
               "facts": facts, "ratio": 10, "shape": "partitioned", "mode": "cached", "history_bound": False,
               "runtime": runtime_info("duckdb"),
-              "runtime_source": "relation_rules/runtime.py",
-              "runtime_sha256": hashlib.sha256((ROOT / "relation_rules/runtime.py").read_bytes()).hexdigest(),
+              "runtime_source": "src/renpy_relations/runtime.py",
+              "runtime_sha256": hashlib.sha256((ROOT / "src/renpy_relations/runtime.py").read_bytes()).hexdigest(),
               "bundle_sha256": hashlib.sha256(json.dumps(document, sort_keys=True).encode()).hexdigest(), "phases": {}}
     db = None
 

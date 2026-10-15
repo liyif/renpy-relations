@@ -1,6 +1,6 @@
 # Maintain and release Ren’Py Relations
 
-Use the [quickstart](../QUICKSTART.md) to learn the working integration, the [reference](reference.md) for runtime/compiler contracts, and the [project introduction](../README.md) for scope. This page covers changing the source and producing verifiable Linux artifacts.
+Use the [quickstart](quickstart.md) to learn the working integration, the [reference](reference.md) for runtime/compiler contracts, and the [project introduction](../README.md) for scope. This page covers changing the source and producing verifiable Linux artifacts.
 
 ## Set up a contributor environment
 
@@ -14,14 +14,14 @@ The default `dev` group includes the pinned Logica compiler and pytest. `--extra
 
 | Source area | Role |
 | --- | --- |
-| `relation_rules/runtime.py` | RuleSet validation, database backends, transactions, query modes, native snapshots and reload. |
-| `relation_rules/renpy.py`, `renpy_relations.py` | Optional Ren’Py adapter and legacy import compatibility. |
-| `relation_rules/compiler.py`, `compile_rules.py` | Schema checks, Logica compilation, dependency extraction, bundle validation and publication. |
+| `src/renpy_relations/` | Runtime, compiler, Ren’Py adapter and public Python exports. |
 | `examples/palace/` | Small permissions and one-time reward exercise, with engine testcases. |
-| `examples/tidelight/` | Narrative sample, data-driven actions, prose, rule bundles, font and font builder. |
-| `tests/` | Focused compiler, runtime, backend, example, benchmark, staging and release checks. |
-| `prepare_game.py`, `check_renpy.py`, `release.py` | Dependency staging, actual engine test runner, clean-source release builder. |
-| `benchmarks/` | Isolated measurement tools and preserved historical results; see its [guide](../benchmarks/README.md). |
+| `examples/python_access/` | Standalone Python permissions example. |
+| `examples/tidelight/` | Narrative sample, rules, content, prose and font. |
+| `tests/` | Compiler, runtime, installation, examples and tooling checks. |
+| `tools/` | Dependency staging, actual engine test runner and release builder. |
+| `benchmarks/` | Measurement tools and preserved historical data. |
+| `docs/` | Quickstart, Python guide, reference and maintenance instructions. |
 
 ## Validate the part you change
 
@@ -39,9 +39,9 @@ Compiler tests cover publication and rejection behavior. Runtime/backend tests e
 After editing an example's `world.l` or `schema.json`, regenerate both bundles. This example uses Palace; repeat with `examples/tidelight` when changing that world:
 
 ```sh
-uv run --locked python compile_rules.py examples/palace/world.l \
+uv run --locked renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json --output examples/palace/game/relations.rules.json
-uv run --locked --extra duckdb python compile_rules.py examples/palace/world.l \
+uv run --locked --extra duckdb renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json --backend duckdb \
   --output examples/palace/game/relations.duckdb.rules.json
 ```
@@ -65,20 +65,20 @@ Run `uv build --out-dir dist/python` to produce a wheel and an installable sourc
 
 ## Check a real Ren’Py project
 
-The automated deployment target is Linux x86_64 / CPython 3.12 with Ren’Py **8.5.3.26051504**. Obtain the SDK from Ren’Py's official distribution. The workflow pins the SDK archive SHA256 to `eb0a9be7f0fb13632fe25ceade9a8bed5a1b4d6b6e83bd19eeeb29e1a1bb4a45`. Verify the archive before extraction; `release.py` checks the installed SDK's version string but does not hash your original download.
+The automated deployment target is Linux x86_64 / CPython 3.12 with Ren’Py **8.5.3.26051504**. Obtain the SDK from Ren’Py's official distribution. The workflow pins the SDK archive SHA256 to `eb0a9be7f0fb13632fe25ceade9a8bed5a1b4d6b6e83bd19eeeb29e1a1bb4a45`. Verify the archive before extraction; `tools.release` checks the installed SDK's version string but does not hash your original download.
 
 On a headless Linux host, install `xvfb`, `xauth`, `libgl1`, and `libegl1` through the host's package manager. Stage into a new directory outside the example:
 
 ```sh
 SDK=/path/to/renpy-8.5.3-sdk
 GAME=/tmp/relations-palace-check
-uv run --locked --extra duckdb python prepare_game.py \
+uv run --locked --extra duckdb python -m tools.prepare_game \
   --game examples/palace --out "$GAME" --backend duckdb --sdk "$SDK"
 SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 \
   xvfb-run -a "$SDK/renpy.sh" "$GAME" lint
 for backend in sqlite duckdb; do
   for mode in cached live materialized; do
-    uv run --locked --extra duckdb python check_renpy.py \
+    uv run --locked --extra duckdb python -m tools.check_renpy \
       --sdk "$SDK" --game "$GAME" --headless \
       --backend "$backend" --mode "$mode" --timeout 180
   done
@@ -97,8 +97,8 @@ Choose an output directory that does not exist. From that clean checkout:
 
 ```sh
 uv run --locked --extra duckdb --group renpy-linux --group assets \
-  python release.py build --sdk "$SDK" --out /tmp/renpy-relations-release
-uv run --locked python release.py verify /tmp/renpy-relations-release
+  python -m tools.release build --sdk "$SDK" --out /tmp/renpy-relations-release
+uv run --locked python -m tools.release verify /tmp/renpy-relations-release
 ```
 
 The build is substantial: it tests an extracted source archive, stages both examples with locked hashed binary wheels, lints them, runs every example/backend/mode engine combination, builds Tidelight with the SDK, checks its payload, then tests a disposable extracted game with its bundled engine. It does not patch SDK source. A failed build can leave an output directory containing diagnostic logs; inspect those and use a new directory for another attempt.

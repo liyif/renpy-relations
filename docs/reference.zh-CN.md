@@ -4,9 +4,9 @@
 
 [数据模型](#数据模型) · [编译规则](#编译规则) · [运行时 API](#运行时-api) · [查询模式](#查询模式) · [快照与重载](#快照与重载) · [Ren’Py 集成](#renpy-集成) · [兼容性](#兼容性) · [故障排查](#故障排查)
 
-完整的入门练习请参阅 [Palace 快速入门](../QUICKSTART.zh-CN.md)。本页规定编译器、运行时、快照和 Ren’Py 适配器的接口契约。[Tidelight 指南（英文）](../examples/tidelight/README.md)介绍了一个基于这些接口构建的应用；[维护指南（英文）](maintaining.md)说明项目准备、验证和发布流程。
+完整的入门练习请参阅 [Palace 快速入门](quickstart.zh-CN.md)。本页规定编译器、运行时、快照和 Ren’Py 适配器的接口契约。[Tidelight 指南（英文）](../examples/tidelight/README.md)介绍了一个基于这些接口构建的应用；[维护指南（英文）](maintaining.md)说明项目准备、验证和发布流程。
 
-普通 Python 应用从 `relation_rules` 导入通用核心，安装和独立示例见 [Python 集成指南（英文）](python.md)。现有 Ren’Py 游戏仍使用 `from renpy_relations import LogicDB`；该兼容类即 `relation_rules.renpy.RenpyLogicDB`，在共享核心之上提供引擎适配。
+统一从 `renpy_relations` 导入 `LogicDB`、`RenpyLogicDB`、`RuleSet` 和 `RuleError`。普通 Python 应用使用 `LogicDB`，Ren’Py 项目使用 `RenpyLogicDB`。独立安装方式见 [Python 指南（英文）](python.md)。
 
 ## 数据模型
 
@@ -18,7 +18,7 @@
 | --- | --- |
 | `schema.json` | 声明可写的事实关系和导出的派生关系列。 |
 | Logica 源码，通常是 `world.l` | 定义派生谓词以及可选的内部辅助谓词。 |
-| `compile_rules.py` | 编译指定后端的 SQL，记录依赖，验证输出，并发布 JSON 规则包。 |
+| `renpy-relations-compile` | 编译指定后端的 SQL，记录依赖，验证输出，并发布 JSON 规则包。 |
 | `LogicDB` | 存储事实、计算派生答案、批量写入，以及捕获或恢复事实映像。 |
 | 游戏代码 | 从符合条件的动作中作出选择，并记录其效果。 |
 | Ren’Py 适配器 | 将事实映像发布到 store 变量，并在 Ren’Py 恢复该变量时恢复数据库。 |
@@ -102,7 +102,7 @@ document = rules.document             # independent JSON-compatible copy
 在仓库根目录中，使用锁定依赖的开发环境运行命令：
 
 ```sh
-uv run --locked python compile_rules.py examples/palace/world.l \
+uv run --locked renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json \
   --output /tmp/palace-relations.rules.json
 ```
@@ -115,9 +115,9 @@ uv run --locked python compile_rules.py examples/palace/world.l \
 | `--backend sqlite\|duckdb` | 覆盖源码的 `@Engine` 选择，不修改源码。 |
 | `--watch` | 先构建一次，之后在检测到本地输入变化时重新构建，直到被中断。 |
 
-没有覆盖参数时，源码必须选择 SQLite 或 DuckDB。编译或运行 DuckDB 规则包时，请安装 DuckDB 可选依赖，例如 `uv run --locked --extra duckdb python compile_rules.py … --backend duckdb`。一个规则包只面向一个后端；运行时选择其他后端不会转换其 SQL。
+没有覆盖参数时，源码必须选择 SQLite 或 DuckDB。编译或运行 DuckDB 规则包时，请安装 DuckDB 可选依赖，例如 `uv run --locked --extra duckdb renpy-relations-compile … --backend duckdb`。一个规则包只面向一个后端；运行时选择其他后端不会转换其 SQL。
 
-Python 入口是 `compile_rules.py` 中的 `compile_rules(source, schema, output, *, backend=None)`。成功发布后，它返回经过验证的 `RuleSet`。单次运行的命令行工具成功时退出码为 `0`，捕获到构建失败时为 `1`。
+Python 入口是 `renpy_relations.compiler` 中的 `compile_rules(source, schema, output, *, backend=None)`。成功发布后，它返回经过验证的 `RuleSet`。单次运行的命令行工具成功时退出码为 `0`，捕获到构建失败时为 `1`。
 
 每个声明的派生输出都必须在 Logica 中定义。事实名称代表外部表：编译器会拒绝对这些名称的 Logica 定义，包括源码中的事实。读取未声明的外部关系也会被拒绝。未导出的辅助谓词可以由 Logica 内联。当一个导出谓词读取另一个导出的派生谓词时，后者仍保持为独立的关系边界，以便复用其带类型的结果和缓存计算。否定读取和聚合读取也参与依赖跟踪。
 
@@ -131,12 +131,12 @@ Python 入口是 `compile_rules.py` 中的 `compile_rules(source, schema, output
 
 `--watch` 每 0.5 秒检查一次。其输入集合包括模式文件、源码文件，以及源码目录下的所有 `*.l` 文件，包括本地导入文件。外部导入根目录不在监听范围内。构建失败会报告到 stderr，监听仍会继续。只有观察到的输入状态发生变化时才会重试，不会针对未变化的失败状态反复构建。中断监听会正常退出。
 
-此监听器负责发布规则包，不会更新已经运行的 `LogicDB`；请使用运行时重载，或下文介绍的适配器监听。准备示例项目时会复制其随附的规则包，因此编译到 `/tmp` 不会改变准备好的游戏。如何直接编译到准备好的游戏所选规则包，请参阅[快速入门](../QUICKSTART.zh-CN.md)。
+此监听器负责发布规则包，不会更新已经运行的 `LogicDB`；请使用运行时重载，或下文介绍的适配器监听。准备示例项目时会复制其随附的规则包，因此编译到 `/tmp` 不会改变准备好的游戏。如何直接编译到准备好的游戏所选规则包，请参阅[快速入门](quickstart.zh-CN.md)。
 
 ## 运行时 API
 
 ```python
-from relation_rules import LogicDB
+from renpy_relations import LogicDB
 
 logic = LogicDB("examples/palace/game/relations.rules.json")
 try:
@@ -260,7 +260,7 @@ assert logic.has("Sponsor", character="hero", location="archive")
 
 ## Ren’Py 集成
 
-请按[快速入门](../QUICKSTART.zh-CN.md)准备依赖和规则包。最小绑定使用一个 `default` store 变量，并在初始化期间安装一次：
+请按[快速入门](quickstart.zh-CN.md)准备依赖和规则包。最小绑定使用一个 `default` store 变量，并在初始化期间安装一次：
 
 ```renpy
 default logic_snapshot = None
@@ -269,7 +269,7 @@ init python:
     import os
     import sys
     sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    from renpy_relations import LogicDB
+    from renpy_relations import RenpyLogicDB as LogicDB
 
     logic = LogicDB(os.path.join(config.gamedir, "relations.rules.json"))
     logic.install_renpy(config)
@@ -320,11 +320,11 @@ init python:
 
 | 症状 | 原因与恢复方法 |
 | --- | --- |
-| `No SQLite driver` | 解释器既没有可用的 `sqlite3`，也没有可用的 `pysqlite3`。请使用[快速入门](../QUICKSTART.zh-CN.md)中的受支持项目准备流程，它会安装 Linux 驱动。 |
+| `No SQLite driver` | 解释器既没有可用的 `sqlite3`，也没有可用的 `pysqlite3`。请使用[快速入门](quickstart.zh-CN.md)中的受支持项目准备流程，它会安装 Linux 驱动。 |
 | `DuckDB backend requires the uv extra: --extra duckdb` | 使用 DuckDB 可选依赖运行，或使用 `--backend duckdb` 准备项目。`duckdb` 和 `duckdb-engine` 缺一不可。 |
 | `Logica is not installed in this Python environment` | 请在锁定依赖的开发环境中编译，不要在只包含运行时依赖的准备好游戏中编译。 |
 | 规则包后端与请求的后端不同 | 选择为该后端编译的规则包，或使用 `--backend` 重新编译。构造函数的 `backend` 参数只检查目标。 |
-| `lacks dependencies`、未声明的关系或依赖环 | 使用 `compile_rules.py` 重新构建；修正关系拼写和导出关系间的依赖环。不要根据 SQL 猜测依赖边。 |
+| `lacks dependencies`、未声明的关系或依赖环 | 使用 `renpy-relations-compile` 重新构建；修正关系拼写和导出关系间的依赖环。不要根据 SQL 猜测依赖边。 |
 | 输出列导致构建失败 | 使派生模式列与 Logica 的命名输出列一致。修复源码／模式后重新构建；之前发布的规则包仍可使用。 |
 | `add(...) requires every field` 或未知字段 | 使用声明中的准确列名提供完整事实。筛选条件可以只用部分列，添加则不可以。 |
 | 已有键对应的不同元组触发数据库完整性错误 | 在同一个批次中删除旧的带键行并添加替代行。只有完全相同的元组才会被忽略。 |

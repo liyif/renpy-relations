@@ -17,9 +17,9 @@ init python:
     # Ren'Py's virtual package importer does not discover top-level native modules.
     packages = os.path.join(config.gamedir, "python-packages")
     sys.path.insert(0, packages)
-    if not os.path.isfile(os.path.join(packages, "renpy_relations.py")):
-        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
-    from renpy_relations import LogicDB, RuleSet
+    if not os.path.isfile(os.path.join(packages, "renpy_relations", "__init__.py")):
+        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..", "src")))
+    from renpy_relations import RenpyLogicDB as LogicDB, RuleSet
 
     relations_backend = os.environ.get("RELATIONS_BACKEND", "sqlite")
     relations_rules_path = os.path.join(config.gamedir,

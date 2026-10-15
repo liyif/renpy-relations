@@ -1,6 +1,6 @@
 # 快速入门：Palace
 
-[English](QUICKSTART.md) · [简体中文](QUICKSTART.zh-CN.md) · [项目概览](README.zh-CN.md) · [参考手册](docs/reference.zh-CN.md)
+[English](quickstart.md) · [简体中文](quickstart.zh-CN.md) · [项目概览](../README.zh-CN.md) · [参考手册](reference.zh-CN.md)
 
 Palace 是一个小型世界，包含档案馆的访问权限、一个秘密，以及一项只能领取一次的奖励。本指南先在普通 Python 环境中运行它，再为 Ren’Py 准备同一个示例。只需掌握基础 Python，无须 SQL 或数据库经验。
 
@@ -12,7 +12,7 @@ Palace 是一个小型世界，包含档案馆的访问权限、一个秘密，�
 | --- | --- |
 | hero | archive |
 
-这一行表示 `hero` 获得了进入 `archive` 的担保。Python 用 `logic.add("Sponsor", character="hero", location="archive")` 记录它。**数据模式（schema）**声明有哪些关系，以及它们的列名和类型。[Palace 模式文件](examples/palace/schema.json)中的这段内容声明了两个文本列：
+这一行表示 `hero` 获得了进入 `archive` 的担保。Python 用 `logic.add("Sponsor", character="hero", location="archive")` 记录它。**数据模式（schema）**声明有哪些关系，以及它们的列名和类型。[Palace 模式文件](../examples/palace/schema.json)中的这段内容声明了两个文本列：
 
 ```json
 {
@@ -41,7 +41,7 @@ Palace 是一个小型世界，包含档案馆的访问权限、一个秘密，�
 
 ## 准备环境
 
-本教程需要 `uv`、源码检出目录和 Python 3.12。在包含 `pyproject.toml`、`compile_rules.py` 和 `renpy_relations.py` 的目录中运行以下命令：
+本教程需要 `uv`、源码检出目录和 Python 3.12。在包含 `pyproject.toml` 的项目根目录中运行以下命令：
 
 ```sh
 uv sync --locked --python 3.12
@@ -52,7 +52,7 @@ PALACE_WORK="$(mktemp -d /tmp/renpy-relations-palace.XXXXXX)"
 
 ## 读懂第一条规则
 
-下面是 [world.l](examples/palace/world.l) 中的一条规则：
+下面是 [world.l](../examples/palace/world.l) 中的一条规则：
 
 ```prolog
 CanEnter(character: c, location: l) distinct :-
@@ -105,7 +105,7 @@ CanClaimReward(character: c, reward: "investigation") distinct :-
 将项目自带的源码和完整模式编译到刚创建的工作目录中：
 
 ```sh
-uv run --locked python compile_rules.py examples/palace/world.l \
+uv run --locked renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json \
   --backend sqlite \
   --output "$PALACE_WORK/palace.rules.json"
@@ -174,7 +174,7 @@ with logic.batch():
 # Query after the batch exits.
 ```
 
-这种写法也适用于 Palace 未额外声明键的模式，但它会有意删除该角色的全部成员关系。修改游戏的事实模式前，请查阅[参考手册](docs/reference.zh-CN.md)。
+这种写法也适用于 Palace 未额外声明键的模式，但它会有意删除该角色的全部成员关系。修改游戏的事实模式前，请查阅[参考手册](reference.zh-CN.md)。
 
 上面的**快照（snapshot）**包含事实以及格式和模式元数据。恢复快照会还原领取奖励之前的事实，并根据当前加载的规则重新计算答案。它不会保存任意 Python 变量，也不会冻结规则源码。`restore(None)` 创建一个事实为空的世界。独立使用 `LogicDB` 时，完成后应将它关闭。
 
@@ -185,7 +185,7 @@ with logic.batch():
 ```sh
 RELATIONS_SDK="/path/to/your/renpy-sdk"
 PALACE_PROJECT="$PALACE_WORK/palace-game"
-uv run --locked python prepare_game.py \
+uv run --locked python -m tools.prepare_game \
   --game examples/palace \
   --out "$PALACE_PROJECT" \
   --backend sqlite \
@@ -206,7 +206,7 @@ uv run --locked python prepare_game.py \
 
 ## 接入自己的 Ren’Py 脚本
 
-准备好的 [Palace 脚本](examples/palace/game/script.rpy)包含完整示例。其集成方式如下：
+准备好的 [Palace 脚本](../examples/palace/game/script.rpy)包含完整示例。其集成方式如下：
 
 ```renpy
 default logic_snapshot = None
@@ -216,7 +216,7 @@ init python:
     import os
     import sys
     sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    from renpy_relations import LogicDB
+    from renpy_relations import RenpyLogicDB as LogicDB
 
     logic = LogicDB(os.path.join(config.gamedir, "relations.rules.json"))
     logic.install_renpy(config)
@@ -250,7 +250,7 @@ label court:
 
 在已准备好运行时和规则包的游戏中使用这一方式。在初始化阶段安装适配器，在新游戏开始时的 `label start` 中写入初始事实。将 `logic_snapshot` 保持为 Ren’Py 的 `default` 变量。每次提交实际产生修改后，适配器都会发布事实快照，并通过 Ren’Py 的生命周期回调从该变量恢复数据库。`reward_points` 等普通游戏效果仍由你的脚本负责，应使用 Ren’Py 常规的存档和回滚变量。
 
-不要把数据库对象赋给 `logic_snapshot`；该变量由适配器管理。生命周期细节和支持的重载行为，见[参考手册中的 Ren’Py 集成说明](docs/reference.zh-CN.md)。
+不要把数据库对象赋给 `logic_snapshot`；该变量由适配器管理。生命周期细节和支持的重载行为，见[参考手册中的 Ren’Py 集成说明](reference.zh-CN.md)。
 
 ## 修改规则
 
@@ -264,7 +264,7 @@ CanInvestigate(character: c) distinct :-
 现在，只要有访问权限就可以调查。请明确将编译结果写入准备好的游戏实际加载的规则包：
 
 ```sh
-uv run --locked python compile_rules.py "$PALACE_PROJECT/world.l" \
+uv run --locked renpy-relations-compile "$PALACE_PROJECT/world.l" \
   --schema "$PALACE_PROJECT/schema.json" \
   --backend sqlite \
   --output "$PALACE_PROJECT/game/relations.rules.json"
@@ -272,8 +272,8 @@ uv run --locked python compile_rules.py "$PALACE_PROJECT/world.l" \
 
 重启游戏并开始新的一轮游玩。现在，请求担保后，即使还没了解秘密，也可以领取奖励。将原规则复制回去并重新编译，即可恢复原来的条件。改编这个世界时，新增事实类型需要修改模式声明，修改资格条件需要编辑 `.l` 规则，修改效果则需要编辑 Python/Ren’Py 行动。
 
-Palace 也启用了开发阶段的规则监视：成功重新编译后，它可以在交互时加载变更后的规则包，也可以按 **F6** 重载。编译器的 `--watch` 根据源码变化重新编译；适配器的 `watch_rules=True` 加载变更后的规则包。这是两个独立步骤。规则重载会保留事实，并要求事实模式和数据库后端保持不变；重载后，旧快照也使用当前规则。完整约定见[快照与重载说明](docs/reference.zh-CN.md)。
+Palace 也启用了开发阶段的规则监视：成功重新编译后，它可以在交互时加载变更后的规则包，也可以按 **F6** 重载。编译器的 `--watch` 根据源码变化重新编译；适配器的 `watch_rules=True` 加载变更后的规则包。这是两个独立步骤。规则重载会保留事实，并要求事实模式和数据库后端保持不变；重载后，旧快照也使用当前规则。完整约定见[快照与重载说明](reference.zh-CN.md)。
 
 ## 后续阅读
 
-先使用 SQLite 完成这次练习。可选的 DuckDB 安装、针对不同后端的编译、查询模式和规则监视命令，见[参考手册](docs/reference.zh-CN.md)。[Tidelight 指南（英文）](examples/tidelight/README.md)展示了一个完整故事如何从符合条件的答案中选择事件。[基准测试指南（英文）](benchmarks/README.md)介绍测量方法，[维护指南（英文）](docs/maintaining.md)介绍修改和发布流程。
+先使用 SQLite 完成这次练习。可选的 DuckDB 安装、针对不同后端的编译、查询模式和规则监视命令，见[参考手册](reference.zh-CN.md)。[Tidelight 指南（英文）](../examples/tidelight/README.md)展示了一个完整故事如何从符合条件的答案中选择事件。[基准测试指南（英文）](../benchmarks/README.md)介绍测量方法，[维护指南（英文）](maintaining.md)介绍修改和发布流程。

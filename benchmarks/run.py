@@ -106,7 +106,11 @@ def runtime_info(backend="sqlite"):
     import renpy_relations
     import sqlalchemy
 
-    driver = renpy_relations.sqlite3
+    if hasattr(renpy_relations, "sqlite3"):
+        driver = renpy_relations.sqlite3
+    else:
+        from renpy_relations.runtime import sqlite3
+        driver = sqlite3
     connection = driver.connect(":memory:")
     try:
         temporary_store = connection.execute("PRAGMA temp_store").fetchone()[0]
@@ -134,7 +138,7 @@ def worker(args):
     if args.packages is not None:
         sys.path.insert(0, str(args.packages.resolve()))
     sys.path.insert(0, str(ROOT))
-    from relation_rules import LogicDB
+    from renpy_relations import LogicDB
 
     result = {"kind": args.worker, "size": args.size, "mode": args.mode, "backend": args.backend,
               "history_bound": False,
@@ -410,7 +414,7 @@ def main(argv=None):
         parser.error("sizes must be >=4; repetitions, queries, batch-size and timeout must be positive")
     if args.worker:
         return worker(args)
-    from compile_rules import compile_rules
+    from renpy_relations.compiler import compile_rules
 
     started = datetime.now(CLIENT_TIMEZONE).isoformat()
     output = (args.out or ROOT / "benchmarks" / "results" / datetime.now(CLIENT_TIMEZONE).strftime("%Y%m%d-%H%M%S%z")).resolve()
@@ -435,8 +439,8 @@ def main(argv=None):
                 "host": {"platform": platform.platform(), "cpu": cpu, "logical_cpus": os.cpu_count()},
                 "source": {"git_commit": git.stdout.strip(), "git_dirty": bool(dirty.stdout),
                            "sha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                                      for name in ("renpy_relations.py", "compile_rules.py", "relation_rules/runtime.py",
-                                                   "relation_rules/compiler.py", "relation_rules/__init__.py", "benchmarks/run.py", "uv.lock")}},
+                                      for name in ("src/renpy_relations/runtime.py",
+                                                   "src/renpy_relations/compiler.py", "src/renpy_relations/__init__.py", "benchmarks/run.py", "uv.lock")}},
                 "compiler": {"logica": version("logica"), "seconds": compile_seconds}, "runs": [], "summary": []}
     for size in args.sizes:
         seeds = {}

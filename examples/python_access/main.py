@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from relation_rules import LogicDB
+from renpy_relations import LogicDB
 
 
 def main():

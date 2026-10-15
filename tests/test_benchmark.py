@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from compile_rules import compile_rules
+from renpy_relations.compiler import compile_rules
 from renpy_relations import LogicDB
 
 

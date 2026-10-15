@@ -4,7 +4,7 @@ Ren’Py Relations includes an engine-independent core for ordinary Python appli
 
 ## Install
 
-The single Python distribution is named `renpy-relations`; the import is `relation_rules`. From the source checkout, build it with uv:
+Install `renpy-relations` and import from `renpy_relations`. From the source checkout, build it with uv:
 
 ```sh
 uv build --out-dir dist/python
@@ -26,6 +26,16 @@ These instructions use local artifacts; no package-index publication is assumed.
 
 For example, `uv add --extra compiler --extra duckdb /path/to/renpy_relations-0.3.0-py3-none-any.whl` installs both optional features. The runtime uses precompiled JSON bundles and does not import Logica. The pure Python wheel contains the optional adapter code, which is inactive unless explicitly used; it does not install or import Ren’Py.
 
+## Files you work with
+
+| File | Purpose | Maintained by |
+| --- | --- | --- |
+| `world.l` | Rules that derive answers from facts. | You. |
+| `schema.json` | Fact relations and exported result columns. | You. |
+| `relations.rules.json` | Compiled SQL, dependencies and schema for one backend. | Compiler output. |
+
+Your logic needs two authored files and one generated bundle per backend. The host program records facts and consumes answers. Install the library normally; the Ren’Py staging tool supplies its package and database dependencies in `game/python-packages/`. Library implementation files stay inside the installed package.
+
 ## Run the standalone example
 
 The source archive includes [python_access](../examples/python_access/main.py), a permissions example. Membership or sponsorship creates candidate access; an explicit revocation removes it. Its [schema](../examples/python_access/schema.json) declares the facts and exported answers, and its [Logica source](../examples/python_access/world.l) defines:
@@ -39,7 +49,7 @@ CanAccess(user:, resource:) distinct :-
   Candidate(user:, resource:), ~Revoked(user:, resource:);
 ```
 
-Each rule reads relations; commas combine conditions, alternative rules contribute answers, and `~Revoked(...)` excludes revoked access. The [Palace quickstart](../QUICKSTART.md#facts-tables-and-rules) explains relations, schemas and Logica syntax from the beginning.
+Each rule reads relations; commas combine conditions, alternative rules contribute answers, and `~Revoked(...)` excludes revoked access. The [Palace quickstart](quickstart.md#facts-tables-and-rules) explains relations, schemas and Logica syntax from the beginning.
 
 From the source root:
 
@@ -62,7 +72,7 @@ The example ships both compiled bundles. To test the installed wheel, copy `exam
 ## Integrate the core
 
 ```python
-from relation_rules import LogicDB
+from renpy_relations import LogicDB
 
 logic = LogicDB("access.sqlite.rules.json")
 try:
@@ -90,13 +100,13 @@ Install the `compiler` extra in your development environment. The installed comm
 
 ```sh
 uv run renpy-relations-compile world.l --schema schema.json --output access.sqlite.rules.json
-uv run python -m relation_rules.compiler world.l --schema schema.json \
+uv run python -m renpy_relations.compiler world.l --schema schema.json \
   --backend duckdb --output access.duckdb.rules.json
 ```
 
 The DuckDB command also needs the `duckdb` extra. The compiler records SQL, dependencies and source identity, validates the result, then publishes the JSON atomically. Runtime processes need the JSON and corresponding database driver, without the compiler. Rules and SQL are trusted application build artifacts; field values passed to queries and mutations are bound parameters.
 
-The source-checkout command `python compile_rules.py ...` remains supported.
+The same command works from a source checkout after `uv sync --locked`.
 
 ## Manage application state
 
@@ -106,9 +116,9 @@ Without a snapshot callback, ordinary commits invalidate a retained image and ca
 
 `reload_rules()` preserves facts while replacing compatible rules; `reload_if_changed()` polls a bundle path when your application calls it. The core creates no polling thread or engine callback.
 
-## Ren’Py compatibility and limits
+## Ren’Py integration
 
-Existing games can continue using `from renpy_relations import LogicDB` and `logic.install_renpy(config)`. That compatibility class is `relation_rules.renpy.RenpyLogicDB`, a subclass of the core. It owns the Ren’Py binding, store publication, lifecycle callbacks and developer notifications. The core `LogicDB` has no `install_renpy()` method or Ren’Py binding state. New Ren’Py integrations may import `RenpyLogicDB` explicitly.
+Import `RenpyLogicDB` from `renpy_relations` and call `install_renpy(config)` during initialization. This class extends `LogicDB` with store publication, save/load and rollback callbacks, and developer notifications. The [quickstart](quickstart.md#stage-and-play-palace) gives a complete integration.
 
 The rule-bundle identifier `renpy-relations` and snapshot metadata remain unchanged to preserve existing data. These identifiers do not imply an engine dependency.
 

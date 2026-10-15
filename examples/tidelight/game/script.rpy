@@ -20,9 +20,9 @@ init python:
     from pathlib import Path
     packages = os.path.join(config.gamedir, "python-packages")
     sys.path.insert(0, packages)
-    if not os.path.isfile(os.path.join(packages, "renpy_relations.py")):
-        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..")))
-    from renpy_relations import LogicDB
+    if not os.path.isfile(os.path.join(packages, "renpy_relations", "__init__.py")):
+        sys.path.append(os.path.abspath(os.path.join(config.gamedir, "..", "..", "..", "src")))
+    from renpy_relations import RenpyLogicDB as LogicDB
     from night import Night
     tidelight_backend = os.environ.get("RELATIONS_BACKEND", "sqlite")
     tidelight_rules = "relations.duckdb.rules.json" if tidelight_backend == "duckdb" else "relations.rules.json"

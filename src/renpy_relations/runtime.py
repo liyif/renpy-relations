@@ -8,7 +8,7 @@ SQLite or DuckDB is selected by the compiled rule bundle. Native images save
 only facts and format/schema metadata. Derived data lives in TEMP.
 All writes go through batch/add/remove; queries are read-only and forbidden in
 a batch. Rule SQL and dependency edges are trusted build-time output from
-compile_rules.py; this runtime only executes them and derives the evaluation
+renpy-relations-compile; this runtime only executes them and derives the evaluation
 order from the declared edges. Application values are bound.
 """
 
@@ -129,7 +129,7 @@ class RuleSet:
         self.fact_schema_id = _digest(doc["facts"])
         self._table_definitions = None
         if doc["derived"] and "dependencies" not in doc:
-            raise RuleError("Rule bundle lacks dependencies; compile with compile_rules.py")
+            raise RuleError("Rule bundle lacks dependencies; compile with renpy-relations-compile")
         self.reads = {name: tuple(sorted(reads)) for name, reads in doc.get("dependencies", {}).items()}
         # Edges among derived relations drive invalidation and evaluation order.
         self.dependencies = {name: tuple(n for n in reads if n in doc["derived"])

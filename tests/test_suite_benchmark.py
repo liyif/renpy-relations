@@ -73,7 +73,8 @@ def test_suite_continues_after_failure_and_reports_unmeasured_scope(tmp_path, mo
         suite.atomic_json(task["result"], {
             key: [{"status": "ok"}] * count for key, count in task["expected"].items()})
         if task["probe"]:
-            suite.atomic_json(task["result"], {"status": "ok", "runtime_sha256": "known"})
+            suite.atomic_json(task["result"], {"status": "ok", "runtime_sha256": "known",
+                                               "runtime_source": "src/renpy_relations/runtime.py"})
         return {**task, "status": "failed" if len(executed) == 1 else "completed", "returncode": 1 if len(executed) == 1 else 0}
 
     monkeypatch.setattr(suite, "execute_task", execute)
@@ -83,7 +84,7 @@ def test_suite_continues_after_failure_and_reports_unmeasured_scope(tmp_path, mo
     assert document["runs"][0]["status"] == "failed"
     assert document["runs"][-1]["status"] == "completed"
     assert any("smoke" in item for item in document["unmeasured"])
-    assert document["source"]["sha256"]["renpy_relations.py"]
+    assert document["source"]["sha256"]["src/renpy_relations/runtime.py"]
     assert "## 执行命令" in (output / "REPORT.md").read_text()
 
 
@@ -117,16 +118,16 @@ def test_report_preserves_measured_hashes_after_workspace_changes(tmp_path, monk
 
 def test_split_core_identity_uses_recorded_source_paths():
     result = suite.source_from_result({
-        "runtime_sources": {"native": "relation_rules/runtime.py"},
+        "runtime_sources": {"native": "src/renpy_relations/runtime.py"},
         "source_sha256": {"native": "core-hash"},
-        "runs": [{"runtime_source": "relation_rules/runtime.py", "runtime_sha256": "core-hash"}],
+        "runs": [{"runtime_source": "src/renpy_relations/runtime.py", "runtime_sha256": "core-hash"}],
     })
-    assert result["sha256"] == {"relation_rules/runtime.py": "core-hash"}
+    assert result["sha256"] == {"src/renpy_relations/runtime.py": "core-hash"}
     assert not result["conflicts"]
     # Graph probes record their implementation identity on the document itself.
-    probe = suite.source_from_result({"runtime_source": "relation_rules/runtime.py",
+    probe = suite.source_from_result({"runtime_source": "src/renpy_relations/runtime.py",
                                       "runtime_sha256": "core-hash", "runs": [{"status": "ok"}]})
-    assert probe["sha256"] == {"relation_rules/runtime.py": "core-hash"}
+    assert probe["sha256"] == {"src/renpy_relations/runtime.py": "core-hash"}
 
 
 @pytest.mark.parametrize("replacement", [None, '{"runs":', '{"runs": [], "validations": []}'])

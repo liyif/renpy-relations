@@ -29,7 +29,7 @@ def main():
         if args.packages:
             sys.path.insert(0, str(args.packages.resolve()))
         sys.path.insert(0, str(ROOT))
-        from relation_rules import LogicDB, RuleSet
+        from renpy_relations import LogicDB, RuleSet
 
         count = args.lengths[0]
         document = {"format": "renpy-relations", "version": 1, "backend": args.backend,
@@ -67,8 +67,8 @@ def main():
         parser.error("Output already exists")
     document = {"description": "One observation per chain, not gameplay workload or repeated median",
                 "backends": args.backends, "timeout": args.timeout,
-                "runtime_source": "relation_rules/runtime.py",
-                "runtime_sha256": hashlib.sha256((ROOT / "relation_rules/runtime.py").read_bytes()).hexdigest(), "runs": []}
+                "runtime_source": "src/renpy_relations/runtime.py",
+                "runtime_sha256": hashlib.sha256((ROOT / "src/renpy_relations/runtime.py").read_bytes()).hexdigest(), "runs": []}
     for length in args.lengths:
         for backend in args.backends:
             destination = args.out.parent / ".work" / f"chain-{length}-{backend}.json"

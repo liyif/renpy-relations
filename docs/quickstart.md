@@ -1,6 +1,6 @@
 # Quickstart: Palace
 
-[English](QUICKSTART.md) · [简体中文](QUICKSTART.zh-CN.md) · [Overview](README.md) · [Reference](docs/reference.md)
+[English](quickstart.md) · [简体中文](quickstart.zh-CN.md) · [Overview](../README.md) · [Reference](reference.md)
 
 Palace is a small world with archive access, a secret, and a reward that can be claimed once. This guide first runs it in ordinary Python, then stages the same example for Ren’Py. Basic Python is enough; you do not need SQL or database experience.
 
@@ -12,7 +12,7 @@ A **relation** is table-shaped data. Here it means more than a relationship scor
 | --- | --- |
 | hero | archive |
 
-The row says that `hero` has sponsorship for `archive`. Python records it with `logic.add("Sponsor", character="hero", location="archive")`. A **schema** declares the relations and their columns and types. This excerpt from [Palace’s schema](examples/palace/schema.json) declares two text columns:
+The row says that `hero` has sponsorship for `archive`. Python records it with `logic.add("Sponsor", character="hero", location="archive")`. A **schema** declares the relations and their columns and types. This excerpt from [Palace’s schema](../examples/palace/schema.json) declares two text columns:
 
 ```json
 {
@@ -41,7 +41,7 @@ A database stores tables and evaluates queries. SQL is the query language that t
 
 ## Prepare the environment
 
-You need `uv`, a source checkout, and Python 3.12 for this walkthrough. Run these commands from the directory containing `pyproject.toml`, `compile_rules.py`, and `renpy_relations.py`:
+You need `uv`, a source checkout, and Python 3.12 for this walkthrough. Run these commands from the project root, which contains `pyproject.toml`:
 
 ```sh
 uv sync --locked --python 3.12
@@ -52,7 +52,7 @@ Keep this shell open: later commands use `PALACE_WORK`. The fresh directory hold
 
 ## Read the first rule
 
-This is one of the rules in [world.l](examples/palace/world.l):
+This is one of the rules in [world.l](../examples/palace/world.l):
 
 ```prolog
 CanEnter(character: c, location: l) distinct :-
@@ -105,7 +105,7 @@ In this project, declare game facts in schema JSON and insert them with `logic.a
 Compile the shipped source and complete schema into your fresh workspace:
 
 ```sh
-uv run --locked python compile_rules.py examples/palace/world.l \
+uv run --locked renpy-relations-compile examples/palace/world.l \
   --schema examples/palace/schema.json \
   --backend sqlite \
   --output "$PALACE_WORK/palace.rules.json"
@@ -174,7 +174,7 @@ with logic.batch():
 # Query after the batch exits.
 ```
 
-This pattern also works with Palace’s unkeyed schema, but it deliberately removes all of that character’s memberships. See the [reference](docs/reference.md) before changing a game’s fact schema.
+This pattern also works with Palace’s unkeyed schema, but it deliberately removes all of that character’s memberships. See the [reference](reference.md) before changing a game’s fact schema.
 
 The **snapshot** above contains facts and format/schema metadata. Restoring it recovers the pre-claim facts and recomputes answers under the currently loaded rules. It does not save arbitrary Python variables or freeze the rule source. `restore(None)` starts an empty fact world. Close a standalone `LogicDB` when finished.
 
@@ -185,7 +185,7 @@ For this route, use a Linux x86_64 Ren’Py SDK with Python 3.12. Release toolin
 ```sh
 RELATIONS_SDK="/path/to/your/renpy-sdk"
 PALACE_PROJECT="$PALACE_WORK/palace-game"
-uv run --locked python prepare_game.py \
+uv run --locked python -m tools.prepare_game \
   --game examples/palace \
   --out "$PALACE_PROJECT" \
   --backend sqlite \
@@ -206,7 +206,7 @@ Use the top **Save** button after gaining sponsorship, revoke it, then click **L
 
 ## Connect your own Ren’Py script
 
-The staged [Palace script](examples/palace/game/script.rpy) contains the complete example. Its integration pattern is:
+The staged [Palace script](../examples/palace/game/script.rpy) contains the complete example. Its integration pattern is:
 
 ```renpy
 default logic_snapshot = None
@@ -216,7 +216,7 @@ init python:
     import os
     import sys
     sys.path.insert(0, os.path.join(config.gamedir, "python-packages"))
-    from renpy_relations import LogicDB
+    from renpy_relations import RenpyLogicDB as LogicDB
 
     logic = LogicDB(os.path.join(config.gamedir, "relations.rules.json"))
     logic.install_renpy(config)
@@ -250,7 +250,7 @@ label court:
 
 Use this pattern in a game with the staged runtime and bundle. Install the adapter during initialization and seed facts in `label start`, when starting a new game. Keep `logic_snapshot` as a Ren’Py `default` variable. The adapter publishes a fact snapshot after a changed commit and restores the database from that variable through Ren’Py’s lifecycle callbacks. Ordinary game effects, such as `reward_points`, remain your script’s responsibility and should use Ren’Py’s normal saved/rollback variables.
 
-Do not assign the database object to `logic_snapshot`; the adapter manages that variable. For lifecycle details and supported reload behavior, see [Ren’Py integration in the reference](docs/reference.md).
+Do not assign the database object to `logic_snapshot`; the adapter manages that variable. For lifecycle details and supported reload behavior, see [Ren’Py integration in the reference](reference.md).
 
 ## Change a rule
 
@@ -264,7 +264,7 @@ CanInvestigate(character: c) distinct :-
 Now access alone permits investigation. Compile explicitly into the bundle that the staged game actually loads:
 
 ```sh
-uv run --locked python compile_rules.py "$PALACE_PROJECT/world.l" \
+uv run --locked renpy-relations-compile "$PALACE_PROJECT/world.l" \
   --schema "$PALACE_PROJECT/schema.json" \
   --backend sqlite \
   --output "$PALACE_PROJECT/game/relations.rules.json"
@@ -272,8 +272,8 @@ uv run --locked python compile_rules.py "$PALACE_PROJECT/world.l" \
 
 Restart the game and start a new playthrough. Asking for a sponsor now makes the reward claim available before learning the secret. Restore the original condition by copying its rule back and recompiling. When adapting this world, change schema declarations for new fact types, `.l` rules for eligibility, and Python/Ren’Py actions for effects.
 
-Palace also enables developer rule watching: after a successful rebuild it can load a changed bundle at an interaction, or you can press **F6** to reload. Compiler `--watch` rebuilds source changes; adapter `watch_rules=True` loads changed bundles. These are separate steps. Rule reload keeps facts and requires the same fact schema and backend; old snapshots use the current rules after reload. See [snapshots and reload](docs/reference.md) for the full contract.
+Palace also enables developer rule watching: after a successful rebuild it can load a changed bundle at an interaction, or you can press **F6** to reload. Compiler `--watch` rebuilds source changes; adapter `watch_rules=True` loads changed bundles. These are separate steps. Rule reload keeps facts and requires the same fact schema and backend; old snapshots use the current rules after reload. See [snapshots and reload](reference.md) for the full contract.
 
 ## Next steps
 
-Stay with SQLite until this exercise works. For optional DuckDB installation, backend-specific compilation, query modes, and rule-watching commands, continue to the [reference](docs/reference.md). The [Tidelight guide](examples/tidelight/README.md) shows how a complete story selects encounters from eligible answers. The [benchmark guide](benchmarks/README.md) covers measurement, and [maintenance](docs/maintaining.md) covers changes and releases.
+Stay with SQLite until this exercise works. For optional DuckDB installation, backend-specific compilation, query modes, and rule-watching commands, continue to the [reference](reference.md). The [Tidelight guide](../examples/tidelight/README.md) shows how a complete story selects encounters from eligible answers. The [benchmark guide](../benchmarks/README.md) covers measurement, and [maintenance](maintaining.md) covers changes and releases.

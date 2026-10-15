@@ -24,7 +24,7 @@ def main(argv=None):
     launcher.add_argument("--launcher", type=Path, help="Test with a standalone game's own launcher")
     parser.add_argument("--mode", choices=("cached", "live", "materialized"), default="cached")
     parser.add_argument("--backend", choices=("sqlite", "duckdb"), default="sqlite")
-    parser.add_argument("--game", type=Path, default=Path(__file__).resolve().parent / "examples" / "palace",
+    parser.add_argument("--game", type=Path, default=Path(__file__).resolve().parents[1] / "examples" / "palace",
                         help="Ren'Py project directory (default: examples/palace)")
     parser.add_argument("--suite", default="relations", help="Test suite or testcase selector")
     parser.add_argument("--headless", action="store_true", help="Use xvfb-run and software rendering")

@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import relation_rules.runtime as runtime
-from relation_rules import LogicDB, RuleError, RuleSet
+import renpy_relations.runtime as runtime
+from renpy_relations import LogicDB, RuleError, RuleSet
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import event
 
@@ -257,7 +257,7 @@ def test_cached_invalidation_preserves_unrelated_relations(backend):
 
 
 def test_renpy_adapter_uses_backend_images_and_restores_branches(backend, monkeypatch):
-    from renpy_relations import LogicDB
+    from renpy_relations import RenpyLogicDB as LogicDB
     store = SimpleNamespace(logic_snapshot=None)
     monkeypatch.setitem(__import__("sys").modules, "renpy", SimpleNamespace(store=store))
     config = SimpleNamespace(after_default_callbacks=[], interact_callbacks=[], developer=True)

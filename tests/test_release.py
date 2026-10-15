@@ -5,8 +5,7 @@ import tarfile
 
 import pytest
 
-import prepare_game
-import release
+from tools import prepare_game, release
 from benchmarks import baseline_sources
 
 

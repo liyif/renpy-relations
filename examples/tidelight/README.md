@@ -12,7 +12,7 @@ From source, use Linux x86_64, `uv`, and Ren’Py **8.5.3.26051504** with its Py
 uv sync --locked --extra duckdb --group renpy-linux
 SDK=/path/to/renpy-8.5.3-sdk
 GAME=/tmp/tidelight-play
-uv run --locked --extra duckdb python prepare_game.py \
+uv run --locked --extra duckdb python -m tools.prepare_game \
   --game examples/tidelight --out "$GAME" --backend duckdb --sdk "$SDK"
 "$SDK/renpy.sh" "$GAME"
 ```
@@ -52,21 +52,21 @@ After a player chooses `borrow` in the fuse conversation, `Night.resolve("yao_fu
 
 ## Adapt the sample
 
-Start with the [Palace quickstart](../../QUICKSTART.md) for a smaller integration exercise. In Tidelight, edit prose in `game/story.rpy`, display data and action effects in `game/content.json`, requirements and scheduling in `world.l`, and relation declarations in `schema.json`. Keep scene/action identifiers consistent across these files. A new scene needs a declared scene, actions and effects, and a corresponding `scene_<identifier>` label; a new ending needs its rules and `ending_<identifier>` label.
+Start with the [Palace quickstart](../../docs/quickstart.md) for a smaller integration exercise. In Tidelight, edit prose in `game/story.rpy`, display data and action effects in `game/content.json`, requirements and scheduling in `world.l`, and relation declarations in `schema.json`. Keep scene/action identifiers consistent across these files. A new scene needs a declared scene, actions and effects, and a corresponding `scene_<identifier>` label; a new ending needs its rules and `ending_<identifier>` label.
 
 Compile both backends after changing rules or schema. From the source root:
 
 ```sh
-uv run --locked python compile_rules.py examples/tidelight/world.l \
+uv run --locked renpy-relations-compile examples/tidelight/world.l \
   --schema examples/tidelight/schema.json \
   --output examples/tidelight/game/relations.rules.json
-uv run --locked --extra duckdb python compile_rules.py examples/tidelight/world.l \
+uv run --locked --extra duckdb renpy-relations-compile examples/tidelight/world.l \
   --schema examples/tidelight/schema.json --backend duckdb \
   --output examples/tidelight/game/relations.duckdb.rules.json
 uv run --locked --extra duckdb --group assets pytest -q tests/test_tidelight.py
 ```
 
-Then stage into another fresh directory. If editing an already staged project, use `compile_rules.py` from the source distribution with the staged `world.l` and `schema.json`, and point `--output` explicitly at that project's selected `game/relations*.rules.json`. The compiler is a development tool and is not part of the standalone game's runtime dependencies. Restart the game after content or prose edits. Schema changes require a deliberate save policy; existing fact snapshots are not automatically migrated.
+Then stage into another fresh directory. If editing an already staged project, use `renpy-relations-compile` from the source distribution with the staged `world.l` and `schema.json`, and point `--output` explicitly at that project's selected `game/relations*.rules.json`. The compiler is a development tool and is not part of the standalone game's runtime dependencies. Restart the game after content or prose edits. Schema changes require a deliberate save policy; existing fact snapshots are not automatically migrated.
 
 The focused tests check bundle synchronization, legal action effects, all five ending routes, state restoration, sampled playthroughs, and font coverage. Sampled paths are useful evidence, not exhaustive exploration of every ordering. See [maintenance](../../docs/maintaining.md) for SDK lint and real-engine tests.
 

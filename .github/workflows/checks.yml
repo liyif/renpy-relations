@@ -56,9 +56,9 @@ jobs:
       - name: Test fresh standalone projects
         run: |
           for game in palace tidelight; do
-            uv run --locked --extra duckdb python prepare_game.py --game "examples/$game" --out "$RUNNER_TEMP/$game" --backend duckdb --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk"
+            uv run --locked --extra duckdb python -m tools.prepare_game --game "examples/$game" --out "$RUNNER_TEMP/$game" --backend duckdb --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk"
             for backend in sqlite duckdb; do
-              uv run --locked --extra duckdb python check_renpy.py --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --game "$RUNNER_TEMP/$game" --headless --backend "$backend" --timeout 180
+              uv run --locked --extra duckdb python -m tools.check_renpy --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --game "$RUNNER_TEMP/$game" --headless --backend "$backend" --timeout 180
             done
           done
 
@@ -89,7 +89,7 @@ jobs:
         run: |
           uv run --locked --extra duckdb --group renpy-linux --group assets python - <<'PY'
           import os
-          from prepare_game import project_version
+          from tools.prepare_game import project_version
           version = project_version()
           if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != f"v{version}":
               raise SystemExit("Version tag must match pyproject.toml")
@@ -97,7 +97,7 @@ jobs:
               print(f"version={version}", file=output)
           PY
       - name: Build and verify release artifacts
-        run: uv run --locked --extra duckdb --group renpy-linux --group assets python release.py build --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --out "dist/${{ steps.version.outputs.version }}"
+        run: uv run --locked --extra duckdb --group renpy-linux --group assets python -m tools.release build --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --out "dist/${{ steps.version.outputs.version }}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:

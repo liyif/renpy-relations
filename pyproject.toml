@@ -27,11 +27,11 @@ requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-renpy-relations-compile = "relation_rules.compiler:main"
+renpy-relations-compile = "renpy_relations.compiler:main"
 
 [tool.setuptools]
-packages = ["relation_rules"]
-py-modules = ["renpy_relations", "compile_rules"]
+package-dir = {"" = "src"}
+packages = ["renpy_relations"]
 include-package-data = false
 
 [tool.pytest.ini_options]

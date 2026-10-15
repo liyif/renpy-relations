@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from compile_rules import compile_rules
+from renpy_relations.compiler import compile_rules
 from examples.tidelight.game.night import Night
 from renpy_relations import LogicDB
 
