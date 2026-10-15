@@ -1,10 +1,10 @@
 # 五分钟上手
 
-当前版本为 **0.1.0 实验版**。已验证的平台是 Linux x86_64、Ren’Py 8.5.3（内置 Python 3.12）。
+当前版本为 **0.2.0 实验版**。已验证的平台是 Linux x86_64、Ren’Py 8.5.3（内置 Python 3.12）。
 
 ## 直接试玩
 
-下载并解开 `tidelight-0.1.0-linux.tar.bz2`，进入解包目录运行：
+下载并解开 `tidelight-0.2.0-linux.tar.bz2`，进入解包目录运行：
 
 ```sh
 ./tidelight.sh
@@ -53,7 +53,7 @@ uv run --locked --extra duckdb python compile_rules.py examples/tidelight/world.
 
 ## 接入自己的游戏
 
-`renpy-relations-0.1.0-linux-x86_64-runtime.zip` 包含锁定的两后端驱动与运行时。将其中 `game/python-packages` 的内容合入自己的同名目录。这个运行时包针对 Python 3.12／Linux x86_64，不能直接用于其他平台。
+`renpy-relations-0.2.0-linux-x86_64-runtime.zip` 包含锁定的两后端驱动与运行时。将其中 `game/python-packages` 的内容合入自己的同名目录。这个运行时包针对 Python 3.12／Linux x86_64，不能直接用于其他平台。
 
 从源码包使用 `compile_rules.py` 编译自己的 `.l` 和 schema，把规则 JSON 放进自己的 `game`。Ren’Py 初始化示例：
 

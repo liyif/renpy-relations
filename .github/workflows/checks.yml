@@ -66,12 +66,24 @@ jobs:
           curl --fail --location --retry 3 https://www.renpy.org/dl/8.5.3/renpy-8.5.3-sdk.tar.bz2 --output "$RUNNER_TEMP/renpy-sdk.tar.bz2"
           printf '%s  %s\n' "$SDK_SHA256" "$RUNNER_TEMP/renpy-sdk.tar.bz2" | sha256sum --check
           tar -xf "$RUNNER_TEMP/renpy-sdk.tar.bz2" -C "$RUNNER_TEMP"
+      - name: Resolve release version
+        id: version
+        run: |
+          uv run --locked --extra duckdb --group renpy-linux --group assets python - <<'PY'
+          import os
+          from prepare_game import project_version
+          version = project_version()
+          if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != f"v{version}":
+              raise SystemExit("Version tag must match pyproject.toml")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print(f"version={version}", file=output)
+          PY
       - name: Build and verify release artifacts
-        run: uv run --locked --extra duckdb --group renpy-linux --group assets python release.py build --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --out dist/0.1.0
+        run: uv run --locked --extra duckdb --group renpy-linux --group assets python release.py build --sdk "$RUNNER_TEMP/renpy-8.5.3-sdk" --out "dist/${{ steps.version.outputs.version }}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
-          name: renpy-relations-0.1.0-candidate
-          path: dist/0.1.0/
+          name: renpy-relations-${{ steps.version.outputs.version }}-candidate
+          path: dist/${{ steps.version.outputs.version }}/
           compression-level: 0
           if-no-files-found: error

@@ -4,7 +4,7 @@
 
 ## 目标环境与兼容性
 
-| 项目 | 0.1.0 的构建目标 |
+| 项目 | 0.2.0 的构建目标 |
 | --- | --- |
 | 开发 | uv 锁定依赖，Python 3.12 |
 | 游戏 | Linux x86_64，Ren’Py 8.5.3.26051504，内置 Python 3.12.8 |
@@ -26,8 +26,8 @@ SQLAlchemy 固定为 2.0.43，以适配该 SDK 的 Python 模块集合。依赖�
 ```sh
 uv sync --locked --extra duckdb --group renpy-linux --group assets
 uv run --locked --extra duckdb --group renpy-linux --group assets python release.py build \
-  --sdk /path/to/renpy-8.5.3-sdk --out dist/0.1.0
-uv run --locked python release.py verify dist/0.1.0
+  --sdk /path/to/renpy-8.5.3-sdk --out dist/0.2.0
+uv run --locked python release.py verify dist/0.2.0
 ```
 
 输出目录必须尚不存在，失败保留日志。重建时选择新目录。
@@ -47,9 +47,9 @@ uv run --locked python release.py verify dist/0.1.0
 
 | 文件 | 内容 |
 | --- | --- |
-| `renpy-relations-0.1.0-source.tar.gz` | 源码、测试、规则、文档与 Benchmark 工具 |
-| `renpy-relations-0.1.0-linux-x86_64-runtime.zip` | 可合入其他游戏的运行时、两后端驱动与安装说明 |
-| `tidelight-0.1.0-linux.tar.bz2` | 自带引擎的中文短篇样例 |
+| `renpy-relations-0.2.0-source.tar.gz` | 源码、测试、规则、文档与 Benchmark 工具 |
+| `renpy-relations-0.2.0-linux-x86_64-runtime.zip` | 可合入其他游戏的运行时、两后端驱动与安装说明 |
+| `tidelight-0.2.0-linux.tar.bz2` | 自带引擎的中文短篇样例 |
 | `RELEASE.json` | 构建提交、源码哈希、测试范围、产物大小与哈希 |
 | `SHA256SUMS` | 三个归档和构建清单的 SHA-256 |
 | `logs/` | 安装、测试、lint 与构建输出 |
