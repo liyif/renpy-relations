@@ -12,6 +12,7 @@ recursive-include benchmarks/baselines *.json
 recursive-include benchmarks/results/current *.json *.csv *.md SHA256SUMS
 prune benchmarks/.work
 recursive-include .github *.yml
+exclude .github/PUBLISHING*.md
 prune examples/palace/game/python-packages
 prune examples/tidelight/game/python-packages
 prune examples/palace/game/cache

@@ -59,7 +59,7 @@ Retain the renamed font family and OFL.txt. A newly chosen upstream font needs a
 
 ## Build and check the independent Python package
 
-Run `uv build --out-dir dist/python` to produce a wheel and an installable source distribution. The source distribution includes examples and documentation; the wheel contains the core, optional adapter, compiler entry point and compatibility modules. Neither installs Ren’Py; the default runtime does not install Logica or DuckDB.
+Run `uv build --out-dir dist/python` to produce a wheel and an installable source distribution. The source distribution includes examples and documentation; the wheel contains the core, optional adapter, compiler entry point and public Python exports. Neither installs Ren’Py; the default runtime does not install Logica or DuckDB.
 
 `uv run --locked --extra duckdb pytest -q tests/test_distribution.py` rebuilds a wheel from the source distribution, installs it in isolated environments outside the checkout, blocks engine/compiler imports during runtime checks, tests both backends and all three modes, and exercises the installed compiler command and module with the compiler extra. See the [Python guide](python.md) for installation and supported scope.
 
@@ -119,4 +119,4 @@ Staging exports exact locked requirements with hashes, installs binary wheels fo
 
 Retain [LICENSE](../LICENSE), [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md), dependency license files listed in `DEPENDENCIES.json`, and the engine/native-component notices. Runtime dependencies and Ren’Py have their own licenses; the project's MIT license does not replace them. Font notices remain with the font.
 
-The workflow's release-candidate job runs on manual dispatch or a `v` tag after checks. A tag must match the version in pyproject.toml. It uploads candidate artifacts and logs to CI; there is no publication step. Publishing a public release is a separate maintainer action after reviewing the manifest, checksums, logs, licenses, and extracted-archive reading paths. Preserve generated evidence with that release instead of copying changing test counts into the introduction.
+The workflow's release-candidate job runs on manual dispatch or a `v` tag after checks. A tag must match the version in pyproject.toml. It uploads candidate artifacts and logs to CI; that workflow has no publication step. The separate [PyPI publishing setup](https://github.com/liyif/renpy-relations/blob/main/.github/PUBLISHING.md) tests and publishes the Python wheel and source distribution through Trusted Publishing. Publishing a public release is a separate maintainer action after reviewing the manifest, checksums, logs, licenses, and extracted-archive reading paths. Preserve generated evidence with that release instead of copying changing test counts into the introduction.
