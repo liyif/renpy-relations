@@ -5,7 +5,7 @@ import sqlite3
 import pytest
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-from renpy_relations import LogicDB, RuleError, RuleSet
+from relation_rules import LogicDB, RuleError, RuleSet
 
 
 @pytest.fixture
@@ -336,6 +336,7 @@ def test_cycles_are_rejected_but_recursive_ctes_are_supported(rules):
 
 
 def test_renpy_binding_restores_store_snapshot_and_is_idempotent(rules, monkeypatch):
+    from renpy_relations import LogicDB
     # Adapter contract only. Real engine lifecycle tests live in the demo.
     store = SimpleNamespace(logic_snapshot=None)
     notifications = []
@@ -362,6 +363,7 @@ def test_renpy_binding_restores_store_snapshot_and_is_idempotent(rules, monkeypa
 
 
 def test_renpy_watch_preserves_world_on_error_reports_once_and_honors_developer_mode(rules, tmp_path, monkeypatch):
+    from renpy_relations import LogicDB
     path = tmp_path / "rules.json"
     path.write_text(json.dumps(rules.document))
     logs, notifications = [], []

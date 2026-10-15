@@ -6,6 +6,8 @@
 
 Use the [Palace quickstart](../QUICKSTART.md) for a complete first exercise. This page defines the compiler, runtime, snapshot, and Ren’Py adapter contracts. The [Tidelight guide](../examples/tidelight/README.md) explains one application built on them; [maintenance](maintaining.md) covers staging, verification, and releases.
 
+For ordinary Python applications, import the core from `relation_rules`; see the [Python integration guide](python.md). Existing Ren’Py games retain `from renpy_relations import LogicDB`. This compatibility class is `relation_rules.renpy.RenpyLogicDB`, which adds the engine adapter to the shared core.
+
 ## Data model
 
 A **relation** is table-shaped data with named **columns**. A **row** supplies one value for each column. A **schema** declares those relations and their column types. A **fact** is a row recorded by game code; a **rule** derives answers from facts and other rules. A **query** reads matching rows. Relations can represent permissions, knowledge, completed actions, or scores; the word does not imply a romantic relationship.
@@ -134,7 +136,7 @@ This watcher publishes a bundle. It does not update an already-running `LogicDB`
 ## Runtime API
 
 ```python
-from renpy_relations import LogicDB
+from relation_rules import LogicDB
 
 logic = LogicDB("examples/palace/game/relations.rules.json")
 try:

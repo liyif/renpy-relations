@@ -4,6 +4,8 @@ These experiments measure rule loading, queries, writes, and native fact snapsho
 
 For the runtime's query modes and lifecycle contracts, see the [reference](../docs/reference.md). For setup and the SDK target, see [maintenance](../docs/maintaining.md). The [project introduction](../README.md) describes what the experiment is intended to investigate.
 
+Current tooling measures `relation_rules/runtime.py`; copied workers receive that core under the historical module filename. New source records include the core/compiler package files. Archived results retain their original single-file identities and measurements.
+
 ## Four experiment families
 
 | Family and entry point | Workload and measured phases |

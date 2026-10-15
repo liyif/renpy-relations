@@ -10,12 +10,13 @@ Work from the source root with `uv`. `.python-version` selects Python 3.12; meta
 uv sync --locked --extra duckdb --group renpy-linux --group assets
 ```
 
-The default `dev` group includes the pinned Logica compiler and pytest. `--extra duckdb` adds DuckDB and its SQLAlchemy dialect; `--group renpy-linux` adds the Linux x86_64 SQLite driver used in staged games; `--group assets` adds fontTools. The project sets `package = false`: contributors run its source files directly. A locked sync fails if metadata and lockfile disagree; change and review the lockfile deliberately when updating dependencies.
+The default `dev` group includes the pinned Logica compiler and pytest. `--extra duckdb` adds DuckDB and its SQLAlchemy dialect; `--group renpy-linux` adds the Linux x86_64 SQLite driver used in staged games; `--group assets` adds fontTools. The project is installed in editable form during uv sync. `compiler` is an optional installation extra; the default dev group also supplies Logica for repository checks. A locked sync fails if metadata and lockfile disagree; change and review the lockfile deliberately when updating dependencies.
 
 | Source area | Role |
 | --- | --- |
-| `renpy_relations.py` | RuleSet validation, database backends, transactions, query modes, native snapshots, reload, Ren’Py adapter. |
-| `compile_rules.py` | Schema checks, Logica compilation, dependency extraction, bundle validation and publication. |
+| `relation_rules/runtime.py` | RuleSet validation, database backends, transactions, query modes, native snapshots and reload. |
+| `relation_rules/renpy.py`, `renpy_relations.py` | Optional Ren’Py adapter and legacy import compatibility. |
+| `relation_rules/compiler.py`, `compile_rules.py` | Schema checks, Logica compilation, dependency extraction, bundle validation and publication. |
 | `examples/palace/` | Small permissions and one-time reward exercise, with engine testcases. |
 | `examples/tidelight/` | Narrative sample, data-driven actions, prose, rule bundles, font and font builder. |
 | `tests/` | Focused compiler, runtime, backend, example, benchmark, staging and release checks. |
@@ -55,6 +56,12 @@ uv run --locked --group assets pytest -q tests/test_tidelight.py \
 ```
 
 Retain the renamed font family and OFL.txt. A newly chosen upstream font needs a recorded version/hash; the original source-font identity remains unestablished.
+
+## Build and check the independent Python package
+
+Run `uv build --out-dir dist/python` to produce a wheel and an installable source distribution. The source distribution includes examples and documentation; the wheel contains the core, optional adapter, compiler entry point and compatibility modules. Neither installs Ren’Py; the default runtime does not install Logica or DuckDB.
+
+`uv run --locked --extra duckdb pytest -q tests/test_distribution.py` rebuilds a wheel from the source distribution, installs it in isolated environments outside the checkout, blocks engine/compiler imports during runtime checks, tests both backends and all three modes, and exercises the installed compiler command and module with the compiler extra. See the [Python guide](python.md) for installation and supported scope.
 
 ## Check a real Ren’Py project
 
@@ -104,7 +111,8 @@ Staging exports exact locked requirements with hashes, installs binary wheels fo
 | `renpy-relations-<version>-linux-x86_64-runtime.zip` | `game/python-packages`, both database drivers, locked requirements, dependency inventory, license material, and installation instructions. |
 | `tidelight-<version>-linux.tar.bz2` | Standalone Linux game with its engine, both drivers, story, rule bundles, font, and legal notices. |
 | `RELEASE.json` | Commit, source hashes, SDK/uv identity, test evidence, and artifact sizes/hashes. |
-| `SHA256SUMS` | Exactly the three artifacts and RELEASE.json. |
+| `renpy_relations-<version>-py3-none-any.whl`, `renpy_relations-<version>.tar.gz` | Installable Python runtime/compiler package and source distribution, independently usable without the SDK. |
+| `SHA256SUMS` | Exactly the five artifacts and RELEASE.json. |
 | `logs/` | Source tests, installation, lint, engine and distribution diagnostics. |
 
 `verify` checks artifact existence, hashes and sizes against the manifest and exact checksum coverage. It does not rerun the build or engine tests. Keep its meaning separate from the builder's recorded test evidence. The standalone payload check rejects testcases, saves, unintended cache files and `.rpa` archives, and requires both native driver extensions, the font/OFL, dependency inventory, project notices and Ren’Py's LICENSE.txt.

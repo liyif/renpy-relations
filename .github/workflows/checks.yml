@@ -13,6 +13,24 @@ env:
   SDK_SHA256: eb0a9be7f0fb13632fe25ceade9a8bed5a1b4d6b6e83bd19eeeb29e1a1bb4a45
 
 jobs:
+  python-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: Install package test dependencies without a game SDK
+        run: uv sync --locked --extra duckdb
+      - name: Check isolated wheel and source distribution installations
+        run: uv run --locked --extra duckdb pytest -q tests/test_distribution.py
+      - name: Build Python distribution
+        run: uv build --out-dir dist/python
+
   checks:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -46,7 +64,7 @@ jobs:
 
   release-candidate:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-    needs: checks
+    needs: [checks, python-package]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:

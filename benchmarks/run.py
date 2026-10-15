@@ -134,7 +134,7 @@ def worker(args):
     if args.packages is not None:
         sys.path.insert(0, str(args.packages.resolve()))
     sys.path.insert(0, str(ROOT))
-    from renpy_relations import LogicDB
+    from relation_rules import LogicDB
 
     result = {"kind": args.worker, "size": args.size, "mode": args.mode, "backend": args.backend,
               "history_bound": False,
@@ -435,7 +435,8 @@ def main(argv=None):
                 "host": {"platform": platform.platform(), "cpu": cpu, "logical_cpus": os.cpu_count()},
                 "source": {"git_commit": git.stdout.strip(), "git_dirty": bool(dirty.stdout),
                            "sha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                                      for name in ("renpy_relations.py", "compile_rules.py", "benchmarks/run.py", "uv.lock")}},
+                                      for name in ("renpy_relations.py", "compile_rules.py", "relation_rules/runtime.py",
+                                                   "relation_rules/compiler.py", "relation_rules/__init__.py", "benchmarks/run.py", "uv.lock")}},
                 "compiler": {"logica": version("logica"), "seconds": compile_seconds}, "runs": [], "summary": []}
     for size in args.sizes:
         seeds = {}

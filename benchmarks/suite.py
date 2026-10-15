@@ -117,7 +117,8 @@ def current_source_identity():
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True)
     files = [ROOT / "renpy_relations.py", ROOT / "compile_rules.py", ROOT / "uv.lock",
-             *sorted((ROOT / "benchmarks").glob("*.py"))]
+             *sorted((ROOT / "benchmarks").glob("*.py")),
+             *sorted((ROOT / "relation_rules").glob("*.py"))]
     return {"captured_at": datetime.now(CLIENT_TIMEZONE).isoformat(), "git_commit": git.stdout.strip(),
             "git_dirty": bool(dirty.stdout),
             "sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}}
@@ -138,10 +139,13 @@ def source_from_result(document):
     for name, digest in document.get("file_sha256", {}).items():
         add(name, digest)
     if "native" in document.get("source_sha256", {}):
-        add("renpy_relations.py", document["source_sha256"]["native"])
+        add(document.get("runtime_sources", {}).get("native", "renpy_relations.py"),
+            document["source_sha256"]["native"])
+    if document.get("runtime_sha256"):
+        add(document.get("runtime_source", "renpy_relations.py"), document["runtime_sha256"])
     for record in document.get("runs", [document]) + document.get("validations", []):
         if record.get("runtime_sha256"):
-            add("renpy_relations.py", record["runtime_sha256"])
+            add(record.get("runtime_source", "renpy_relations.py"), record["runtime_sha256"])
     if not hashes:
         return None
     identity = {"origin": "child_result_hashes", "sha256": hashes, "conflicts": sorted(set(conflicts))}
@@ -266,7 +270,7 @@ def probe(args):
     if args.packages:
         sys.path.insert(0, str(args.packages.resolve()))
     sys.path.insert(0, str(ROOT))
-    from renpy_relations import LogicDB, RuleSet
+    from relation_rules import LogicDB, RuleSet
     from rules import dataset, populate
 
     facts = (args.condition_count + 73) // 10
@@ -274,7 +278,8 @@ def probe(args):
     record = {"status": "running", "kind": "load_probe", "backend": "duckdb", "conditions": args.condition_count,
               "facts": facts, "ratio": 10, "shape": "partitioned", "mode": "cached", "history_bound": False,
               "runtime": runtime_info("duckdb"),
-              "runtime_sha256": hashlib.sha256((ROOT / "renpy_relations.py").read_bytes()).hexdigest(),
+              "runtime_source": "relation_rules/runtime.py",
+              "runtime_sha256": hashlib.sha256((ROOT / "relation_rules/runtime.py").read_bytes()).hexdigest(),
               "bundle_sha256": hashlib.sha256(json.dumps(document, sort_keys=True).encode()).hexdigest(), "phases": {}}
     db = None
 

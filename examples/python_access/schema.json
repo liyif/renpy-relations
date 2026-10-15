@@ -1,0 +1,12 @@
+{
+  "facts": {
+    "Member": {"columns": {"user": "text", "role": "text"}},
+    "RoleAccess": {"columns": {"role": "text", "resource": "text"}},
+    "Sponsored": {"columns": {"user": "text", "resource": "text"}},
+    "Revoked": {"columns": {"user": "text", "resource": "text"}}
+  },
+  "derived": {
+    "Candidate": {"columns": {"user": "text", "resource": "text"}},
+    "CanAccess": {"columns": {"user": "text", "resource": "text"}}
+  }
+}

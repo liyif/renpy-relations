@@ -2,6 +2,8 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
+**Ren’Py Relations also works without Ren’Py.** The single `renpy-relations` Python distribution includes an embeddable core for relational facts and compiled declarative rules. Import `LogicDB` from `relation_rules` to use that core in an ordinary Python application. The core runtime does not depend on Ren’Py or Logica; Logica is an optional development-time compiler. Start with the [Python integration guide](docs/python.md) for installation and a standalone permissions example.
+
 Ren’Py Relations is an experiment in writing shared story conditions as relational facts and declarative rules. Imagine an archive that admits members of a faction or anyone with a sponsor. Several encounters also require archive access, a secret, and a record of earlier actions. Naming and composing those conditions gives them one place to change, while scene scripts ask which actions or encounters are currently eligible.
 
 [Logica](https://github.com/evgskv/logica) supplies the rule language and SQL compiler. [SQLite](https://www.sqlite.org/about.html), the default embedded database engine, stores the facts and evaluates the compiled queries using joins and filtering. Actions change facts; rules derive answers; your script chooses an eligible event and performs its effects. Ren’Py handles dialogue, menus, presentation, and player interaction. For example, a reward query can say that a reward is available, but the script must grant it and record the claim.
@@ -13,7 +15,7 @@ The experiment asks whether this makes shared conditions easier to understand an
 The shipped [Palace rules](examples/palace/world.l) derive archive access from sponsorship or faction membership:
 
 ```python
-from renpy_relations import LogicDB
+from relation_rules import LogicDB
 
 logic = LogicDB("examples/palace/game/relations.rules.json")
 try:
@@ -45,6 +47,7 @@ The runtime uses `cached` mode by default: it builds derived relations when firs
 
 | Goal | Read |
 | --- | --- |
+| Embed the core in an ordinary Python application | [Python guide](docs/python.md) |
 | Learn the concepts and run Palace in Python and Ren’Py | [Quickstart](QUICKSTART.md) |
 | Integrate the runtime or check compiler, snapshot, and reload contracts | [Reference](docs/reference.md) |
 | Play or study a complete Chinese-language narrative example | [Tidelight](examples/tidelight/README.md) |
@@ -53,9 +56,9 @@ The runtime uses `cached` mode by default: it builds derived relations when firs
 
 ## Environment and installation
 
-Use the source checkout and its `uv.lock`; this project does not define a published-package installation workflow. Project metadata permits Python `>=3.11,<3.15`, and the development workflow selects Python 3.12. The staging tool targets Linux x86_64 with a Python 3.12 Ren’Py SDK; release tooling pins Ren’Py `8.5.3.26051504`. Other deployment targets require their own validation. See [compatibility](docs/reference.md) for the precise scope.
+Build an installable wheel and source distribution with `uv build`; see the [Python guide](docs/python.md). Local wheel and checkout installation are supported; no package-index publication is assumed. Contributors use the source checkout and its `uv.lock`. Project metadata permits Python `>=3.11,<3.15`, and the development workflow selects Python 3.12. The staging tool targets Linux x86_64 with a Python 3.12 Ren’Py SDK; release tooling pins Ren’Py `8.5.3.26051504`. Other deployment targets require their own validation. See [compatibility](docs/reference.md) for the precise scope.
 
-For Ren’Py, follow [Stage and play Palace](QUICKSTART.md#stage-and-play-palace). Staging installs the runtime, SQLAlchemy, and the selected native database drivers into `game/python-packages`. If the runtime reports **“No SQLite driver”**, use this staging route with the supported SDK rather than copying only `renpy_relations.py` into a game.
+For Ren’Py, follow [Stage and play Palace](QUICKSTART.md#stage-and-play-palace). Staging installs the runtime, SQLAlchemy, and the selected native database drivers into `game/python-packages`. If the runtime reports **“No SQLite driver”**, use this staging route with the supported SDK so that both `renpy_relations.py` and the shared `relation_rules` package are installed.
 
 ## Foundations and license
 

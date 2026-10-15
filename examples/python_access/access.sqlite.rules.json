@@ -1,0 +1,67 @@
+{
+  "format": "renpy-relations",
+  "version": 1,
+  "facts": {
+    "Member": {
+      "columns": {
+        "user": "text",
+        "role": "text"
+      }
+    },
+    "RoleAccess": {
+      "columns": {
+        "role": "text",
+        "resource": "text"
+      }
+    },
+    "Sponsored": {
+      "columns": {
+        "user": "text",
+        "resource": "text"
+      }
+    },
+    "Revoked": {
+      "columns": {
+        "user": "text",
+        "resource": "text"
+      }
+    }
+  },
+  "derived": {
+    "Candidate": {
+      "columns": {
+        "user": "text",
+        "resource": "text"
+      },
+      "sql": "WITH t_0_Candidate_MultBodyAggAux AS (SELECT * FROM (\n  \n    SELECT\n      Member.user AS user,\n      RoleAccess.resource AS resource\n    FROM\n      Member, RoleAccess\n    WHERE\n      (RoleAccess.role = Member.role)\n   UNION ALL\n  \n    SELECT\n      Sponsored.user AS user,\n      Sponsored.resource AS resource\n    FROM\n      Sponsored\n  \n) AS UNUSED_TABLE_NAME  )\nSELECT\n  Candidate_MultBodyAggAux.user AS user,\n  Candidate_MultBodyAggAux.resource AS resource\nFROM\n  t_0_Candidate_MultBodyAggAux AS Candidate_MultBodyAggAux\nGROUP BY Candidate_MultBodyAggAux.user, Candidate_MultBodyAggAux.resource"
+    },
+    "CanAccess": {
+      "columns": {
+        "user": "text",
+        "resource": "text"
+      },
+      "sql": "SELECT\n  Candidate.user AS user,\n  Candidate.resource AS resource\nFROM\n  Candidate\nWHERE\n  ((SELECT\n    MIN(MagicalEntangle(1, x_7.value)) AS logica_value\n  FROM\n    Revoked, JSON_EACH(JSON_ARRAY(0)) as x_7\n  WHERE\n    (Revoked.user = Candidate.user) AND\n    (Revoked.resource = Candidate.resource)) IS NULL)\nGROUP BY Candidate.user, Candidate.resource"
+    }
+  },
+  "backend": "sqlite",
+  "dependencies": {
+    "Candidate": [
+      "Member",
+      "RoleAccess",
+      "Sponsored"
+    ],
+    "CanAccess": [
+      "Candidate",
+      "Revoked"
+    ]
+  },
+  "source": {
+    "file": "world.l",
+    "sha256": "f5455e4cba6751999477138863ea89e54a58eef14043fa7ed1c5363f75728483",
+    "compiler": "logica 1.3.1415926535897",
+    "inputs": {
+      "schema.json": "997a5747ca03a59bc6a05f936214f138afee506b94fdc716ae1627ca2de0d2dc",
+      "world.l": "f5455e4cba6751999477138863ea89e54a58eef14043fa7ed1c5363f75728483"
+    }
+  }
+}

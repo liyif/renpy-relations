@@ -23,3 +23,4 @@ examples/tidelight/errors.txt
 examples/tidelight/profile.txt
 examples/tidelight/test-results/
 examples/tidelight/tests/screenshots/
+*.egg-info/

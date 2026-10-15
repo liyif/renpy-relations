@@ -6,6 +6,8 @@
 
 完整的入门练习请参阅 [Palace 快速入门](../QUICKSTART.zh-CN.md)。本页规定编译器、运行时、快照和 Ren’Py 适配器的接口契约。[Tidelight 指南（英文）](../examples/tidelight/README.md)介绍了一个基于这些接口构建的应用；[维护指南（英文）](maintaining.md)说明项目准备、验证和发布流程。
 
+普通 Python 应用从 `relation_rules` 导入通用核心，安装和独立示例见 [Python 集成指南（英文）](python.md)。现有 Ren’Py 游戏仍使用 `from renpy_relations import LogicDB`；该兼容类即 `relation_rules.renpy.RenpyLogicDB`，在共享核心之上提供引擎适配。
+
 ## 数据模型
 
 **关系**是具有命名**列**的表状数据。每一**行**为每列提供一个值。**数据模式（schema）**声明这些关系及其列类型。**事实**是游戏代码记录的一行数据；**规则**从事实和其他规则推导答案。**查询**读取符合条件的行。关系可以表示权限、知识、已完成的动作或分数；这个术语并不特指恋爱关系。
@@ -134,7 +136,7 @@ Python 入口是 `compile_rules.py` 中的 `compile_rules(source, schema, output
 ## 运行时 API
 
 ```python
-from renpy_relations import LogicDB
+from relation_rules import LogicDB
 
 logic = LogicDB("examples/palace/game/relations.rules.json")
 try:

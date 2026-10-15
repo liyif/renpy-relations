@@ -21,6 +21,7 @@ def main():
     args = parser.parse_args()
     if args.out.exists():
         parser.error("Output already exists")
+    args.backend = "sqlite"
     args.facts, args.ratio, args.mode, args.repeat = 512, 10, "cached", 0
     args.result = args.out.resolve()
     args.bundle = args.result.parent / ".work" / f"gc-{args.shape}.bundle.json"
@@ -52,9 +53,12 @@ def main():
         gc.callbacks.remove(collection)
         rules.atomic_json = original
     record = json.loads(args.result.read_text())
-    record.update(gc_enabled=gc.isenabled(), gc_events=events,
+    runtime_file = args.runtime / "relation_rules/runtime.py"
+    if not runtime_file.is_file():
+        runtime_file = args.runtime / "renpy_relations.py"
+    record.update(runtime_source=str(runtime_file.relative_to(args.runtime)), gc_enabled=gc.isenabled(), gc_events=events,
                   probe="single observation with callbacks, separate from main benchmark",
-                  runtime_sha256=hashlib.sha256((args.runtime / "renpy_relations.py").read_bytes()).hexdigest())
+                  runtime_sha256=hashlib.sha256(runtime_file.read_bytes()).hexdigest())
     atomic_json(args.result, record)
     print(json.dumps({"variant": args.variant, "shape": args.shape,
                       "generation_2": [e for e in events if e["generation"] == 2]}, ensure_ascii=False))

@@ -1,0 +1,24 @@
+include *.py *.md pyproject.toml uv.lock .python-version .gitignore .gitattributes
+include benchmarks/.gitignore
+include LICENSE MANIFEST.in
+recursive-include relation_rules *.py
+recursive-include docs *.md
+recursive-include examples *.py *.rpy *.l *.json *.md *.txt *.otf
+recursive-include tests *.py
+recursive-include benchmarks *.py
+include benchmarks/README.md
+recursive-include benchmarks/baselines *.json
+recursive-include benchmarks/results/current *.json *.csv *.md SHA256SUMS
+prune benchmarks/.work
+recursive-include .github *.yml
+prune examples/palace/game/python-packages
+prune examples/tidelight/game/python-packages
+prune examples/palace/game/cache
+prune examples/tidelight/game/cache
+prune examples/palace/game/saves
+prune examples/tidelight/game/saves
+prune examples/palace/test-results
+prune examples/tidelight/test-results
+prune examples/tidelight/tests/screenshots
+global-exclude __pycache__ *.pyc *.rpyc
+global-exclude log.txt traceback.txt errors.txt profile.txt

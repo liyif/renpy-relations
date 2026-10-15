@@ -105,7 +105,9 @@ def check_payload(archive):
                     "DEPENDENCIES.json", "game/script.rpy", "game/story.rpy", "game/content.json",
                     "game/relations.rules.json", "game/relations.duckdb.rules.json",
                     "game/release.json", "game/fonts/tidelight.otf", "game/fonts/OFL.txt",
-                    "game/python-packages/renpy_relations.py", "lib/py3-linux-x86_64/python"}
+                    "game/python-packages/renpy_relations.py", "game/python-packages/relation_rules/__init__.py",
+                    "game/python-packages/relation_rules/runtime.py", "game/python-packages/relation_rules/renpy.py",
+                    "lib/py3-linux-x86_64/python"}
         if not required <= names:
             raise ValueError(f"Game archive is missing: {sorted(required - names)}")
         # Ren'Py adds these production files after applying build.classify.
@@ -151,6 +153,7 @@ def build(sdk, output):
         source = extracted / source.name
         checked(uv + ["pytest", "-q"], cwd=source, log=logs / "source-tests.log")
         source_tests = read_test_evidence(logs / "source-tests.log")
+        checked(["uv", "build", "--out-dir", output], cwd=source, log=logs / "python-build.log")
         engine_runs = []
         for name in ("palace", "tidelight"):
             staged = work / name
@@ -242,7 +245,9 @@ def build(sdk, output):
             engine_runs.append({"game": "packaged-tidelight", "backend": backend, "mode": "cached",
                                 "cases": read_test_evidence(logs / f"packaged-{backend}.log", engine=True,
                                                             expected=packaged_cases)})
-        artifacts = [source_archive, runtime_archive, game_archive]
+        artifacts = [source_archive, runtime_archive, game_archive,
+                     output / f"renpy_relations-{version}-py3-none-any.whl",
+                     output / f"renpy_relations-{version}.tar.gz"]
         manifest = {"version": version, "commit": commit, "built_at": datetime.now(timezone.utc).isoformat(),
                     "sdk": sdk_report, "uv": subprocess.check_output(["uv", "--version"], text=True).strip(),
                     "platform": "linux-x86_64", "python": "3.12",

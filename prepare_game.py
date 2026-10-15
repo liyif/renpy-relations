@@ -93,7 +93,7 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         packages = staging / "game/python-packages"
         requirements = staging / "runtime-requirements.txt"
         command = ["uv", "export", "--project", ROOT, "--locked", "--no-dev", "--group", "renpy-linux",
-                   "--format", "requirements-txt", "--output-file", requirements]
+                   "--no-emit-project", "--format", "requirements-txt", "--output-file", requirements]
         if backend == "duckdb":
             command += ["--extra", "duckdb"]
         run(command, stdout=subprocess.DEVNULL)
@@ -101,6 +101,8 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
              "--only-binary", ":all:", "--require-hashes", "--no-config", "--target", packages,
              "--requirements", requirements])
         shutil.copy2(ROOT / "renpy_relations.py", packages / "renpy_relations.py")
+        shutil.copytree(ROOT / "relation_rules", packages / "relation_rules",
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         (packages / "renpy_relations.LICENSE").write_bytes((ROOT / "LICENSE").read_bytes())
         dependencies = inventory(packages)
         (staging / "DEPENDENCIES.json").write_text(json.dumps({

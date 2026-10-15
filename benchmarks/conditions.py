@@ -80,7 +80,7 @@ def main():
     work = output / ".work"
     from baseline_sources import historical_runtime
     sources = {variant: (historical_runtime(args.baseline_ref) if variant == "baseline" else
-                        (ROOT / "renpy_relations.py").read_bytes()) for variant in args.variants}
+                        (ROOT / "relation_rules/runtime.py").read_bytes()) for variant in args.variants}
     for variant, content in sources.items():
         folder = work / variant
         folder.mkdir(parents=True)
@@ -91,6 +91,7 @@ def main():
                 "timeout": args.timeout, "history_bound": False,
                 "cpu": next((line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
                              if line.startswith("model name")), "unknown"),
+                "runtime_sources": {"native": "relation_rules/runtime.py"},
                 "source_sha256": {n: hashlib.sha256(c).hexdigest() for n, c in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
                                 for n in ("benchmarks/conditions.py", "benchmarks/rules.py", "benchmarks/run.py", "uv.lock")},

@@ -277,7 +277,7 @@ def main():
     from baseline_sources import historical_runtime
     baseline = historical_runtime(args.baseline_ref)
     work = output / ".work"
-    sources = {"baseline": baseline, "native": (ROOT / "renpy_relations.py").read_bytes()}
+    sources = {"baseline": baseline, "native": (ROOT / "relation_rules/runtime.py").read_bytes()}
     for name, source in sources.items():
         folder = work / name
         folder.mkdir(parents=True)
@@ -286,6 +286,7 @@ def main():
                 "repetitions": args.repetitions, "facts": args.facts, "ratios": args.ratios,
                 "cpu": next((line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
                              if line.startswith("model name")), "unknown"),
+                "runtime_sources": {"native": "relation_rules/runtime.py"},
                 "source_sha256": {n: hashlib.sha256(s).hexdigest() for n, s in sources.items()},
                 "file_sha256": {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest()
                                 for n in ("benchmarks/rules.py", "benchmarks/graph.py", "benchmarks/run.py", "uv.lock",

@@ -115,6 +115,20 @@ def test_report_preserves_measured_hashes_after_workspace_changes(tmp_path, monk
     assert suite.revalidate_record(task, record)["status"] == "failed"
 
 
+def test_split_core_identity_uses_recorded_source_paths():
+    result = suite.source_from_result({
+        "runtime_sources": {"native": "relation_rules/runtime.py"},
+        "source_sha256": {"native": "core-hash"},
+        "runs": [{"runtime_source": "relation_rules/runtime.py", "runtime_sha256": "core-hash"}],
+    })
+    assert result["sha256"] == {"relation_rules/runtime.py": "core-hash"}
+    assert not result["conflicts"]
+    # Graph probes record their implementation identity on the document itself.
+    probe = suite.source_from_result({"runtime_source": "relation_rules/runtime.py",
+                                      "runtime_sha256": "core-hash", "runs": [{"status": "ok"}]})
+    assert probe["sha256"] == {"relation_rules/runtime.py": "core-hash"}
+
+
 @pytest.mark.parametrize("replacement", [None, '{"runs":', '{"runs": [], "validations": []}'])
 def test_collect_never_trusts_completed_execution_when_result_is_lost(tmp_path, monkeypatch, replacement):
     task = suite.plan("controlled", sys.executable, None, tmp_path, smoke=True)[0]

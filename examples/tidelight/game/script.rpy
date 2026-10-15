@@ -1,5 +1,5 @@
 define config.name = "潮汐替我们保管"
-define config.version = "0.2.0"
+define config.version = "0.3.0"
 define config.screen_width = 1280
 define config.screen_height = 800
 define config.save_directory = "renpy-relations-tidelight-" + os.environ.get("RELATIONS_BACKEND", "sqlite")
