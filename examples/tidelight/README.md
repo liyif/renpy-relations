@@ -1,101 +1,105 @@
-# 潮汐替我们保管
+# Tidelight — 潮汐替我们保管
 
-一个可直接试玩的中文 Galgame 短篇。约一万字、653 段对白／叙述（各分支总量），19 个事件、3 位成年女主角、5 个结局。单次游玩只会经历其中一部分事件。文字演出版，已有中文字体、场景配色、选择、手记、存读档与回退，未配立绘、音乐或配音。
+Tidelight is a complete Chinese-language, text-only short story about the last night of a coastal radio station. You play 沈川 and choose where to go and whom to listen to between 20:00 and midnight. Its three adult heroines are 许澄, 林遥, and 陆弥. There are five endings. The sample has no character art, voice acting, or music; it uses text, simple backgrounds, and a bundled Chinese font.
 
-岬湾旧电台将在午夜关停。沈川回来交还钥匙，却遇见一段被剪断的录音、三个各自准备告别的人，以及一场让渡船停航的雨。房子确实要交还；这一夜可以决定声音如何被带走，也可以重新约定人与人的下一次见面。
+## Play
 
-## 人物
+If you have the standalone Linux archive, extract it and run `./tidelight.sh` from its directory. It includes the engine and runtime dependencies. The default backend is SQLite. To use DuckDB, run `RELATIONS_BACKEND=duckdb ./tidelight.sh`. Saves use a separate directory for each backend; start a new game when switching. Snapshots cannot be exchanged between backends.
 
-| 人物 | 年龄 | 此刻的处境 |
-| --- | --- | --- |
-| 沈川 | 26 | 文案编辑，离乡两年；惯于把联系推到“以后”，今晚回来还钥匙 |
-| 许澄 | 24 | 临时主播；父亲三年前病故，一直替别人守着他留下的声音 |
-| 林遥 | 26 | 电工，明早去外地当学徒；正在学习接受帮助、拥有自己的时间 |
-| 陆弥 | 25 | 声音创作者，获得异地驻留机会；想离开，也想让别人认识作品以外的自己 |
+From source, use Linux x86_64, `uv`, and Ren’Py **8.5.3.26051504** with its Python 3.12 interpreter. Other deployment targets are unverified. Run these commands from the source archive or repository root, replacing the SDK path with your installation. Choose a destination that does not already exist, outside the source example:
 
-## 试玩
-
-已构建的 Linux 发行包可解压后直接运行 `./tidelight.sh`，无需 SDK 或依赖安装。从源码创建独立试玩目录的最短流程见仓库 [QUICKSTART.md](../../QUICKSTART.md)。
-
-从源码试玩时，`prepare_game.py` 会将运行时和匹配 SDK 的锁定依赖安装到独立游戏目录。默认 SQLite；包含两后端的目录可通过 `RELATIONS_BACKEND=duckdb` 切换。样例按后端隔离存档。
-
-地图呈现此刻可以发生的相遇，人物会随时间移动。每次外出或长谈约二十分钟；停航、断电、传言等即时反应不额外消耗行动时间。到截止时进入最后一分钟，做完最终决定。随时可以查看手记、存档、读档和回退。开发模式下 F8 可查看编排关系；发行包关闭该界面。
-
-## 剧情怎样编排
-
-每个事件是一个局部完整的场景，演出后返回统一调度器。调度器读取 `NextForced`、`Opportunity` 与 `NextEnding`，不在场景结尾指定下一个场景。
-
-```mermaid
-flowchart LR
-    F[时间、人物位置、已知线索、物品、同意、约定] --> E[EligibleScene]
-    E --> U[NextForced：即时事件]
-    E --> O[Opportunity：各地点最迫切的相遇]
-    O --> A[玩家选择与对白]
-    U --> A
-    A --> F
-    F --> B[BroadcastReady / MutualFuture]
-    B --> N[NextEnding]
+```sh
+uv sync --locked --extra duckdb --group renpy-linux
+SDK=/path/to/renpy-8.5.3-sdk
+GAME=/tmp/tidelight-play
+uv run --locked --extra duckdb python prepare_game.py \
+  --game examples/tidelight --out "$GAME" --backend duckdb --sdk "$SDK"
+"$SDK/renpy.sh" "$GAME"
 ```
 
-- `Here` 根据时间与人物行程计算位置。
-- `Trust` 汇总具体相处行为的记录。它决定某些谈话能否发生；恋爱结局还需要明确的双方约定。
-- `NeedKnowledge / NeedItem / NeedConsent / NeedChoice / NeedBond` 描述事件的世界条件。
-- `EligibleScene` 检查这些条件与场景窗口、人物所在位置，排除已经发生的事件。
-- `NextForced` 处理当下最迫切的即时事件；`Opportunity` 在每个地点选出当前最重要的话题。
-- `AvailableAction` 进一步检查选择条件，例如只向身边的人递茶、供电正常时播放录音、广播准备齐备时公开播出。
-- `BroadcastReady` 合并设备、母带、来源辨识和相关人物的同意。
-- `MutualFuture` 表示已经明确答应彼此的下一次见面；`NextEnding` 综合这些关系和最终决定选出结局。
+Staging with `--backend duckdb` installs both database drivers. It does not change the game's default selector. Launch the staged project with `RELATIONS_BACKEND=duckdb "$SDK/renpy.sh" "$GAME"` to select DuckDB. For SQLite alone, use `--backend sqlite` and omit `--extra duckdb`. Staging copies the shipped rule bundles and checks imports with the SDK; it does not compile your edited `.l` file.
 
-常规事件没有“必须先看上一段”的条件。`Seen` 只防止重复播放，不作为后续场景的解锁要求。具体例子：
+At the title screen, **开始这一夜** starts the story and **关于这个故事** opens its introduction. Click or advance dialogue, then select a visible conversation or destination on the map. **留在电台，听一会儿雨** waits. Most outings or long conversations cost roughly twenty minutes; forced events cost no additional time. Characters move as the night advances, and the most pressing eligible subject at each location appears first. There is no required single encounter order.
 
-1. 配电图既可从林遥的工具箱谈话取得，也可从电台工作簿取得，因此借保险可以发生在看车票之前。
-2. 工作簿能解释录音来源；获得这条线索后，可以直接与许澄深谈，稍后再听那段被剪断的片段。
-3. 如果先做其他事，停航后的陆弥谈话可能先于借出登记；她不必等玩家完成一段“初遇”。
-4. 单方播放或取走录音会产生传言反应；它来自选择造成的事实变化。
-5. 修复线路不等于获得播出许可；最后可以公开播出、留在屋内，或安静结束。
+The top bar provides **存档** (save to slot 1), **读档** (load slot 1), **回退** (rollback), **手记** (known clues), and **标题** (return to title). The diary records knowledge, not a route checklist. In a development project, F8 shows the relation inspector. The packaged release disables this development control.
 
-场景内部保留正常的线性对白与选择；关系查询负责跨场景的开放、位置、优先级、即时反应和结局。
+## How the story is assembled
 
-## 文件
+| File | Responsibility |
+| --- | --- |
+| [world.l](world.l) | Derives presence, trust, scene and action eligibility, priority, broadcast readiness, and endings. |
+| [schema.json](schema.json) | Declares game facts and exported derived relations. |
+| [game/content.json](game/content.json) | Supplies starting facts, scene requirements, effects for each action, and display names. |
+| [game/night.py](game/night.py) | Seeds the world, queries available choices, and applies each selected action atomically. |
+| [game/script.rpy](game/script.rpy) | Initializes the runtime, installs save/rollback integration, draws screens, and dispatches encounters. |
+| [game/story.rpy](game/story.rpy) | Contains the prose, menus, scene labels, and ending labels. |
+| `game/relations.rules.json`, `game/relations.duckdb.rules.json` | Compiled SQLite and DuckDB bundles, respectively. |
 
-- [完整剧本](game/story.rpy)：序章、19 个事件、等待片段及五个结局正文。
-- [界面与调度器](game/script.rpy)：地图、手记、存读档、编排观察与查询分派。
-- [规则](world.l)：由 Logica 编译的关系推导。
-- [剧情事实与选择效果](game/content.json)：事件资料、人物行程、前提与行动结果。
-- [行动适配](game/night.py)：把选择结果、事件完成和时间变化放在同一事务中，不自行决定剧情资格。
-- [试玩路线与编排示例](ROUTES.md)：包含结局剧透。
+The single `weave` dispatcher checks an ending first, then a forced encounter, then the player's map choice. Every encounter returns to it. Story labels do not name a subsequent encounter. This is an application design for this sample; Ren’Py Relations does not require this dispatcher, JSON effect format, or priority scheme.
 
-## 修改与验证
+For example, scene requirements are facts. `MissingKnowledge` derives which scenes still lack a clue:
 
-以下命令从源码仓库根目录执行。编译或修改正文后，重新生成独立试玩目录再进行引擎检查。
+```prolog
+MissingKnowledge(scene: s) distinct :-
+  NeedKnowledge(scene: s, clue: k), ~Knows(clue: k);
+```
 
-重新编译两个后端：
+`EligibleScene` combines location and time with the absence of missing knowledge, items, consent, choices, and trust; `~Seen(scene: s)` prevents replaying the same encounter. `Opportunity` then keeps the highest-priority eligible subject at each place below the forced-event threshold of 100. Equal priorities use the scene identifier as a deterministic tie-breaker. Time places people and bounds eligibility rather than selecting a chapter.
+
+One concrete chain is the conversation about 林遥's ticket. Its `support` action in `content.json` adds knowledge of `yao_leaving` and `breaker_map`, and a `Bond` row with reason `ticket` and weight 1. The fuse conversation requires the `breaker_map` clue and the spare fuse held by 林遥. Her current location and other available priorities also affect whether it appears. The same clue can come from the catalog; this is a shared condition rather than an instruction to play the ticket scene first.
+
+After a player chooses `borrow` in the fuse conversation, `Night.resolve("yao_fuse", "borrow")` first verifies `AvailableAction`. In one batch it adds consent for 林遥's help, transfers `spare_fuse` to the station, records a positive bond, marks the scene seen, and advances the clock. The next dispatcher pass queries the changed world. Queries answer eligibility; the action supplies effects. Reads and action validation occur outside the batch. For the runtime's complete API, snapshot, and mode contracts, use the [reference](../../docs/reference.md).
+
+## Adapt the sample
+
+Start with the [Palace quickstart](../../QUICKSTART.md) for a smaller integration exercise. In Tidelight, edit prose in `game/story.rpy`, display data and action effects in `game/content.json`, requirements and scheduling in `world.l`, and relation declarations in `schema.json`. Keep scene/action identifiers consistent across these files. A new scene needs a declared scene, actions and effects, and a corresponding `scene_<identifier>` label; a new ending needs its rules and `ending_<identifier>` label.
+
+Compile both backends after changing rules or schema. From the source root:
 
 ```sh
 uv run --locked python compile_rules.py examples/tidelight/world.l \
-  --schema examples/tidelight/schema.json --output examples/tidelight/game/relations.rules.json
+  --schema examples/tidelight/schema.json \
+  --output examples/tidelight/game/relations.rules.json
 uv run --locked --extra duckdb python compile_rules.py examples/tidelight/world.l \
   --schema examples/tidelight/schema.json --backend duckdb \
   --output examples/tidelight/game/relations.duckdb.rules.json
+uv run --locked --extra duckdb --group assets pytest -q tests/test_tidelight.py
 ```
 
-字库为 Noto Sans CJK SC 的改名子集，许可证与来源见 [字体说明](game/fonts/README.md)。修改中文文案后，可用本机完整字体重建：
+Then stage into another fresh directory. If editing an already staged project, use `compile_rules.py` from the source distribution with the staged `world.l` and `schema.json`, and point `--output` explicitly at that project's selected `game/relations*.rules.json`. The compiler is a development tool and is not part of the standalone game's runtime dependencies. Restart the game after content or prose edits. Schema changes require a deliberate save policy; existing fact snapshots are not automatically migrated.
+
+The focused tests check bundle synchronization, legal action effects, all five ending routes, state restoration, sampled playthroughs, and font coverage. Sampled paths are useful evidence, not exhaustive exploration of every ordering. See [maintenance](../../docs/maintaining.md) for SDK lint and real-engine tests.
+
+## Font and license
+
+The shipped `game/fonts/tidelight.otf` is **Tidelight Sans**, a renamed subset of **Noto Sans CJK SC**. Its [SIL Open Font License](game/fonts/OFL.txt) stays beside the font. The source and story use the project's MIT license; the source distribution's [third-party notices](../../THIRD_PARTY_NOTICES.md) explain the other components. The [Noto CJK project](https://github.com/notofonts/noto-cjk) is the upstream font source.
+
+The repository does not record the exact version or SHA256 of the original input font. Rebuilding from a newly supplied Noto font therefore does not prove byte-for-byte reproduction of the shipped subset. Record your chosen source font's identity when making a replacement.
+
+From the source root, provide a local font collection and select its SC face:
 
 ```sh
 uv run --locked --group assets python examples/tidelight/build_font.py \
-  --source-font /usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc
+  --source-font /path/to/NotoSansCJK-Regular.ttc --font-number 2
+uv run --locked --group assets pytest -q tests/test_tidelight.py \
+  -k shipped_font_contains_every_character
 ```
 
-验证关系编排；引擎检查使用按上手说明生成的独立目录 `/tmp/my-tidelight`：
+`--source-font` is required. `--font-number` defaults to 2, the SC face in the standard Noto CJK collection; check the face ordering of your actual input. The script checks source coverage, subsets it, renames its family to Tidelight Sans, and writes `game/fonts/tidelight.otf` beside the script. Glyph inputs are every top-level `game/*.rpy`, the complete `game/content.json`, printable ASCII U+0020–U+007E, and a space; other whitespace is excluded. Text added elsewhere needs an explicit extension of that input set. Rebuild and check coverage when changing Chinese text, and preserve OFL.txt when distributing the font.
 
-```sh
-uv run --locked --extra duckdb --group renpy-linux --group assets pytest tests/test_tidelight.py
-uv run --locked --extra duckdb python check_renpy.py --sdk /path/to/renpy-sdk \
-  --game /tmp/my-tidelight --headless --backend sqlite --timeout 180
-```
+## Optional spoiler: 许澄's ending
 
-Python 检查覆盖两后端三模式、五结局路线、场景重排、授权条件、快照分支和随机合法游玩样本。引擎测试实际点击结局路线，并检查存读档、回退、手记和开发观察界面。测试用例是行为检查，不保证所有可能的探索顺序。
+The following visible-choice route corresponds to the `ending_cheng` real-engine testcase. Allow each forced event to finish before selecting the next opportunity. Save before experimenting if you want to branch later.
 
-这是仓库内的实验样例。分发独立游戏时，还需将根目录的 `renpy_relations.py` 放入其实际 `game/python-packages`，并将规则、剧情 JSON 与原生扩展作为实际文件保留；不要将这些由 Path／原生驱动读取的文件只放进资源归档。
+1. **看看林遥压在工具箱下的车票** → **票都买好了。等到了，先告诉我那边食堂怎么样。**
+2. **向林遥借一枚备用保险** → **借给我好吗？今晚我来换，你只在旁边看着。**
+3. **听陆弥说起录音上的名字** → **我想借走，先让许澄决定怎么处理。登记写在哪里？**
+4. **把母带带回电台**, then **翻开最后一册工作簿**.
+5. **和陆弥看一张暂时失效的船票** → **那就现在问。等你安顿下来，我能去看看你的工作室吗？**
+6. **问许澄，空白后面是什么** → **不用替所有人决定。今晚，你愿意怎么听、怎么让别人听？**
+7. **带备用保险去配电房**.
+8. **陪许澄听那段突然结束的录音** → **先别按播放。你想听见后面是什么吗？**
+9. **把明天的问题留给许澄回答** → **不用。明天先一起吃早饭，然后认真商量下一次。**
+10. Choose **留在电台，听一会儿雨** twice, then **按大家同意的方式，做完最后一场广播。**
 
-本项目剧本与代码采用 MIT。发行包还包含 Ren’Py 及其原生组件，其中部分组件使用 LGPL；完整第三方清单与源码入口见 [Ren’Py 许可说明](https://www.renpy.org/doc/html/license.html)，完整声明随发行包 `LICENSE.txt` 保留。字体继续使用 OFL。
+This reaches **把空白留给明天**. A mutual future has higher ending priority than the harbor broadcast ending. The other endings are **抵达以后，记得来信** (林遥), **不为作品的一次见面** (陆弥), **一座没有屋顶的电台** (harbor), and **没有播出的晚安** (quiet). Romance does not require repairing the transmitter or broadcasting: those are separate conditions in this story.

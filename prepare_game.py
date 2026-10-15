@@ -4,10 +4,12 @@ import argparse
 from importlib import metadata
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
 import tomllib
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parent
@@ -38,6 +40,21 @@ def inventory(packages):
     return sorted(result, key=lambda p: p["name"].lower())
 
 
+def staged_readme(text, source_game):
+    """Keep game-local links; name source-only files without broken links."""
+    def replace(match):
+        label, href = match.groups()
+        url = urlsplit(href)
+        if url.scheme or url.netloc or not url.path:
+            return match.group(0)
+        target = (source_game / unquote(url.path)).resolve()
+        if target.is_relative_to(source_game) or not target.is_relative_to(ROOT):
+            return match.group(0)
+        source_path = target.relative_to(ROOT).as_posix()
+        return f"{label} (`{source_path}` in the source archive)"
+    return re.sub(r"(?<!!)\[([^\]]+)\]\(([^\s)]+)\)", replace, text)
+
+
 def prepare(game, output, *, backend="sqlite", sdk=None):
     game, output = Path(game).resolve(), Path(output).absolute()
     if not (game / "game").is_dir():
@@ -62,7 +79,7 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         staging.mkdir()
         shutil.copytree(game / "game", staging / "game", ignore=shutil.ignore_patterns(
             "python-packages", "cache", "saves", "__pycache__", "*.rpyc", "*.pyc", "release.json"))
-        for name in ("README.md", "ROUTES.md", "world.l", "schema.json", "build_font.py"):
+        for name in ("README.md", "world.l", "schema.json", "build_font.py"):
             if (game / name).is_file():
                 shutil.copy2(game / name, staging / name)
         for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
@@ -72,8 +89,7 @@ def prepare(game, output, *, backend="sqlite", sdk=None):
         notices.write_text(notices.read_text().replace("examples/tidelight/game/fonts/README.md", font_reference))
         readme = staging / "README.md"
         if readme.is_file():
-            readme.write_text(readme.read_text().replace("[QUICKSTART.md](../../QUICKSTART.md)",
-                                                       "QUICKSTART.md（源码包根目录）"))
+            readme.write_text(staged_readme(readme.read_text(), game))
         packages = staging / "game/python-packages"
         requirements = staging / "runtime-requirements.txt"
         command = ["uv", "export", "--project", ROOT, "--locked", "--no-dev", "--group", "renpy-linux",

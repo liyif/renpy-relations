@@ -182,7 +182,8 @@ def build(sdk, output):
                             "Copy the contents of game/python-packages into your game's matching directory.\n"
                             "This bundle targets Linux x86_64 / CPython 3.12 and includes both database drivers.\n"
                             "Compile your rules with compile_rules.py from the source archive; place the JSON in game/.\n"
-                            "See QUICKSTART.md in the source archive for a complete integration example.\n"
+                            f"See QUICKSTART.md and docs/reference.md in renpy-relations-{version}-source.tar.gz "
+                            "for the complete integration guide and API reference.\n"
                             "Keep LICENSE and the dependency license files listed in DEPENDENCIES.json.\n")
         (staged / "game/release.json").write_text(json.dumps({"version": version, "commit": commit}) + "\n")
         (staged / "game/build.rpy").write_text(f'''init python:
@@ -197,13 +198,19 @@ def build(sdk, output):
     build.classify("game/python-packages/**", "linux")
     build.classify("game/**", "all")
 ''')
-        (staged / "PLAY.md").write_text("# 潮汐替我们保管\n\n运行 `./tidelight.sh` 开始游戏。\n"
-                                          "默认 SQLite；运行 `RELATIONS_BACKEND=duckdb ./tidelight.sh` 切换后端。\n"
-                                          "存档目录按后端隔离；首次切换后请开始新游戏。\n"
-                                          "这是文字演出版，包含三位成年女主角与五个结局。\n\n"
-                                          "项目脚本与文字使用 MIT；字体使用 OFL。许可文件随包保留。\n"
-                                          "Ren’Py 及原生组件的完整许可证见 LICENSE.txt，源码入口见 "
-                                          "https://www.renpy.org/doc/html/license.html 。\n")
+        (staged / "PLAY.md").write_text("# Tidelight — 潮汐替我们保管\n\n"
+                                          "Run `./tidelight.sh` to start the game. This Linux x86_64 package "
+                                          "includes its engine; no SDK or uv installation is needed to play.\n\n"
+                                          "SQLite is the default. To try DuckDB, run "
+                                          "`RELATIONS_BACKEND=duckdb ./tidelight.sh`. Saves are separated by "
+                                          "backend; start a new game when switching for the first time.\n\n"
+                                          "This complete Chinese-language, text-only story has three adult "
+                                          "heroines and five endings. See [the sample guide](README.md) "
+                                          "for controls and how the story is organized.\n\n"
+                                          "Project scripts and prose use MIT; the font uses OFL. Keep the "
+                                          "included notices. Ren’Py and native-component licenses are in "
+                                          "LICENSE.txt; upstream source links are available in "
+                                          "[Ren’Py's license documentation](https://www.renpy.org/doc/html/license.html).\n")
         checked(["xvfb-run", "-a", sdk / "renpy.sh", sdk / "launcher", "distribute", staged,
                  "--package", "linux", "--no-update", "--destination", output],
                 log=logs / "build-game.log", environment=environment)

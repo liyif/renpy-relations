@@ -13,7 +13,7 @@ Third-party software and fonts retain their own licenses.
 - Logica is a development-time compiler, not bundled with the games.
 - Tidelight Sans is a renamed subset of Noto Sans CJK SC, copyright
   2014–2021 Adobe, under SIL Open Font License 1.1. See
-  [font source and license](examples/tidelight/game/fonts/README.md).
+  [font source](https://github.com/notofonts/noto-cjk). The font license is retained alongside the font as `OFL.txt`.
 - Standalone playable distributions include an unmodified Ren'Py runtime.
   Their `LICENSE.txt` contains Ren'Py's notices and licenses, including those
   of its native dependencies. Keep this file with the distribution. The

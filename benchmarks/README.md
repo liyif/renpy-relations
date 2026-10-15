@@ -1,88 +1,100 @@
-# Benchmark
+# Benchmark methods and saved evidence
 
-测量当前实现的加载、查询、事实提交和快照成本。主负载是大量派生规则对应少量事实；大事实集与长链是独立压力测试。当前数据与测量范围见 [报告](results/current/REPORT.md)。
+These experiments measure rule loading, queries, writes, and native fact snapshots in isolated processes. Begin with the [English summary of saved measurements](results/current/REPORT.md), then follow its raw-data links. The directory name `current` is an archive label: it does not establish that its runtime matches the code you are reading.
 
-当前归档数据测于 `name`／`self` 字段参数冲突修复之前；该接口修复后未重新测量，测量源码以报告内 SHA-256 为准。
+For the runtime's query modes and lifecycle contracts, see the [reference](../docs/reference.md). For setup and the SDK target, see [maintenance](../docs/maintaining.md). The [project introduction](../README.md) describes what the experiment is intended to investigate.
 
-[结果阅读说明](READING_RESULTS.md)逐项解释各列与原始阶段的计时边界、数据规模、三种查询模式，以及这些数值能回答什么问题。
+## Four experiment families
 
-生产规则包的依赖来自 Logica 编译；条件与长链生成器同步生成已知 SQL 和依赖边，不包含 Logica 编译时间。`native` 变体读取包内依赖，由数据库计算执行顺序；历史 `baseline` 变体在加载时从 SQL 收集依赖。运行时不解析或核验 SQL 依赖；迁移说明见 [MIGRATION](../MIGRATION.md)。
+| Family and entry point | Workload and measured phases |
+| --- | --- |
+| Fact volume — `run.py` | Palace rules over generated characters. A seed worker measures empty initialization, public-interface ingestion, and an explicit snapshot. Fresh measurement workers restore that fixture, then measure cold `has`, warm `has` and `query`, snapshot, single and batched commits, the first read after each change, same-rule reload, and restore after edits. |
+| Condition panel — `conditions.py`, using `rules.py` | Generated SQL and dependency metadata over 32 domains. Measures bundle load, ingestion, a first complete panel of condition checks, a second panel, and local/global/unrelated commits followed by another complete panel. Independent validation workers compare complete relations against a Python oracle through state changes. |
+| Snapshots — `snapshots.py` | A simple Seed/Visible world populated with native SQL outside timing. Measures a full snapshot after an edit, unchanged snapshot reuse, ordinary commit, commit with a snapshot callback, and restore. Driver and process repeats are separate dimensions. |
+| Long chains — `graph.py` | Generated SQL outputs form a dependency chain. Measures load and one final-output read, then checks that a removal invalidates the answer. These are single observations per length/backend, not repeated gameplay medians. |
 
-## 运行
+The controlled suite also runs DuckDB condition **loading probes** at larger counts. These measure load, ingestion, and one selected `has` in cached mode with a 120-second task budget. They do not execute a complete panel or the mutation matrix. Generated condition and chain SQL bypass Logica compilation. Fact-volume records include a separate compiler timing; do not interpret a graph's `load` as compiler performance.
 
-开发依赖由根目录 `uv.lock` 锁定。默认使用 uv Python；若要测游戏运行环境，先准备匹配 SDK 的独立依赖目录：
+### Sizes, layouts, modes, and variants
+
+Fact-volume `--sizes` counts **characters**, not all rows. For size N, the five fact relations contain N Member rows, 128 FactionAccess rows, ceil(N/10) Sponsor rows, ceil(N/3) Knows rows, and ceil(N/11) RewardClaimed rows. Thus 10,000, 100,000, and 1,000,000 characters produce 15,372, 152,553, and 1,524,372 fact rows. Derived row counts differ again: CanEnter alone contains 4N + ceil(N/10) rows. Read each record's `cardinalities` rather than treating its `size` as a database row count.
+
+Condition `--conditions` counts requested condition checks. The generated bundle also contains **64 shared helper outputs**. `--ratios 1 10` expresses the approximate output-to-fact ratio: the implementation chooses ceil((conditions + 64)/ratio) fact rows. For example, 1,000 conditions generate 1,064 outputs and either 1,064 or 107 facts. `partitioned` uses one state relation per domain; `shared_table` keeps a domain column in one state relation. Invalidation operates at relation boundaries, so the shared-table layout makes a local edit touch dependencies beyond that row's domain.
+
+All three modes are available: `cached` builds derived relations on demand, `materialized` rebuilds affected outputs during commits, and `live` evaluates views. Compare **commit plus the subsequent read/panel** when assessing an action; a small commit can defer work to the next query.
+
+Condition tools offer `native` and a pinned SQLite `baseline` runtime. Historical sources come from the bundled baseline manifest and verified hashes. A `baseline_ref` field is configuration, not evidence of a comparison: the saved controlled suite ran only `native`. Snapshot tools can optionally compare a legacy runtime with `--baseline-ref`; the saved snapshot records have `legacy: false` throughout.
+
+### What each metric means
+
+`seconds` is wall time; `cpu_seconds` is process CPU time where recorded. Linux `rss_bytes` is resident memory at that checkpoint, while `peak_rss_bytes` is the process lifetime high-water mark. Missing memory fields are unavailable, not zero. Peak RSS is not incremental memory allocated by the named phase.
+
+Cold reads are first reads after initialization or fixture restoration, not reads after clearing OS page caches. Warm reads follow earlier work in the same process. A panel's total wall time is the complete sequence of checks; its request median/p95 describe individual checks within that panel. A p95 request latency is not a p95 panel latency. Fact-volume JSON retains request samples; condition JSON records each panel's request statistics. Keep independent-process variation separate from within-process samples when aggregating.
+
+Timing runs and validation runs serve different purposes. The condition matrix has three fresh timing workers and one complete validation worker per configuration. Fact-volume measurements use three workers per mode and one seed per size/backend. Snapshot records distinguish `process_repetitions` from sequential `repetitions` inside a process; the saved suite used three processes with one sequential sample each. Graphs and loading probes have one observation per configuration. Failed, timed-out, missing, and incomplete groups must remain visible; never fill them with zero or present successful subsets as a complete group.
+
+Phases within a worker are sequential, not independently reset experiments. Fact-volume reads follow fixture restoration; a single edit remains present during the subsequent batch and reload, and only `restore_after_edits` returns to the initial fixture. Its measurement-worker phase named `snapshot` occurs before those edits and reuses the image retained by `restore_initial`; the seed worker's separate `snapshot` phase generates the changed world's image after ingestion. Do not read that measurement-worker snapshot time as full serialization cost.
+
+Condition panels first read the seeded world, then a local edit disables domain 0's `v0`, then a global edit disables GlobalState, then an unrelated Note edit occurs with both prior changes still present. Independent validation workers follow the same sequence and additionally re-enable GlobalState while blocking `v0`. Snapshot workers add an untimed marker before full serialization, immediately measure image reuse, make an ordinary edit, restore the saved image into a second callback-bound world and make a history edit there, then restore the first world. If multiple sequential repetitions are requested, the restored snapshot markers accumulate across them. Later phases therefore inherit earlier state and warming; compare like phase sequences.
+
+Fact and condition query workloads record `history_bound: false`: no snapshot receiver is installed, so ordinary commits do not pay the save-history publication cost. Snapshot `history_commit` binds a callback that accepts the latest native image and does not accumulate a retained rollback history. `snapshot_reused` measures the unchanged-image path; it is distinct from serializing a changed world. None of these experiments measures a full Ren’Py frame rate, retained rollback history, save archive cost, skewed game data, or performance across hardware.
+
+## Read the saved suite honestly
+
+The [suite record](results/current/results.json) reports eight completed tasks. Its 19 original [checksum entries](results/current/SHA256SUMS) match the preserved raw JSON/CSV files. These checks establish artifact integrity, not wider experimental coverage.
+
+| Saved task | Actual completed coverage |
+| --- | --- |
+| [conditions-sqlite](results/current/conditions-sqlite/results.json) | 1,000/3,000/10,000 conditions × ratios 1/10 × both layouts × three modes; 108 timing runs and 36 validations. |
+| [conditions-duckdb](results/current/conditions-duckdb/results.json) | 1,000 conditions, ratio 10, partitioned layout, three modes; 9 timing runs and 3 validations. |
+| [facts-sqlite](results/current/facts-sqlite/results.json) | 10,000/100,000/1,000,000 characters, three modes, three repeats; 27 measurement workers and 3 seeds. |
+| [facts-duckdb](results/current/facts-duckdb/results.json) | 10,000 characters, three modes, three repeats; 9 measurement workers and 1 seed. |
+| [snapshots](results/current/snapshots/results.json) | 10,000/100,000/1,000,000 Seed rows, pysqlite3 and DuckDB, three processes each; 18 records. |
+| [graph](results/current/graph/results.json) | Chain lengths 128/512/1,050, both backends; 6 single observations. |
+| [duckdb-load-3000](results/current/duckdb-load-3000/results.json), [duckdb-load-10000](results/current/duckdb-load-10000/results.json) | One cached, partitioned, ratio-10 loading probe at each count. |
+
+Each task's `measured_source` is authoritative for that workload; the suite's `measured_source.sha256` is their union. The recorded checkout was dirty at commit `c96c103578e646c5617483f482a78ff161a77506`. Its measured runtime hash is `400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd`; its measured lockfile hash is `270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d`. Both differ from this source copy. The compiler and benchmark scripts matched their recorded hashes when this guide was authored. The English summary derives values from those existing records; it is not a fresh benchmark of the copy.
+
+Keep `report_generation_source` distinct from `measured_source`. Re-rendering a report under a newer runtime or reporter cannot make old numbers measurements of that newer code. Child result hashes, bundle/fixture hashes, per-task execution records, driver versions, and environment fields provide the next level of attribution. A dirty commit alone cannot recover the exact measured tree.
+
+## Reproduce into a new directory
+
+From the source root, install locked development dependencies and stage Palace with both drivers. Set paths to the pinned Linux x86_64 / Python 3.12 SDK and fresh output locations:
 
 ```sh
 uv sync --locked --extra duckdb --group renpy-linux
-uv run --locked python prepare_game.py --game examples/palace \
-  --out /tmp/relations-benchmark-game --backend duckdb --sdk /path/to/renpy-sdk
-uv run --locked --extra duckdb --group renpy-linux python benchmarks/suite.py \
-  --profile controlled \
-  --python /path/to/renpy-sdk/lib/py3-linux-x86_64/python \
-  --packages /tmp/relations-benchmark-game/game/python-packages \
-  --out /tmp/relations-benchmark
-uv run --locked python benchmarks/report.py /tmp/relations-benchmark
+SDK=/path/to/renpy-8.5.3-sdk
+GAME=/tmp/relations-benchmark-game
+uv run --locked --extra duckdb python prepare_game.py \
+  --game examples/palace --out "$GAME" --backend duckdb --sdk "$SDK"
+uv run --locked --extra duckdb python benchmarks/suite.py --profile controlled --smoke \
+  --python "$SDK/lib/py3-linux-x86_64/python" \
+  --packages "$GAME/game/python-packages" --out /tmp/relations-benchmark-smoke
 ```
 
-输出目录不得覆盖已有结果。任务串行运行，保留自动 GC；不要同时运行其他重负载。SDK 的后端测试直接调用其 Python，不启动游戏窗口。
+Smoke reduces characters/facts and condition counts and uses one timing repeat. It verifies the pipeline and produces fresh evidence for the code actually executed; it is not a substitute for the saved workload. The worker imports this checkout's runtime; `--packages` provides the staged dependencies. Omitting both worker arguments uses the local interpreter and its dependencies, which is a different measurement environment.
 
-`controlled` 是受控完整报告：SQLite 覆盖主矩阵，DuckDB 覆盖代表配置与加载上限。`full` 扩展 DuckDB 到全部条件及大事实矩阵，可能需要数小时。`--smoke` 用小数据检查整套流程，不产生规模结论。实际执行范围、失败、超时和未测配置都由报告列明。任务失败或达到预算时套件返回非零；仍可用 `report.py` 汇总已保存的数据，并生成报告和原始数据的 `SHA256SUMS`。
-
-## 四类负载
-
-### 派生条件
-
-`conditions.py` 每轮实际读取 1,000／3,000／10,000 个不同条件，另有 64 个共享前置关系。事实数:总派生关系数为 1:1 或约 1:10。条件包含共享前提、否定、领域状态、全局开关和混合真假结果。
-
-两种布局分别使用领域分表和共用状态表，以观察关系级失效的范围。每个配置测加载、首轮、重复轮，以及局部／全局／无关事实修改后的“提交＋完整读取”。三种模式均覆盖，各做三次独立进程重复。
-
-受控范围：
-
-| 后端 | 规模与布局 | 计时进程 | 独立集合校验 |
-| --- | --- | ---: | ---: |
-| SQLite | 3 档 × 2 比例 × 2 布局 × 3 模式 | 108 | 36 |
-| DuckDB | 1,000 条件、约 1:10、领域分表、3 模式 | 9 | 3 |
-| DuckDB 加载探针 | 3,000／10,000 条件、约 1:10、领域分表、cached | 各一次，上限 120 秒 | 不代替主矩阵 |
-
-每个计时请求都与独立公式核对。全部行集合另在独立进程核对初始、局部、全局、无关和阻断五种状态，不提前预热计时实例。生成 SQL 控制负载形态，未测大规则集的 Logica 编译成本。
-
-主矩阵**未绑定历史接收者**，提交不生成快照。Ren’Py 历史绑定的成本由快照负载单独测量；不能将两类提交混为同一口径。
-
-单独运行 SQLite 主矩阵：
+For a deliberate larger experiment, choose one of these profiles and a fresh output path:
 
 ```sh
-uv run --locked python benchmarks/conditions.py --backends sqlite --out /tmp/conditions-sqlite
+uv run --locked --extra duckdb python benchmarks/suite.py --profile controlled \
+  --python "$SDK/lib/py3-linux-x86_64/python" \
+  --packages "$GAME/game/python-packages" --out /tmp/relations-benchmark-controlled
+uv run --locked --extra duckdb python benchmarks/suite.py --profile full \
+  --python "$SDK/lib/py3-linux-x86_64/python" \
+  --packages "$GAME/game/python-packages" --out /tmp/relations-benchmark-full
 ```
 
-### 大事实集
+`controlled` reproduces the asymmetric scope above. `full` requests both backends across the complete condition and fact-volume matrices, plus snapshots and chains; it does not include the separate loading probes. Full runs can be expensive and can hit worker budgets. They are unnecessary for validating prose. Individual family scripts expose smaller scopes through `--help`; preserve their selected parameters with any published results.
 
-`run.py` 使用 palace 的实际编译规则，生成 1 万／10 万／100 万角色。测公开接口导入、恢复后的首次查询、分散角色的 warm has／query、单条与 batch 提交、显式快照、恢复和规则重载。每档导入一次，每模式三次独立重复。
+## Render reports without changing the archive
 
-受控范围包含 SQLite 全部三档及 DuckDB 一万角色。百万档是压力测试，不代表典型视觉小说的事实规模。
+The checked-in English summary is an independently derived reading aid. The existing report generators emit Chinese reports. Rendering is a write operation: `report.py` writes a root REPORT.md and replaces SHA256SUMS; suite `--collect` also revalidates tasks and writes suite metadata and reports. Use a copied result tree, never the preserved archive:
 
-measure 进程的 `snapshot` 阶段在恢复后读取已缓存镜像，测的是复用，不是完整导出；首次生成由 seed 的显式快照及独立快照负载测量。
+```sh
+REPORT_COPY=$(mktemp -d /tmp/relations-report-copy.XXXXXX)
+cp -R benchmarks/results/current/. "$REPORT_COPY/"
+uv run --locked python benchmarks/report.py "$REPORT_COPY"
+```
 
-事实数与派生行数由生成公式给出。小规模测试核对完整集合，大规模使用分散正负样本核对。导入使用公开 add 与一个 batch，不能当作原生批量导入成绩；导入与普通提交均无历史接收者，快照单独计时。
-
-### 快照与历史提交
-
-`snapshots.py` 在 1 万／10 万／100 万事实下分别测普通提交、历史绑定提交、首次快照、镜像复用与恢复。SDK 使用 pysqlite3 backup 路径和 DuckDB 复制路径；标准 Python 可另选 sqlite3 serialize 路径。
-
-初始化使用原生 SQL，排除计时；实际修改使用公开接口。受控配置每种驱动、规模各三个独立进程，每进程一次顺序测量。历史回调只接收最新镜像，不模拟 Ren’Py 长期回滚历史、存档压缩或界面成本。
-
-### 依赖长链
-
-`graph.py` 对 128／512／1,050 层依赖测加载和首次读取，检查事实撤销后的结果。两后端分别执行，每档一次，进程上限 120 秒。单次探针用于暴露闭包与结构成本，不能当作重复测量的中位数或一般剧情表现。
-
-## 统计与复现身份
-
-- 墙钟时间包含实际接口调用与测量记录开销；阶段 CPU、RSS 和峰值 RSS 保存在 JSON 中。
-- 条件负载的整轮时间直接测量。“提交＋读取”先在同一试验内相加，再跨试验取中位数。
-- 条件单次中位数／p95 先在每个试验内计算，再取跨试验中位数；不是合并请求分位数。大事实 warm 请求保留逐请求样本，子报告明确其聚合方式。
-- 新进程隔离 Python 与数据库状态，但不清空操作系统页缓存，不能称为物理冷启动。
-- 失败和超时保留阶段与错误，不填零，不进入成功样本统计。未测组合单独列出，不算通过。
-- 源码与锁文件 SHA-256、实际解释器、驱动、硬件、参数和输出记录共同定义测量身份；文档提交不改变既有测量的身份。
-
-只保留一组当前报告与必要原始数据。大型镜像、临时运行时副本和逐 worker 日志位于 `.work`，不提交。旧测量记录可从 Git 历史取得。
-
-`baselines/` 中的历史源码带原提交和 SHA-256，是可选对照输入，不是当前运行时。显式 `conditions.py --variants baseline native --backends sqlite` 或 `snapshots.py --baseline-ref 45d0c21` 才运行旧版；当前报告默认只测当前实现。
+To recollect copied execution records, use `benchmarks/suite.py --collect --profile controlled --out "$REPORT_COPY"` with the original worker arguments if you want that reporting configuration recorded. Collection does not rerun workloads. Preserve the copied per-task identities, inspect any hash conflicts or missing tasks, and retain the untouched archive for comparison. Rewriting a checksum list for a derived report does not replace the original 19-entry integrity record.

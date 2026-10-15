@@ -1,130 +1,98 @@
-# 当前实现的 Benchmark
+# Saved controlled suite: English measurement summary
 
-测量配置为 `controlled`。本报告汇总已保存的实际结果，全部数值取自各子任务 JSON；测量方法见 [Benchmark 说明](../../README.md)。
+This report derives tables from the preserved JSON records. No benchmark was run to create it. It describes the measured historical source, not the current runtime. Read the [methods guide](../../README.md) before comparing modes or backends.
 
-实验分别观察大量派生条件、事实规模、原生快照与依赖长链。条件负载为主要工作负载；大事实集和长链用于观察边界。后端调用测量不等同于游戏帧率、完整存读档或长期回退历史。
+## Measurement and reporting identity
 
-## 本次观察
+All eight tasks in [results.json](results.json) are recorded complete, with no unknown task source identities or union hash conflicts. Each task’s `measured_source` and child result hashes remain the authority for its workload. The measured Git checkout was dirty at commit `c96c103578e646c5617483f482a78ff161a77506`. A commit identifier alone cannot reconstruct those uncommitted changes.
 
-- 关系级失效的收益取决于事实布局。共享状态表会扩大重建范围；减少重建也不消除逐条件查询成本。
-- 生产规则的依赖由 Logica 编译时提供，条件生成器同步生成已知依赖。运行时不从 SQL 收集依赖；数据库根据包内边计算执行顺序，其成本仍取决于图的规模与结构。
-- 普通事务与历史保存的代价需要分开判断。Ren’Py 行动仍承担完整事实镜像的发布成本。
+- Measured runtime SHA256: `400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd`.
+- Measured lockfile SHA256: `270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d`.
+- Both differ from this copy; the compiler and benchmark scripts matched their recorded hashes when the English guide was authored.
+- Saved suite report-generation identity was captured at `2026-10-15T01:09:18.632796+08:00`, also with a dirty checkout. This English summary is a later derivation and does not rewrite that field.
 
-## 环境与测量身份
+Host: AMD Ryzen 9 7900X 12-Core Processor; Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44; 24 logical CPUs. Recorded workers use the SDK’s Python 3.12.8, SQLAlchemy 2.0.43, pysqlite3/SQLite 3.51.1 and DuckDB 1.5.6. Worker executable and dependency paths in JSON describe the measurement environment; they are not reusable installation locations.
 
-CPU：AMD Ryzen 9 7900X 12-Core Processor；逻辑 CPU：24。平台：Linux-7.1.9-zen1-2-zen-x86_64-with-glibc2.44。
+The original [SHA256SUMS](SHA256SUMS) contains 19 entries covering the preserved raw JSON/CSV files. All entries matched when this summary was derived. The file is unchanged and does not cover this added Markdown summary. Completion and integrity do not establish unmeasured configurations.
 
-| 后端 | 实际 Python | 驱动 | 数据库版本 | SQLAlchemy |
-| --- | --- | --- | --- | --- |
-| duckdb | 3.12.8 | duckdb | 1.5.6 | 2.0.43 |
-| sqlite | 3.12.8 | pysqlite3 | 3.51.1 | 2.0.43 |
+## Recorded coverage
 
-解释器完整版本、安装目录、精确命令和驱动选项保存在 [原始清单](results.json) 及各子结果中。任务串行执行，保留自动 GC；没有清空操作系统页缓存。
+| Task / raw record | Timing or probe records | Separate validation records |
+| --- | ---: | ---: |
+| [conditions-sqlite](conditions-sqlite/results.json) | 108 | 36 |
+| [conditions-duckdb](conditions-duckdb/results.json) | 9 | 3 |
+| [facts-sqlite](facts-sqlite/results.json) | 30 | 0 |
+| [facts-duckdb](facts-duckdb/results.json) | 10 | 0 |
+| [snapshots](snapshots/results.json) | 18 | 0 |
+| [graph](graph/results.json) | 6 | 0 |
+| [duckdb-load-3000](duckdb-load-3000/results.json) | 1 | 0 |
+| [duckdb-load-10000](duckdb-load-10000/results.json) | 1 | 0 |
 
-测量记录关联的基础提交（工作树工具变更以记录的 SHA-256 为准）：`c96c103578e646c5617483f482a78ff161a77506`。
+The SQLite condition matrix spans 1,000/3,000/10,000 conditions, ratios 1/10, both layouts and all three modes. DuckDB’s complete matrix covers only 1,000 conditions, ratio 10, partitioned layout and three modes. Fact-volume SQLite covers 10,000/100,000/1,000,000 characters; DuckDB covers only 10,000. The fact counts include one seed worker per size/backend, not another independent timing repeat. All saved condition variants are `native`; a stored baseline reference does not supply a measured baseline comparison.
 
-| 测量输入 | SHA-256 |
-| --- | --- |
-| `renpy_relations.py` | `400c16af67966c93403461ba1fb4f73a08f2167a8337067d44585ffdf80d7bdd` |
-| `uv.lock` | `270ae36251a36cf873b4a04a28770234191e8037bc60ed8602b3f8619bdb000d` |
-| `benchmarks/report.py`（报告呈现，未参与计时） | `19ee783e9a6a61a202f0fcf988d589445ec52dd3cb274451e61a39d94db433eb` |
+## Fact-volume example: 10,000 characters
 
-完整工具哈希及每个任务的 `measured_source` 见原始清单；`report_generation_source` 只描述生成报告时的文件，不替换已测源码身份。
+Both backends have 15,372 fact rows here. Values below are medians of exactly three successful measurement workers per backend/mode. Warm has is the median of the pooled 12 request samples from each worker (36 samples per row). Wall times are milliseconds. Commit rows have no snapshot history receiver. The snapshot column measures reuse of the fixture image retained by initial restore, before edits; full snapshot generation occurs in the separate seed worker. Single edit, batch, reload and restoration are sequential phases, so later phases inherit earlier changes until the fixture is restored.
 
-## 实际覆盖与状态
+| Backend | Mode | First has | Warm has/request | Single commit | First has after single | Snapshot reuse | Restore after edits |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| sqlite | cached | 18.981 | 0.187 | 0.438 | 4.348 | 0.001 | 2.801 |
+| sqlite | live | 7.657 | 6.678 | 0.402 | 6.714 | 0.001 | 3.239 |
+| sqlite | materialized | 1.256 | 0.198 | 4.453 | 0.210 | 0.001 | 20.943 |
+| duckdb | cached | 13.528 | 0.858 | 3.065 | 5.956 | 0.001 | 49.297 |
+| duckdb | live | 3.441 | 2.039 | 1.516 | 2.314 | 0.001 | 51.682 |
+| duckdb | materialized | 1.433 | 0.860 | 8.621 | 1.037 | 0.001 | 61.181 |
 
-`completed` 表示任务内预期测量与校验均完成；`budget_limited` 表示达到时限，不能计作通过。以下成功数来自实际子结果；不完整配置不进入本报告的数值汇总。
+This selection illustrates where work occurs; it does not summarize the larger SQLite sizes. Full stages, CPU/RSS, fixture hashes and cardinalities are in [SQLite JSON](facts-sqlite/results.json), [DuckDB JSON](facts-duckdb/results.json) and their [SQLite CSV](facts-sqlite/phases.csv) / [DuckDB CSV](facts-duckdb/phases.csv). Public ingestion and fixture creation are separate from the three measurement repeats.
 
-| 任务 | 状态 | 成功／预期测量记录 | 成功／预期集合校验 | 墙钟秒 | 数据 |
-| --- | --- | ---: | ---: | ---: | --- |
-| conditions-sqlite | `completed` | 108/108 | 36/36 | 1,750.237 | [报告](conditions-sqlite/REPORT.md) · [JSON](conditions-sqlite/results.json) |
-| conditions-duckdb | `completed` | 9/9 | 3/3 | 93.214 | [报告](conditions-duckdb/REPORT.md) · [JSON](conditions-duckdb/results.json) |
-| facts-sqlite | `completed` | 30/30 | 0/0 | 298.487 | [报告](facts-sqlite/REPORT.md) · [JSON](facts-sqlite/results.json) |
-| facts-duckdb | `completed` | 10/10 | 0/0 | 21.751 | [报告](facts-duckdb/REPORT.md) · [JSON](facts-duckdb/results.json) |
-| snapshots | `completed` | 18/18 | 0/0 | 20.188 | [报告](snapshots/REPORT.md) · [JSON](snapshots/results.json) |
-| graph | `completed` | 6/6 | 0/0 | 4.355 | [JSON](graph/results.json) |
-| duckdb-load-3000 | `completed` | 1/1 | 0/0 | 2.367 | [JSON](duckdb-load-3000/results.json) |
-| duckdb-load-10000 | `completed` | 1/1 | 0/0 | 7.224 | [JSON](duckdb-load-10000/results.json) |
+## Condition example: 1,000 checks, ratio 10, partitioned facts
 
-`conditions-sqlite`：每轮读取 1,000／3,000／10,000 个不同条件；事实:总派生关系配比 1:1／约 1:10；布局 领域分表／通用状态表；模式 cached／materialized／live；各配置 3 次独立重复。
+These matched configurations contain 107 fact rows and 1,064 derived outputs including 64 helpers. Each row uses exactly three successful timing workers, and a separate successful full-relation validation worker. Values are medians of complete phase wall times in milliseconds; a panel contains all 1,000 requests. The warm request columns are medians across workers of each worker’s request median/p95, not pooled percentiles. Local, global and unrelated edits occur in that order without resetting: the global panel still includes the local edit, and the unrelated panel includes both.
 
-`conditions-duckdb`：每轮读取 1,000 个不同条件；事实:总派生关系配比 约 1:10；布局 领域分表；模式 cached／materialized／live；各配置 3 次独立重复。
+| Backend | Mode | Load | Cold panel | Warm panel | Local commit + panel | Global commit + panel | Warm request median / p95 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| sqlite | cached | 58.974 | 542.646 | 255.748 | 225.771 | 445.772 | 0.198 / 0.254 |
+| sqlite | materialized | 206.549 | 277.298 | 219.734 | 263.731 | 336.394 | 0.199 / 0.260 |
+| sqlite | live | 109.862 | 342.873 | 269.227 | 311.158 | 306.295 | 0.249 / 0.308 |
+| duckdb | cached | 665.706 | 2898.281 | 702.602 | 778.173 | 2762.565 | 0.699 / 0.729 |
+| duckdb | materialized | 1465.304 | 740.073 | 702.973 | 745.189 | 1487.062 | 0.697 / 0.744 |
+| duckdb | live | 916.159 | 1326.471 | 1275.177 | 1262.853 | 1208.106 | 1.277 / 1.360 |
 
-## 派生条件
+See [SQLite conditions](conditions-sqlite/results.json) and [DuckDB conditions](conditions-duckdb/results.json) for other parameters, ingestion, unrelated edits, invalidations/rebuilds, memory and complete validation evidence. No failed or incomplete groups were included in these tables.
 
-下表展示 SQLite 的 cached 模式、约 1:10 配比、两种事实布局，以及 DuckDB 已测的代表配置。时间单位为 **毫秒**；首轮、warm 轮和动作按整轮计，加载按实例计。一次整轮读取每个不同条件一次。“动作”先在同一试验中相加提交与随后读取，再跨独立进程取中位数。
+## Snapshot path
 
-| 后端 | 条件／事实 | 布局 | 模式 | 重复 | 加载 | 首轮 | warm 轮 | 局部动作 | 全局动作 | 无关动作 |
-| --- | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| sqlite | 1,000/107 | partitioned | cached | 3/3 完成 | 58.974 | 542.646 | 255.748 | 225.771 | 445.772 | 256.390 |
-| sqlite | 1,000/107 | shared_table | cached | 3/3 完成 | 52.883 | 536.867 | 260.827 | 458.484 | 451.542 | 213.237 |
-| sqlite | 3,000/307 | partitioned | cached | 3/3 完成 | 158.715 | 1,888.873 | 837.830 | 860.260 | 1,489.565 | 832.932 |
-| sqlite | 3,000/307 | shared_table | cached | 3/3 完成 | 155.949 | 1,896.165 | 838.755 | 1,550.908 | 1,542.061 | 870.173 |
-| sqlite | 10,000/1,007 | partitioned | cached | 3/3 完成 | 631.954 | 8,288.874 | 3,564.285 | 3,426.364 | 6,157.033 | 3,581.598 |
-| sqlite | 10,000/1,007 | shared_table | cached | 3/3 完成 | 635.658 | 8,282.881 | 3,609.074 | 6,306.576 | 5,885.079 | 3,547.744 |
-| duckdb | 1,000/107 | partitioned | cached | 3/3 完成 | 665.706 | 2,898.281 | 702.602 | 778.173 | 2,762.565 | 700.190 |
-| duckdb | 1,000/107 | partitioned | materialized | 3/3 完成 | 1,465.304 | 740.073 | 702.973 | 745.189 | 1,487.062 | 714.091 |
-| duckdb | 1,000/107 | partitioned | live | 3/3 完成 | 916.159 | 1,326.471 | 1,275.177 | 1,262.853 | 1,208.106 | 1,207.351 |
+Each row is the median of three independent processes, with one sequential sample per process. Setup uses native SQL outside timing. Times are milliseconds; image size is MiB. History commit publishes the latest image to a callback without retaining a complete rollback history. Reused snapshot follows an unchanged snapshot and is a distinct path from full serialization. The phases run sequentially: a marker edit precedes full snapshot/reuse, an ordinary edit follows, the callback-bound world restores that saved image before its history edit, and the original world then restores it. These are different states along one sequence, not separately reset baselines.
 
-条件主矩阵没有绑定历史接收者，普通提交不生成镜像。每次计时读取核对真假；另用独立进程核对初始、局部修改、全局修改、无关修改与阻断五种状态的完整行集合。全部模式和配比详见子报告。
+| Seed rows | Backend / driver | Ordinary commit | History commit | Full snapshot | Reused snapshot | Restore | Image MiB |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 10,000 | sqlite / pysqlite3 | 0.371 | 0.873 | 0.794 | 0.000761 | 2.149 | 0.418 |
+| 10,000 | duckdb / duckdb | 2.920 | 16.378 | 12.927 | 0.001022 | 40.784 | 1.262 |
+| 100,000 | sqlite / pysqlite3 | 0.476 | 3.554 | 4.097 | 0.000691 | 9.894 | 4.148 |
+| 100,000 | duckdb / duckdb | 3.303 | 100.226 | 95.687 | 0.001022 | 95.467 | 5.262 |
+| 1,000,000 | sqlite / pysqlite3 | 0.653 | 31.392 | 32.966 | 0.001122 | 93.626 | 41.492 |
+| 1,000,000 | duckdb / duckdb | 3.578 | 956.410 | 939.366 | 0.001072 | 665.593 | 46.012 |
 
-在 SQLite、10,000 条件、1:1 配比、cached 的完整重复中，局部修改后领域分表重建 **315** 个关系，共用状态表重建 **10,064** 个关系。这是关系级失效对 schema 布局的差异；不能据重建数量直接推断延迟倍数。
+The [raw snapshot record](snapshots/results.json) provides individual samples, driver/runtime identity and parameters. These are simple Seed rows, not the Palace fact distribution or story-condition workload.
 
-## 大事实集压力
+## Chains and loading probes
 
-以下为 cached 模式。时间单位为 **毫秒**；warm has／query 合并该配置完整成功进程的逐请求样本取中位数，其余时间先每进程测量再取跨进程中位数。峰值 RSS 取这些进程的最大值。
+One observation per row, in milliseconds. Chains check the last output then validate invalidation after a removal. Loading probes check one selected condition after ingestion. Neither measures Logica compilation or a complete large DuckDB panel.
 
-| 后端 | 角色 | 重复 | warm has | warm query | 单条普通提交 | 复用镜像 | 修改后恢复 | 峰值 RSS MiB |
-| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| sqlite | 10,000 | 3/3 完成 | 0.187 | 0.925 | 0.438 | 0.001 | 2.801 | 54.5 |
-| sqlite | 100,000 | 3/3 完成 | 0.742 | 8.722 | 0.622 | 0.002 | 14.215 | 113.3 |
-| sqlite | 1,000,000 | 3/3 完成 | 6.320 | 87.133 | 0.704 | 0.002 | 133.877 | 713.7 |
-| duckdb | 10,000 | 3/3 完成 | 0.858 | 0.934 | 3.065 | 0.001 | 49.297 | 137.1 |
+| Chain length | Backend | Load | First final-output read |
+| ---: | --- | ---: | ---: |
+| 128 | sqlite | 6.404 | 13.228 |
+| 128 | duckdb | 102.199 | 64.166 |
+| 512 | sqlite | 20.791 | 56.083 |
+| 512 | duckdb | 293.026 | 241.068 |
+| 1,050 | sqlite | 48.650 | 102.344 |
+| 1,050 | duckdb | 542.450 | 489.619 |
 
-此负载未绑定历史接收者，提交时间不含历史镜像发布。恢复后的 `snapshot` 复用已缓存输入，**不是完整镜像生成时间**；首次生成见 seed 原始阶段及下节。RSS 为整个进程高水位，包含读取、验证和候选世界，不能当作单次查询内存。角色数、事实数及派生行数分别列在子报告；百万角色属于压力测试。
+| DuckDB condition probe | Facts | Load | Ingest | One selected has |
+| ---: | ---: | ---: | ---: | ---: |
+| 3,000 | 307 | 1863.104 | 251.205 | 6.184 |
+| 10,000 | 1,007 | 6005.009 | 799.627 | 5.722 |
 
-## 原生快照与历史提交
+Raw records: [chains](graph/results.json), [3,000-condition probe](duckdb-load-3000/results.json), [10,000-condition probe](duckdb-load-10000/results.json). The completed probes do not fill the missing DuckDB matrix at those counts. DuckDB’s 100,000/1,000,000-character fact-volume workloads, full-engine frame rate, long retained rollback histories, save archive cost, skewed data and cross-hardware comparisons remain unmeasured in this suite.
 
-按配置汇总独立进程：每进程先对自己的顺序样本取中位数，再取跨进程中位数。时间单位为 **毫秒**，镜像大小单位为 **MiB**。没有把失败或缺失样本补零。
-
-| 驱动 | 初始事实 | 独立重复 | 普通提交 | 历史提交 | 首次镜像 | 复用镜像 | 恢复 | 镜像 MiB |
-| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| duckdb | 10,000 | 3/3 完成 | 2.920 | 16.378 | 12.927 | 0.001 | 40.784 | 1.262 |
-| duckdb | 100,000 | 3/3 完成 | 3.303 | 100.226 | 95.687 | 0.001 | 95.467 | 5.262 |
-| duckdb | 1,000,000 | 3/3 完成 | 3.578 | 956.410 | 939.366 | 0.001 | 665.593 | 46.012 |
-| pysqlite3 | 10,000 | 3/3 完成 | 0.371 | 0.873 | 0.794 | 0.001 | 2.149 | 0.418 |
-| pysqlite3 | 100,000 | 3/3 完成 | 0.476 | 3.554 | 4.097 | 0.001 | 9.894 | 4.148 |
-| pysqlite3 | 1,000,000 | 3/3 完成 | 0.653 | 31.392 | 32.966 | 0.001 | 93.626 | 41.492 |
-
-初始化使用原生 SQL 且不计时；实际修改使用公开接口。普通与历史提交在不同数据库实例上测量，历史回调接收完整镜像。该回调不保留长期回退历史，也不包含 Ren’Py 存档归档或 UI 成本。驱动路径见方法说明，不能把不同后端的结果视为只更换同一种序列化器。
-
-## 依赖长链与加载上限
-
-以下为单次探针，不能当作重复测量中位数。超时只说明在本机和给定预算下未完成该阶段，不给出通过结论或精确完成时间。
-
-| 探针 | 后端 | 规模 | 状态 | 时限秒 | 加载毫秒 | 首次读取毫秒 | 中止阶段／错误 |
-| --- | --- | ---: | --- | ---: | ---: | ---: | --- |
-| graph | sqlite | 128 | `ok` / `completed` | 120 | 6.404 | 13.228 | 完成 |
-| graph | duckdb | 128 | `ok` / `completed` | 120 | 102.199 | 64.166 | 完成 |
-| graph | sqlite | 512 | `ok` / `completed` | 120 | 20.791 | 56.083 | 完成 |
-| graph | duckdb | 512 | `ok` / `completed` | 120 | 293.026 | 241.068 | 完成 |
-| graph | sqlite | 1050 | `ok` / `completed` | 120 | 48.650 | 102.344 | 完成 |
-| graph | duckdb | 1050 | `ok` / `completed` | 120 | 542.450 | 489.619 | 完成 |
-| duckdb-load-3000 | duckdb | 3000 | `ok` / `completed` | 120 | 1,863.104 | 6.184 | 完成 |
-| duckdb-load-10000 | duckdb | 10000 | `ok` / `completed` | 120 | 6,005.009 | 5.722 | 完成 |
-
-长链同时检查修改后的失效结果。达到时限的进程已由启动器停止；原始阶段状态 running 是最后检查点，不表示仍在运行。探针使用生成器提供的 SQL 与依赖；“加载”包含规则包构造、数据库初始化和原生图排序，不含 Logica 编译。较大条件探针只覆盖加载、导入与一次指定读取，不能代替全部条件的读取矩阵。
-
-## 结论的范围
-
-本报告展示已测配置的加载、整轮查询、事务与镜像成本。模式、事实布局、共享依赖、结果行数和驱动路径都可能改变这些成本；单一配置不构成数据库选择或游戏帧率保证。
-
-未测范围：
-
-- DuckDB 条件矩阵除 1000 条件、比例 1:10、分表、三模式以外的组合；3000/10000 仅做有时限加载探针。
-- DuckDB 大事实集的 100000 与 1000000 角色。
-- 完整 Ren’Py 帧率、长期回退历史、存档归档、倾斜数据与跨硬件统计。
-
-完整组别、阶段 CPU／RSS、逐请求统计口径、校验结果与失败记录见各子报告及 JSON。根报告仅选取关键数值，失败和不完整配置均不作为成功总体。
-
-报告与原始数据的文件校验见 [SHA256SUMS](SHA256SUMS)。
+Interpret phase costs together with mode, layout, output row count and driver path. These observations do not establish a universal backend ranking or guarantee a game’s frame time. New measurements need their own source and environment identity. Report rendering and suite collection write files; follow the [copied-tree workflow](../../README.md#render-reports-without-changing-the-archive) to preserve this archive.
