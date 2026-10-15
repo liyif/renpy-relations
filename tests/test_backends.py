@@ -31,6 +31,28 @@ def rules(backend):
 
 
 @pytest.mark.parametrize("mode", ["cached", "live", "materialized"])
+def test_column_names_do_not_collide_with_method_parameters(backend, mode):
+    bundle = RuleSet({"format": "renpy-relations", "version": 1, "backend": backend,
+        "facts": {"Person": {"columns": {"name": "text", "self": "text"}}},
+        "derived": {"Visible": {"columns": {"name": "text", "self": "text"},
+                                "sql": "SELECT name, self FROM Person"}},
+        "dependencies": {"Visible": ["Person"]}})
+    db = LogicDB(bundle, mode=mode)
+    try:
+        assert db.query("Visible", name="hero", self="origin") == []
+        db.add("Person", name="hero", self="origin")
+        assert db.query("Visible", name="hero") == [{"name": "hero", "self": "origin"}]
+        assert db.has("Visible", name="hero", self="origin")
+        image = db.snapshot()
+        db.remove("Person", name="hero", self="origin")
+        assert not db.has("Visible", name="hero")
+        db.restore(image)
+        assert db.has("Visible", name="hero", self="origin")
+    finally:
+        db.close()
+
+
+@pytest.mark.parametrize("mode", ["cached", "live", "materialized"])
 def test_native_snapshot_branching_reload_and_failed_batch(backend, mode):
     db = LogicDB(rules(backend), backend=backend, mode=mode)
     try:

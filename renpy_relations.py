@@ -253,7 +253,7 @@ class _SQLiteBackend:
         return _new_engine()
 
     def insert(self, table, values):
-        return sqlite_insert(table).values(**values).on_conflict_do_nothing(
+        return sqlite_insert(table).values(values).on_conflict_do_nothing(
             index_elements=list(table.columns))
 
     def changed(self, conn, statement):
@@ -350,7 +350,7 @@ class _DuckDBBackend:
     def insert(self, table, values):
         # The PostgreSQL statement builder emits DuckDB's supported conflict
         # target syntax. Keeping the target preserves custom-key violations.
-        return conflict_insert(table).values(**values).on_conflict_do_nothing(
+        return conflict_insert(table).values(values).on_conflict_do_nothing(
             index_elements=list(table.columns))
 
     def changed(self, conn, statement):
@@ -639,7 +639,7 @@ class LogicDB:
             self.restore(before)
             raise
 
-    def add(self, name, **values):
+    def add(self, name, /, **values):
         """Assert a complete fact; identical tuples are ignored, key conflicts fail."""
         table = self._table(name, values, fact=True)
         if set(values) != set(table.c.keys()):
@@ -652,7 +652,7 @@ class LogicDB:
         if self._world.backend.changed(self._tx, statement):
             self._dirty.add(name)
 
-    def remove(self, name, **filters):
+    def remove(self, name, /, **filters):
         """Retract matching facts. An empty filter is forbidden."""
         table = self._table(name, filters, fact=True)
         if not filters:
@@ -703,11 +703,11 @@ class LogicDB:
             self._materializations[relation] = self._materializations.get(relation, 0) + 1
         return value
 
-    def query(self, name, **filters):
+    def query(self, name, /, **filters):
         """Return independent dict rows. Row order is unspecified."""
         return self._read(name, filters, exists=False)
 
-    def has(self, name, **filters):
+    def has(self, name, /, **filters):
         return self._read(name, filters, exists=True)
 
     def snapshot(self):

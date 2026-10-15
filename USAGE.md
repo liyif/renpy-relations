@@ -67,17 +67,19 @@ DuckDB 可使用 `LogicDB("relations.duckdb.rules.json")`，后端由产物选�
 
 | 接口 | 行为 |
 | --- | --- |
-| `add(name, **values)` | 添加完整事实；重复元组不产生变更 |
-| `remove(name, **filters)` | 删除匹配的事实；必须提供至少一个过滤字段 |
+| `add(name, /, **values)` | 添加完整事实；重复元组不产生变更 |
+| `remove(name, /, **filters)` | 删除匹配的事实；必须提供至少一个过滤字段 |
 | `batch()` | 合并一次行动的写入、提交和失效；异常时回滚 |
-| `has(name, **filters)` | 判断是否存在匹配行 |
-| `query(name, **filters)` | 返回独立的行字典列表，行顺序未定义 |
+| `has(name, /, **filters)` | 判断是否存在匹配行 |
+| `query(name, /, **filters)` | 返回独立的行字典列表，行顺序未定义 |
 | `snapshot()` | 返回不可变事实镜像；事实未变化时复用镜像 |
 | `restore(image)` | 原子恢复事实；`None` 表示空事实世界 |
 | `reload_rules(rules=None)` | 从原文件或指定路径／RuleSet 加载新规则并保留事实 |
 | `describe(name)` | 查看声明、SQL、派生依赖及直接读取 `reads` |
 | `stats()` | 查看后端、缓存关系、惰性物化计数／耗时及已缓存镜像大小 |
 | `close()` | 释放数据库资源 |
+
+`add`、`remove`、`has`、`query` 的关系名必须作为第一个位置参数传入；关键字参数全部表示字段，因此 `name`、`self` 也可作为列名。例如 `logic.query("Person", name="hero")`。
 
 过滤值使用参数绑定，NULL 按 SQL 语义比较。派生输出按声明类型转换，布尔值归一化为 0／1，NULL 保留。派生关系只读，所有事实修改必须经过上述接口。
 

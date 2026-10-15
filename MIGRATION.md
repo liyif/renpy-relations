@@ -27,8 +27,12 @@
 旧规则包若包含 `plan` 或缺少 `dependencies`，请按 [USAGE](USAGE.md) 的编译步骤重新生成
 两后端产物，并与新运行时一起更新。不要手工删字段或补写依赖。
 
-`LogicDB` 的游戏接口和原生快照格式没有变化；同一后端、相同事实 schema 的快照仍可恢复。
+原生快照格式没有变化；同一后端、相同事实 schema 的快照仍可恢复。
 直接构造规则包的开发工具需同步提供完整的 `dependencies`，执行顺序由运行时数据库计算。
+
+`add`、`remove`、`has`、`query` 的关系名在 0.2.0 中仅限位置参数，让所有关键字参数都用于字段。
+例如将 `logic.query(name="Person")` 改为 `logic.query("Person")`；
+`logic.query("Person", name="hero")` 现在可正常过滤名为 `name` 的列。`self` 列也可正常使用。
 
 ## 基准
 
