@@ -33,8 +33,8 @@
 ```sh
 git switch main
 git pull --ff-only
-git tag -a v0.3.0 -m "Ren’Py Relations 0.3.0"
-git push origin v0.3.0
+git tag -a v0.4.0 -m "Ren’Py Relations 0.4.0"
+git push origin v0.4.0
 ```
 
 `v*` 标签会触发工作流。标签名称不等于 `v<project.version>`，或对应提交不在 `origin/main` 历史中时，构建会失败。构建和检查通过后，才会使用 `pypi` 环境执行发布。
@@ -44,7 +44,7 @@ git push origin v0.3.0
 发布后检查 PyPI 项目页面，并在源码目录之外验证安装：
 
 ```sh
-uv run --isolated --no-project --with renpy-relations==0.3.0 python -I -c \
+uv run --isolated --no-project --with renpy-relations==0.4.0 python -I -c \
   "from renpy_relations import LogicDB, RenpyLogicDB"
 ```
 

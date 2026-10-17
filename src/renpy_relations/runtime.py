@@ -12,6 +12,7 @@ renpy-relations-compile; this runtime only executes them and derives the evaluat
 order from the declared edges. Application values are bound.
 """
 
+from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 import hashlib
@@ -31,7 +32,7 @@ except ImportError:
 
 from sqlalchemy import (
     BigInteger, Boolean, Column, Double, Float, MetaData, String, Table,
-    UniqueConstraint, create_engine, delete, event, literal_column, select,
+    UniqueConstraint, create_engine, delete, event, literal_column, select, text,
 )
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import SQLAlchemyError
@@ -252,6 +253,30 @@ class _SQLiteBackend:
     def engine(self):
         return _new_engine()
 
+    @contextmanager
+    def read_only(self, conn, statement):
+        raw = conn.connection.dbapi_connection
+        allowed = {sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ,
+                   sqlite3.SQLITE_FUNCTION, sqlite3.SQLITE_RECURSIVE}
+        denied = False
+
+        def authorize(action, *_):
+            nonlocal denied
+            if action in allowed:
+                return sqlite3.SQLITE_OK
+            denied = True
+            return sqlite3.SQLITE_DENY
+
+        raw.set_authorizer(authorize)
+        try:
+            yield
+        except SQLAlchemyError as exc:
+            if denied:
+                raise ValueError("query_sql() requires a read-only query") from exc
+            raise
+        finally:
+            raw.set_authorizer(None)
+
     def insert(self, table, values):
         return sqlite_insert(table).values(values).on_conflict_do_nothing(
             index_elements=list(table.columns))
@@ -329,11 +354,21 @@ class _DuckDBBackend:
             raise ImportError("DuckDB backend requires the uv extra: --extra duckdb") from exc
         self.errors = (SQLAlchemyError, duckdb.Error)
         self._native_errors = (duckdb.Error,)
+        self._select_type = duckdb.StatementType.SELECT
 
     def engine(self):
         return create_engine("duckdb:///:memory:", poolclass=StaticPool,
             connect_args={"config": {"threads": 1, "autoload_known_extensions": False,
                                      "autoinstall_known_extensions": False}})
+
+    @contextmanager
+    def read_only(self, conn, statement):
+        # The native parser sees dialect placeholders, not SQLAlchemy's :names.
+        raw = conn.connection.dbapi_connection
+        statements = raw.extract_statements(str(statement.compile(dialect=conn.dialect)))
+        if len(statements) != 1 or statements[0].type != self._select_type:
+            raise ValueError("query_sql() requires a single read-only query")
+        yield
 
     def create_tables(self, conn, tables):
         statements = [str(CreateTable(table).compile(dialect=conn.dialect)) for table in tables]
@@ -668,31 +703,24 @@ class LogicDB:
 
     def _ensure_cached(self, conn, name, staged):
         world = self._world
-        if name not in world.dependencies or name in world.valid:
+        if name not in world.dependencies or name in world.valid or name in staged:
             return
         for dependency in world.needed(conn, name):
-            if dependency not in world.valid:
+            if dependency not in world.valid and dependency not in staged:
                 started = perf_counter()
                 _fill(conn, world, self._rules, dependency)
                 self._materialization_seconds += perf_counter() - started
                 staged.add(dependency)
 
-    def _read(self, name, filters, *, exists):
-        self._idle()
-        table = self._table(name, filters)
-        statement = select(table).where(*(table.c[k] == v for k, v in filters.items()))
-        if exists:
-            statement = statement.limit(1)
+    @contextmanager
+    def _read_connection(self, reads):
         staged = set()
         try:
             with self._world.engine.begin() as conn:
                 if self.mode == "cached":
-                    self._ensure_cached(conn, name, staged)
-                result = conn.execute(statement)
-                try:
-                    value = result.first() is not None if exists else [dict(r) for r in result.mappings()]
-                finally:
-                    result.close()
+                    for name in reads:
+                        self._ensure_cached(conn, name, staged)
+                yield conn
             self._world.created.update(self._world.pending_created)
         finally:
             self._world.pending_created.clear()
@@ -700,6 +728,19 @@ class LogicDB:
         self._world.valid.update(staged)
         for relation in staged:
             self._materializations[relation] = self._materializations.get(relation, 0) + 1
+
+    def _read(self, name, filters, *, exists):
+        self._idle()
+        table = self._table(name, filters)
+        statement = select(table).where(*(table.c[k] == v for k, v in filters.items()))
+        if exists:
+            statement = statement.limit(1)
+        with self._read_connection((name,)) as conn:
+            result = conn.execute(statement)
+            try:
+                value = result.first() is not None if exists else [dict(r) for r in result.mappings()]
+            finally:
+                result.close()
         return value
 
     def query(self, name, /, **filters):
@@ -708,6 +749,31 @@ class LogicDB:
 
     def has(self, name, /, **filters):
         return self._read(name, filters, exists=True)
+
+    def query_sql(self, sql, params=None, *, reads):
+        """Query trusted SQL; reads declares every directly referenced relation."""
+        self._idle()
+        if not isinstance(sql, str) or not sql.strip():
+            raise ValueError("query_sql() requires non-empty SQL")
+        if params is not None and not isinstance(params, Mapping):
+            raise TypeError("params must be a mapping of named parameters")
+        if not isinstance(reads, (list, tuple)):
+            raise TypeError("reads must be a list or tuple of relation names")
+        for name in reads:
+            self._table(name, {})
+        statement = text(sql)
+        with self._read_connection(reads) as conn:
+            with self._world.backend.read_only(conn, statement):
+                result = conn.execute(statement, dict(params) if params is not None else {})
+                try:
+                    if not result.returns_rows:
+                        raise ValueError("query_sql() requires a read-only query returning rows")
+                    if len(result.keys()) != len(set(result.keys())):
+                        raise ValueError("query_sql() requires unique result column names; use AS aliases")
+                    rows = [dict(row) for row in result.mappings()]
+                finally:
+                    result.close()
+        return rows
 
     def snapshot(self):
         self._idle()
@@ -782,4 +848,3 @@ class LogicDB:
             self._world.engine.dispose()
             self._world = None
             self._saved = None
-

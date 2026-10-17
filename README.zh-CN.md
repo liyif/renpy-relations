@@ -54,6 +54,12 @@ Ren’Py snapshot variable → save / load / rollback
 
 ## 安装
 
+在 Python 应用中：
+
+```sh
+uv add renpy-relations
+```
+
 在源码目录中运行：
 
 ```sh
@@ -61,6 +67,8 @@ uv sync --locked
 ```
 
 安装 wheel 或嵌入普通应用，请阅读 [Python 指南](docs/python.zh-CN.md)；准备游戏项目，请按 [Ren’Py 快速入门](docs/quickstart.zh-CN.md#准备并运行-palace)操作。开发环境使用 Python 3.12，支持环境和驱动版本见[参考手册](docs/reference.zh-CN.md#兼容性)。
+
+对事实和派生关系进行 SQL 排序、聚合或连接，请参阅 [`query_sql()`](docs/reference.zh-CN.md#sql-查询)。
 
 ## 项目结构
 

@@ -149,7 +149,7 @@ finally:
 
 `LogicDB(rules, *, backend=None, mode="cached", on_snapshot=None)` creates an empty in-memory world. `rules` is a bundle path or `RuleSet`. `backend`, when supplied, checks that the bundle targets that backend; it does not override it. `mode` selects evaluation behavior. `on_snapshot` is an optional synchronous callback receiving image `bytes` after a changed commit.
 
-One `LogicDB` represents one synchronous world. Use the public operations to manage it; raw SQL, private engine access, asynchronous access, and sharing a world across threads are not public contracts.
+One `LogicDB` represents one synchronous world. Use the public operations to manage it; direct connection access, asynchronous access, and sharing a world across threads are not public contracts.
 
 ### Facts and queries
 
@@ -160,8 +160,9 @@ One `LogicDB` represents one synchronous world. Use the public operations to man
 | `batch()` | Context manager yielding the same `LogicDB`; group writes into one transaction and at most one snapshot publication. |
 | `query(name, /, **filters)` | Return a list of independent row dictionaries. No filters means all rows. Row order is unspecified. |
 | `has(name, /, **filters)` | Return whether any row matches, using a result limit of one. No filters tests whether the relation has any rows. |
+| `query_sql(sql, params=None, *, reads)` | Execute one read-only SQL query with named values and explicit relation reads; see below. |
 
-The relation name is positional-only in these four methods. Column names such as `name` and `self` remain available as values or filters:
+The relation name is positional-only in `add()`, `remove()`, `query()`, and `has()`. Column names such as `name` and `self` remain available as values or filters:
 
 ```python
 # For a schema declaring Person(name: text, self: text):
@@ -169,9 +170,35 @@ logic.add("Person", name="hero", self="origin")
 assert logic.has("Person", name="hero", self="origin")
 ```
 
-Filters combine with SQL equality and logical AND. `None` matches a null derived value. These are database comparisons, not Python cache-key comparisons. There is no public ordering, range-filter, join, update, or arbitrary SQL argument; put those derivations into rules and sort returned rows in application code when presentation needs an order.
+Filters combine with SQL equality and logical AND. `None` matches a null derived value. Use `query_sql()` for ordering, range filters, joins, and aggregation, or define reusable derivations in Logica.
 
 Only declared facts can be added or removed. Unknown relations, unknown columns, incomplete additions, and unfiltered removals raise `ValueError`. Passing the relation as a keyword rather than positionally is Python argument misuse and raises `TypeError`.
+
+### SQL queries
+
+`query_sql(sql, params=None, *, reads)` executes one read-only query and returns independent row dictionaries. SELECT queries, CTEs, named parameters, comments, and a trailing semicolon are supported:
+
+```python
+rows = logic.query_sql(
+    """
+    SELECT location, COUNT(*) AS characters
+    FROM CanEnter
+    GROUP BY location
+    ORDER BY characters DESC, location
+    LIMIT :limit
+    """,
+    {"limit": 10},
+    reads=("CanEnter",),
+)
+```
+
+`reads` is a required list or tuple naming every directly referenced fact or derived relation. Indirect dependencies come from the compiled bundle; do not list them again. Use `reads=()` for queries that read no relations. In cached mode, only the requested derived relations and their dependencies are prepared, once per query. Subsequent queries reuse valid relation tables, but SQL result lists are never cached.
+
+The runtime validates the names in `reads`; it does not infer or verify them against SQL. An omitted relation can be absent on its first use or contain stale cached rows after a fact change. Keep this declaration with the SQL, including relations read by subqueries and CTEs. It has the same meaning in all three modes.
+
+`params` is a mapping of names to bound values, using `:name` placeholders. Values are not SQL fragments or identifiers. SQL uses the selected backend's dialect, and output values use its native driver types, without the schema conversions performed by `query()`. Give duplicate output columns distinct `AS` aliases; ambiguous names raise `ValueError`.
+
+Writes, DDL, transaction commands, and multiple statements are rejected. SQLite uses its native authorizer, and DuckDB uses native statement classification; neither parses SQL in Python. Fact writes continue through `add()` and `remove()`. SQL is trusted application code, like compiled rules; this interface is not a sandbox for user-supplied SQL or external-resource access. Empty SQL and unknown relation names raise `ValueError`; invalid argument types raise `TypeError`; syntax, binding, and execution errors retain backend exceptions. Failed queries roll back their cache preparation and leave the world usable. No connection or cursor escapes the call.
 
 ### Transactions and no-ops
 
@@ -189,7 +216,7 @@ An exception escaping the batch rolls back its fact writes and any eager output 
 
 A batch with no changed SQL rows does not invalidate outputs or publish a snapshot. Empty batches, reasserting an identical tuple, and removing a nonexistent match are such no-ops. A sequence that changes rows and then reverses those changes is still a changed batch; the runtime does not compare final fact sets to detect net-zero work.
 
-Nested batches are forbidden. `query()`, `has()`, `snapshot()`, `restore()`, reload operations, `stats()`, `close()`, and adapter installation require an idle world and raise `RuntimeError` during a batch or snapshot publication. A snapshot callback cannot reenter these operations or start another write. `describe()` only inspects the declaration and does not evaluate rules.
+Nested batches are forbidden. `query()`, `query_sql()`, `has()`, `snapshot()`, `restore()`, reload operations, `stats()`, `close()`, and adapter installation require an idle world and raise `RuntimeError` during a batch or snapshot publication. A snapshot callback cannot reenter these operations or start another write. `describe()` only inspects the declaration and does not evaluate rules.
 
 ### Inspection and closure
 

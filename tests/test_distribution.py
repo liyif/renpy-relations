@@ -87,9 +87,14 @@ for mode in ('cached', 'live', 'materialized'):
             db.add('Member', user='alice', role='editor')
             db.add('RoleAccess', role='editor', resource='drafts')
         assert db.has('CanAccess', user='alice', resource='drafts')
+        assert db.query_sql(
+            'SELECT resource, COUNT(*) AS users FROM CanAccess WHERE user=:user GROUP BY resource',
+            {'user': 'alice'}, reads=('CanAccess',),
+        ) == [{'resource': 'drafts', 'users': 1}]
         image = db.snapshot()
         db.add('Revoked', user='alice', resource='drafts')
         assert not db.has('CanAccess', user='alice', resource='drafts')
+        assert db.query_sql('SELECT * FROM CanAccess', reads=('CanAccess',)) == []
         db.restore(image)
         assert db.has('CanAccess', user='alice', resource='drafts')
     finally:

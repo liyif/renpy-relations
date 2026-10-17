@@ -1,5 +1,5 @@
 define config.name = "Ren'Py Relations - Palace"
-define config.version = "0.3.0"
+define config.version = "0.4.0"
 define config.screen_width = 960
 define config.screen_height = 640
 define config.save_directory = "renpy-relations-palace-" + os.environ.get("RELATIONS_BACKEND", "sqlite")

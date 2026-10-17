@@ -6,19 +6,25 @@ Ren’Py Relations 提供可用于普通 Python 应用的独立核心。它存�
 
 ## 安装
 
-安装 `renpy-relations`，从 `renpy_relations` 导入。在源码目录中用 uv 构建：
+在你的应用所使用的 uv 项目中安装 `renpy-relations`，从 `renpy_relations` 导入：
+
+```sh
+uv add renpy-relations
+```
+
+也可以在源码目录中构建本地 wheel：
 
 ```sh
 uv build --out-dir dist/python
 ```
 
-这会生成 `renpy_relations-0.3.0-py3-none-any.whl` 和 `renpy_relations-0.3.0.tar.gz`。在你的应用所使用的 uv 项目中安装本地 wheel：
+这会生成 `renpy_relations-0.4.0-py3-none-any.whl` 和 `renpy_relations-0.4.0.tar.gz`。在你的应用所使用的 uv 项目中安装本地 wheel：
 
 ```sh
-uv add /path/to/renpy_relations-0.3.0-py3-none-any.whl
+uv add /path/to/renpy_relations-0.4.0-py3-none-any.whl
 ```
 
-上述步骤使用本地构建产物，不要求项目已发布到软件包索引。也可以用 `uv add /path/to/RenpyRelations` 从源码目录安装。
+开发时也可以用 `uv add /path/to/RenpyRelations` 从本地源码目录安装。
 
 | 安装选项 | 依赖 |
 | --- | --- |
@@ -26,7 +32,7 @@ uv add /path/to/renpy_relations-0.3.0-py3-none-any.whl
 | `--extra duckdb` | 额外安装 DuckDB 及其 SQLAlchemy 方言。 |
 | `--extra compiler` | 额外安装 Logica，用于开发阶段编译。 |
 
-例如，`uv add --extra compiler --extra duckdb /path/to/renpy_relations-0.3.0-py3-none-any.whl` 会同时安装两组可选依赖。运行时读取预先编译的 JSON 规则包，不会导入 Logica。纯 Python wheel 包含可选的适配器代码，只有显式使用时才会启用；安装和导入这个包都不需要 Ren’Py。
+例如，`uv add --extra compiler --extra duckdb /path/to/renpy_relations-0.4.0-py3-none-any.whl` 会同时安装两组可选依赖。运行时读取预先编译的 JSON 规则包，不会导入 Logica。纯 Python wheel 包含可选的适配器代码，只有显式使用时才会启用；安装和导入这个包都不需要 Ren’Py。
 
 ## 需要维护的文件
 
@@ -65,6 +71,7 @@ uv run --locked --extra duckdb python examples/python_access/main.py --backend d
 
 ```text
 Eligible: [{'user': 'alice', 'resource': 'drafts'}, {'user': 'bob', 'resource': 'drafts'}]
+Access by resource: [{'resource': 'drafts', 'users': 2}]
 Alice after revocation: False
 Alice after restore: True
 ```
@@ -94,7 +101,9 @@ finally:
 
 核心公开导出 `LogicDB`、`RuleSet` 和 `RuleError`。构造时通过 `mode` 选择 `cached`、`live` 或 `materialized`。数据库后端由编译后的规则包决定，SQLite 和 DuckDB 分别使用对应的规则包。
 
-查询返回由行字典组成的列表，`has()` 判断匹配行是否存在。用 `batch()` 组织相关写入，退出后再查询。失败的批事务会回滚；查询本身不会执行应用动作。键、过滤条件、事务限制、错误和诊断接口见[运行时参考](reference.zh-CN.md#运行时-api)。
+查询返回由行字典组成的列表，`has()` 判断匹配行是否存在。排序、聚合和连接可使用 `query_sql(sql, params, reads=(...))`，声明直接读取的关系，使缓存输出在执行查询前准备好。示例使用它按资源统计访问人数。参数、后端类型和必填的读取声明见 [SQL 查询](reference.zh-CN.md#sql-查询)。
+
+用 `batch()` 组织相关写入，退出后再查询。失败的批事务会回滚；查询本身不会执行应用动作。键、过滤条件、事务限制、错误和诊断接口见[运行时参考](reference.zh-CN.md#运行时-api)。
 
 ## 在开发阶段编译规则
 
@@ -124,4 +133,4 @@ DuckDB 命令还需要 `duckdb` 可选依赖。编译器记录 SQL、依赖和�
 
 规则包标识 `renpy-relations` 和快照元数据保持不变，以保留既有数据的兼容性。这些标识并不要求运行环境安装 Ren’Py。
 
-一个事实世界应在所属线程中同步使用。异步访问、并发共享、任意 SQL、宿主提供的持久数据库连接和分布式执行均不属于公开接口。原生快照要求相同后端和兼容的事实数据模式，跨数据库版本的长期可移植性尚未验证。Python 元数据允许 >=3.11,<3.15，目前本地安装和集成检查使用 Linux x86_64 上的 Python 3.12。`py3-none-any` wheel 包含 Python 代码，可选驱动则有各自的平台要求。
+一个事实世界应在所属线程中同步使用。异步访问、并发共享、SQL 写入、宿主提供的持久数据库连接和分布式执行均不属于公开接口。原生快照要求相同后端和兼容的事实数据模式，跨数据库版本的长期可移植性尚未验证。Python 元数据允许 >=3.11,<3.15，目前本地安装和集成检查使用 Linux x86_64 上的 Python 3.12。`py3-none-any` wheel 包含 Python 代码，可选驱动则有各自的平台要求。

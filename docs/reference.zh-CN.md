@@ -149,7 +149,7 @@ finally:
 
 `LogicDB(rules, *, backend=None, mode="cached", on_snapshot=None)` 创建一个空的内存世界。`rules` 是规则包路径或 `RuleSet`。如果提供 `backend`，它会检查规则包是否面向该后端，而不会覆盖规则包的后端。`mode` 选择计算行为。`on_snapshot` 是可选的同步回调，在发生变更的提交之后接收映像 `bytes`。
 
-一个 `LogicDB` 表示一个同步世界。请通过公共操作管理它；原始 SQL、访问私有引擎、异步访问以及跨线程共享世界均不属于公共契约。
+一个 `LogicDB` 表示一个同步世界。请通过公共操作管理它；直接访问连接、异步访问以及跨线程共享世界均不属于公共契约。
 
 ### 事实与查询
 
@@ -160,8 +160,9 @@ finally:
 | `batch()` | 上下文管理器，产生同一个 `LogicDB`；将写入合并为一个事务，最多发布一次快照。 |
 | `query(name, /, **filters)` | 返回由独立行字典组成的列表。不提供筛选条件时返回所有行。行顺序未作规定。 |
 | `has(name, /, **filters)` | 使用一行的结果上限，返回是否存在匹配行。不提供筛选条件时检查该关系是否包含任何行。 |
+| `query_sql(sql, params=None, *, reads)` | 执行一条只读 SQL 查询，使用命名参数并显式声明读取的关系；详见下文。 |
 
-这四个方法的关系名都只能按位置传入。因此 `name` 和 `self` 等列名仍可用作值或筛选条件：
+`add()`、`remove()`、`query()` 和 `has()` 的关系名只能按位置传入。因此 `name` 和 `self` 等列名仍可用作值或筛选条件：
 
 ```python
 # For a schema declaring Person(name: text, self: text):
@@ -169,9 +170,35 @@ logic.add("Person", name="hero", self="origin")
 assert logic.has("Person", name="hero", self="origin")
 ```
 
-筛选条件使用 SQL 相等比较，并以逻辑 AND 组合。`None` 匹配派生结果中的空值。这些是数据库比较，而非 Python 缓存键比较。公共接口不提供排序、范围筛选、连接、更新或任意 SQL 参数；请将这些推导放入规则，在展示需要顺序时，由应用代码对返回的行排序。
+筛选条件使用 SQL 相等比较，并以逻辑 AND 组合。`None` 匹配派生结果中的空值。排序、范围筛选、连接和聚合可使用 `query_sql()`；可复用的推导也可以定义为 Logica 规则。
 
 只能添加或删除已声明的事实。未知关系、未知列、不完整的添加以及不带筛选条件的删除都会抛出 `ValueError`。将关系名作为关键字而不是位置参数传入，属于 Python 参数使用错误，会抛出 `TypeError`。
+
+### SQL 查询
+
+`query_sql(sql, params=None, *, reads)` 执行一条只读查询，返回独立行字典组成的列表。支持 SELECT 查询、CTE、命名参数、注释和末尾的分号：
+
+```python
+rows = logic.query_sql(
+    """
+    SELECT location, COUNT(*) AS characters
+    FROM CanEnter
+    GROUP BY location
+    ORDER BY characters DESC, location
+    LIMIT :limit
+    """,
+    {"limit": 10},
+    reads=("CanEnter",),
+)
+```
+
+`reads` 是必填的列表或元组，列出查询直接读取的所有事实或派生关系。间接依赖来自编译好的规则包，无需重复列出。不读取任何关系时使用 `reads=()`。在 cached 模式下，只准备这些派生关系及其依赖，每次查询中各准备一次。之后的查询复用仍有效的关系表，但不会缓存 SQL 查询结果列表。
+
+运行时检查 `reads` 中的名称，但不会从 SQL 中推断依赖，也不会核对声明是否完整。遗漏的关系可能在首次使用时尚不存在，也可能在事实变更后含有过时的缓存行。请将声明与 SQL 放在一起维护，包括子查询和 CTE 读取的关系。三种模式下，这个声明的含义相同。
+
+`params` 是名称到绑定值的映射，使用 `:name` 占位符。值不能作为 SQL 片段或标识符。SQL 使用所选后端的方言，输出值采用数据库驱动的原生类型，不进行 `query()` 所使用的数据模式类型转换。重复的输出列名需要不同的 `AS` 别名，否则抛出 `ValueError`。
+
+写入、DDL、事务控制及多条语句会被拒绝。SQLite 使用原生授权回调，DuckDB 使用原生语句分类，均不在 Python 中解析 SQL。事实写入继续通过 `add()` 和 `remove()`。SQL 与编译后的规则一样属于可信应用代码；该接口不是用于执行用户提供的 SQL 或限制外部资源访问的沙箱。空 SQL 和未知关系名抛出 `ValueError`，参数类型错误抛出 `TypeError`，语法、绑定和执行错误保留后端异常。查询失败会回滚该次缓存准备，世界仍可继续使用。调用不会返回连接或游标。
 
 ### 事务与无操作
 
@@ -189,7 +216,7 @@ members = logic.query("Member", character="hero")
 
 没有 SQL 行发生变化的批次不会使输出失效，也不会发布快照。空批次、重新断言相同元组，以及删除不存在的匹配项都属于这种无操作。先更改行再撤销这些更改的序列仍然算作发生变更的批次；运行时不会比较最终事实集合来检测净变化为零的工作。
 
-不允许嵌套批次。`query()`、`has()`、`snapshot()`、`restore()`、重载操作、`stats()`、`close()` 和适配器安装都要求世界处于空闲状态；在批次或快照发布期间调用会抛出 `RuntimeError`。快照回调不能重入这些操作，也不能开始新的写入。`describe()` 只检查声明，不会计算规则。
+不允许嵌套批次。`query()`、`query_sql()`、`has()`、`snapshot()`、`restore()`、重载操作、`stats()`、`close()` 和适配器安装都要求世界处于空闲状态；在批次或快照发布期间调用会抛出 `RuntimeError`。快照回调不能重入这些操作，也不能开始新的写入。`describe()` 只检查声明，不会计算规则。
 
 ### 检查与关闭
 

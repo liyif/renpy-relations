@@ -33,8 +33,8 @@ Update `pyproject.toml`, `uv.lock`, example version strings and release notes to
 ```sh
 git switch main
 git pull --ff-only
-git tag -a v0.3.0 -m "Ren’Py Relations 0.3.0"
-git push origin v0.3.0
+git tag -a v0.4.0 -m "Ren’Py Relations 0.4.0"
+git push origin v0.4.0
 ```
 
 A `v*` tag triggers the workflow. The build rejects a tag that differs from `v<project.version>` or whose commit is not in `origin/main`. Publication starts only after the build and checks pass, using the `pypi` environment.
@@ -44,7 +44,7 @@ Manually selecting a version tag also runs the publishing job. To inspect an alr
 After publication, check the PyPI project page and verify installation outside the source checkout:
 
 ```sh
-uv run --isolated --no-project --with renpy-relations==0.3.0 python -I -c \
+uv run --isolated --no-project --with renpy-relations==0.4.0 python -I -c \
   "from renpy_relations import LogicDB, RenpyLogicDB"
 ```
 

@@ -54,6 +54,12 @@ The runtime uses `cached` mode by default: it builds derived relations when firs
 
 ## Installation
 
+In a Python application:
+
+```sh
+uv add renpy-relations
+```
+
 From a source checkout:
 
 ```sh
@@ -61,6 +67,8 @@ uv sync --locked
 ```
 
 Follow the [Python guide](docs/python.md) to install a wheel or embed the library, or the [Ren’Py quickstart](docs/quickstart.md#stage-and-play-palace) to stage a game. Development uses Python 3.12; supported environments and driver versions are listed in the [reference](docs/reference.md#compatibility).
+
+For SQL sorting, aggregation, and joins over facts and derived relations, see [`query_sql()`](docs/reference.md#sql-queries).
 
 ## Project layout
 

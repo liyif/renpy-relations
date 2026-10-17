@@ -6,19 +6,25 @@ Ren’Py Relations includes an engine-independent core for ordinary Python appli
 
 ## Install
 
-Install `renpy-relations` and import from `renpy_relations`. From the source checkout, build it with uv:
+Install `renpy-relations` in your application's uv project and import from `renpy_relations`:
+
+```sh
+uv add renpy-relations
+```
+
+To build a local wheel from the source checkout:
 
 ```sh
 uv build --out-dir dist/python
 ```
 
-This produces `renpy_relations-0.3.0-py3-none-any.whl` and `renpy_relations-0.3.0.tar.gz`. In your application's uv project, install the local wheel:
+This produces `renpy_relations-0.4.0-py3-none-any.whl` and `renpy_relations-0.4.0.tar.gz`. In your application's uv project, install the local wheel:
 
 ```sh
-uv add /path/to/renpy_relations-0.3.0-py3-none-any.whl
+uv add /path/to/renpy_relations-0.4.0-py3-none-any.whl
 ```
 
-These instructions use local artifacts; no package-index publication is assumed. You can also use `uv add /path/to/RenpyRelations` to install from a checkout.
+You can also use `uv add /path/to/RenpyRelations` to install a local checkout for development.
 
 | Installation | Dependencies |
 | --- | --- |
@@ -26,7 +32,7 @@ These instructions use local artifacts; no package-index publication is assumed.
 | `--extra duckdb` | Also installs DuckDB and its SQLAlchemy dialect. |
 | `--extra compiler` | Also installs Logica for development-time compilation. |
 
-For example, `uv add --extra compiler --extra duckdb /path/to/renpy_relations-0.3.0-py3-none-any.whl` installs both optional features. The runtime uses precompiled JSON bundles and does not import Logica. The pure Python wheel contains the optional adapter code, which is inactive unless explicitly used; it does not install or import Ren’Py.
+For example, `uv add --extra compiler --extra duckdb /path/to/renpy_relations-0.4.0-py3-none-any.whl` installs both optional features. The runtime uses precompiled JSON bundles and does not import Logica. The pure Python wheel contains the optional adapter code, which is inactive unless explicitly used; it does not install or import Ren’Py.
 
 ## Files you work with
 
@@ -65,6 +71,7 @@ Both runs print:
 
 ```text
 Eligible: [{'user': 'alice', 'resource': 'drafts'}, {'user': 'bob', 'resource': 'drafts'}]
+Access by resource: [{'resource': 'drafts', 'users': 2}]
 Alice after revocation: False
 Alice after restore: True
 ```
@@ -94,7 +101,9 @@ finally:
 
 `LogicDB`, `RuleSet`, and `RuleError` are the public core imports. Choose `cached`, `live`, or `materialized` with the `mode` constructor argument. The backend comes from the compiled bundle. Use separate bundles for SQLite and DuckDB.
 
-Queries return lists of row dictionaries; `has()` answers existence. Group related writes in `batch()`, then query after it exits. A failed batch rolls back. Queries do not perform application actions. See the [runtime reference](reference.md#runtime-api) for keys, filters, transaction restrictions, errors and diagnostics.
+Queries return lists of row dictionaries; `has()` answers existence. For SQL sorting, aggregation, and joins, use `query_sql(sql, params, reads=(...))`, declaring the directly referenced relations so cached outputs are prepared before execution. The example uses this to count access by resource. See [SQL queries](reference.md#sql-queries) for parameters, backend types, and the required reads contract.
+
+Group related writes in `batch()`, then query after it exits. A failed batch rolls back. Queries do not perform application actions. See the [runtime reference](reference.md#runtime-api) for keys, filters, transaction restrictions, errors and diagnostics.
 
 ## Compile rules during development
 
@@ -124,4 +133,4 @@ Import `RenpyLogicDB` from `renpy_relations` and call `install_renpy(config)` du
 
 The rule-bundle identifier `renpy-relations` and snapshot metadata remain unchanged to preserve existing data. These identifiers do not imply an engine dependency.
 
-Use one world synchronously on its owning thread. Async access, concurrent sharing, arbitrary SQL, a persistent database connection supplied by the host, and distributed execution are outside the public interface. Native snapshots require the same backend and compatible fact schema; long-term portability across database versions is unverified. Python metadata permits >=3.11,<3.15; local installation and integration checks currently use Python 3.12 on Linux x86_64. The `py3-none-any` wheel contains Python code, while optional drivers have their own platform requirements.
+Use one world synchronously on its owning thread. Async access, concurrent sharing, SQL writes, a persistent database connection supplied by the host, and distributed execution are outside the public interface. Native snapshots require the same backend and compatible fact schema; long-term portability across database versions is unverified. Python metadata permits >=3.11,<3.15; local installation and integration checks currently use Python 3.12 on Linux x86_64. The `py3-none-any` wheel contains Python code, while optional drivers have their own platform requirements.

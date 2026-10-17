@@ -18,6 +18,10 @@ def main():
             logic.add("RoleAccess", role="editor", resource="drafts")
             logic.add("Sponsored", user="bob", resource="drafts")
         print("Eligible:", sorted(logic.query("CanAccess"), key=lambda row: row["user"]))
+        print("Access by resource:", logic.query_sql(
+            "SELECT resource, COUNT(*) AS users FROM CanAccess GROUP BY resource ORDER BY resource",
+            reads=("CanAccess",),
+        ))
         saved = logic.snapshot()
         logic.add("Revoked", user="alice", resource="drafts")
         print("Alice after revocation:", logic.has("CanAccess", user="alice", resource="drafts"))
